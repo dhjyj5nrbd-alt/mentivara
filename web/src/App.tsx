@@ -11,6 +11,7 @@ import TutorDirectory from './pages/TutorDirectory'
 import TutorView from './pages/TutorView'
 import Lessons from './pages/Lessons'
 import BookLesson from './pages/BookLesson'
+import Classroom from './pages/Classroom'
 
 const queryClient = new QueryClient()
 
@@ -44,6 +45,7 @@ function AppRoutes() {
       <Route path="/tutors/:id" element={<TutorView />} />
       <Route path="/tutors/:id/book" element={<ProtectedRoute roles={['student']}><BookLesson /></ProtectedRoute>} />
       <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
+      <Route path="/classroom/:lessonId" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
       <Route
         path="/dashboard"
         element={

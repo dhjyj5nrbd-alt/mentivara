@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\ClassroomController;
 use App\Http\Controllers\Api\V1\LessonController;
 use App\Http\Controllers\Api\V1\TutorDirectoryController;
 use App\Http\Controllers\Api\V1\TutorProfileController;
@@ -46,6 +47,19 @@ Route::prefix('v1')->group(function () {
         Route::get('/lessons/calendar', [LessonController::class, 'calendar']);
         Route::get('/lessons/{id}', [LessonController::class, 'show']);
         Route::post('/lessons/{id}/cancel', [BookingController::class, 'cancel']);
+
+        // Live classroom
+        Route::prefix('classroom/{lessonId}')->group(function () {
+            Route::get('/join', [ClassroomController::class, 'join']);
+            Route::post('/end', [ClassroomController::class, 'end']);
+            Route::post('/messages', [ClassroomController::class, 'sendMessage']);
+            Route::get('/messages/poll', [ClassroomController::class, 'pollMessages']);
+            Route::post('/whiteboard/strokes', [ClassroomController::class, 'addStroke']);
+            Route::get('/whiteboard/strokes/poll', [ClassroomController::class, 'pollStrokes']);
+            Route::delete('/whiteboard', [ClassroomController::class, 'clearWhiteboard']);
+            Route::post('/signal', [ClassroomController::class, 'sendSignal']);
+            Route::get('/signal/poll', [ClassroomController::class, 'pollSignals']);
+        });
 
         // Admin-only routes
         Route::middleware('role:admin')->prefix('admin')->group(function () {

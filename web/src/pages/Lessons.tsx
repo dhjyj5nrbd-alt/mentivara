@@ -42,13 +42,23 @@ function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: 
         <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {timeStr}</span>
         <span>{lesson.duration_minutes} min</span>
       </div>
-      {lesson.status === 'scheduled' && onCancel && (
-        <button
-          onClick={() => onCancel(lesson.id)}
-          className="mt-3 text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
-        >
-          <X className="w-3 h-3" /> Cancel lesson
-        </button>
+      {(lesson.status === 'scheduled' || lesson.status === 'in_progress') && (
+        <div className="mt-3 flex items-center gap-3">
+          <Link
+            to={`/classroom/${lesson.id}`}
+            className="text-xs px-3 py-1.5 bg-[#7C3AED] text-white rounded-lg font-medium hover:bg-[#6D28D9]"
+          >
+            {lesson.status === 'in_progress' ? 'Rejoin Classroom' : 'Join Classroom'}
+          </Link>
+          {lesson.status === 'scheduled' && onCancel && (
+            <button
+              onClick={() => onCancel(lesson.id)}
+              className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
+            >
+              <X className="w-3 h-3" /> Cancel
+            </button>
+          )}
+        </div>
       )}
     </div>
   )
