@@ -17,15 +17,24 @@ class ExamController extends Controller
      */
     public function questions(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'subject_id' => ['nullable', 'integer', 'exists:subjects,id'],
+            'level_id' => ['nullable', 'integer', 'exists:levels,id'],
+            'topic_id' => ['nullable', 'integer', 'exists:curriculum_topics,id'],
+            'difficulty' => ['nullable', 'in:easy,medium,hard'],
+            'type' => ['nullable', 'in:mcq,short_answer,long_answer'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+
         $query = Question::with(['subject', 'level', 'topic']);
 
-        if ($request->has('subject_id')) $query->where('subject_id', $request->subject_id);
-        if ($request->has('level_id')) $query->where('level_id', $request->level_id);
-        if ($request->has('topic_id')) $query->where('topic_id', $request->topic_id);
-        if ($request->has('difficulty')) $query->where('difficulty', $request->difficulty);
-        if ($request->has('type')) $query->where('type', $request->type);
+        if (!empty($validated['subject_id'])) $query->where('subject_id', $validated['subject_id']);
+        if (!empty($validated['level_id'])) $query->where('level_id', $validated['level_id']);
+        if (!empty($validated['topic_id'])) $query->where('topic_id', $validated['topic_id']);
+        if (!empty($validated['difficulty'])) $query->where('difficulty', $validated['difficulty']);
+        if (!empty($validated['type'])) $query->where('type', $validated['type']);
 
-        return response()->json($query->paginate($request->integer('per_page', 20)));
+        return response()->json($query->paginate($validated['per_page'] ?? 20));
     }
 
     /**

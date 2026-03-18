@@ -13,41 +13,37 @@ class TutorDirectoryController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
+        $validated = $request->validate([
+            'subject' => ['nullable', 'string', 'max:50'],
+            'level' => ['nullable', 'string', 'max:50'],
+            'exam_board' => ['nullable', 'string', 'max:50'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+
         $query = TutorProfile::query()
             ->whereHas('user', fn ($q) => $q->where('status', 'active'))
             ->where('verified', true)
             ->with(['user', 'tutorSubjects.subject', 'tutorSubjects.level', 'tutorSubjects.examBoard']);
 
-        // Filter by subject
-        if ($request->has('subject')) {
-            $query->whereHas('tutorSubjects.subject', function ($q) use ($request) {
-                $q->where('slug', $request->subject);
-            });
+        if (!empty($validated['subject'])) {
+            $query->whereHas('tutorSubjects.subject', fn ($q) => $q->where('slug', $validated['subject']));
         }
 
-        // Filter by level
-        if ($request->has('level')) {
-            $query->whereHas('tutorSubjects.level', function ($q) use ($request) {
-                $q->where('slug', $request->level);
-            });
+        if (!empty($validated['level'])) {
+            $query->whereHas('tutorSubjects.level', fn ($q) => $q->where('slug', $validated['level']));
         }
 
-        // Filter by exam board
-        if ($request->has('exam_board')) {
-            $query->whereHas('tutorSubjects.examBoard', function ($q) use ($request) {
-                $q->where('slug', $request->exam_board);
-            });
+        if (!empty($validated['exam_board'])) {
+            $query->whereHas('tutorSubjects.examBoard', fn ($q) => $q->where('slug', $validated['exam_board']));
         }
 
-        // Search by name
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            });
+        if (!empty($validated['search'])) {
+            $search = $validated['search'];
+            $query->whereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"));
         }
 
-        $tutors = $query->paginate($request->integer('per_page', 12));
+        $tutors = $query->paginate($validated['per_page'] ?? 12);
 
         return TutorDirectoryResource::collection($tutors);
     }

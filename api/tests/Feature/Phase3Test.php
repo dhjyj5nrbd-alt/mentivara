@@ -101,7 +101,7 @@ class Phase3Test extends TestCase
         $s1 = $this->student();
         $s2 = $this->student();
 
-        $group = $this->actingAs($s1)->postJson('/api/v1/study-groups', ['name' => 'GCSE Maths Study']);
+        $group = $this->actingAs($s1)->postJson('/api/v1/study-groups', ['name' => 'GCSE Maths Study', 'is_private' => false]);
         $group->assertStatus(201);
 
         $this->actingAs($s2)->postJson("/api/v1/study-groups/{$group->json('data.id')}/join")->assertOk();

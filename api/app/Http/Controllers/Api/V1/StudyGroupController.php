@@ -47,6 +47,10 @@ class StudyGroupController extends Controller
     {
         $group = StudyGroup::findOrFail($id);
 
+        if ($group->is_private) {
+            return response()->json(['message' => 'This group is private. You need an invitation to join.'], 403);
+        }
+
         $existing = StudyGroupMember::where('study_group_id', $id)
             ->where('user_id', $request->user()->id)->exists();
 

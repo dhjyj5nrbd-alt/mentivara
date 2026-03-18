@@ -55,12 +55,16 @@ class BookingController extends Controller
             return response()->json(['message' => 'The tutor is not available at this time.'], 422);
         }
 
-        // Check for conflicting lessons
+        // Check for conflicting lessons (database-agnostic)
+        $lessonEnd = $scheduledAt->copy()->addMinutes($duration);
         $conflict = Lesson::where('tutor_id', $tutorUser->id)
             ->where('status', 'scheduled')
-            ->where('scheduled_at', '<', $scheduledAt->copy()->addMinutes($duration))
-            ->whereRaw("datetime(scheduled_at, '+' || duration_minutes || ' minutes') > ?", [$scheduledAt->toDateTimeString()])
-            ->exists();
+            ->where('scheduled_at', '<', $lessonEnd)
+            ->get()
+            ->contains(function ($existing) use ($scheduledAt) {
+                $existingEnd = $existing->scheduled_at->copy()->addMinutes($existing->duration_minutes);
+                return $existingEnd->greaterThan($scheduledAt);
+            });
 
         if ($conflict) {
             return response()->json(['message' => 'This time slot is already booked.'], 409);
@@ -124,10 +128,14 @@ class BookingController extends Controller
             return response()->json(['message' => 'Lessons must be cancelled at least 24 hours in advance.'], 422);
         }
 
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
         $lesson->update([
             'status' => 'cancelled',
             'cancelled_by' => $user->role === 'tutor' ? 'tutor' : 'student',
-            'cancel_reason' => $request->input('reason'),
+            'cancel_reason' => $validated['reason'] ?? null,
         ]);
 
         return response()->json(['message' => 'Lesson cancelled.']);

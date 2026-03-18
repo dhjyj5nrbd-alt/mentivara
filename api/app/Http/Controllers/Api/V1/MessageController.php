@@ -71,7 +71,7 @@ class MessageController extends Controller
             'media_url' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if ($validated['receiver_id'] == $request->user()->id) {
+        if ((int) $validated['receiver_id'] === $request->user()->id) {
             return response()->json(['message' => 'Cannot message yourself.'], 422);
         }
 

@@ -66,11 +66,16 @@ class PaymentController extends Controller
     }
 
     /**
-     * Simulate payment completion (replaces Stripe webhook in dev).
-     * In production, this would be POST /webhook/stripe.
+     * Simulate payment completion (DEV ONLY — replace with Stripe webhook in production).
+     * WARNING: This endpoint must be removed or restricted before production deployment.
      */
     public function confirmPayment(Request $request, int $paymentId): JsonResponse
     {
+        // Block in production
+        if (app()->environment('production')) {
+            return response()->json(['message' => 'Payment confirmation must go through Stripe webhook.'], 403);
+        }
+
         $payment = Payment::where('id', $paymentId)
             ->where('student_id', $request->user()->id)
             ->where('status', 'pending')
