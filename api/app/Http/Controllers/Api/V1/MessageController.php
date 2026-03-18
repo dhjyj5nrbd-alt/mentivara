@@ -4,33 +4,61 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MessageController extends Controller
 {
     /**
      * List conversations (unique contacts with last message).
+     * Uses SQL-level aggregation instead of loading all messages into memory.
      */
     public function conversations(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
 
-        $conversations = Message::where('sender_id', $userId)
-            ->orWhere('receiver_id', $userId)
-            ->orderByDesc('created_at')
-            ->get()
-            ->groupBy(fn ($m) => $m->sender_id === $userId ? $m->receiver_id : $m->sender_id)
-            ->map(fn ($msgs, $contactId) => [
-                'contact_id' => (int) $contactId,
-                'contact_name' => $msgs->first()->sender_id === $userId
-                    ? $msgs->first()->receiver->name
-                    : $msgs->first()->sender->name,
-                'last_message' => $msgs->first()->body,
-                'last_at' => $msgs->first()->created_at,
-                'unread' => $msgs->where('receiver_id', $userId)->whereNull('read_at')->count(),
-            ])
-            ->values();
+        // Get unique contact IDs with their latest message ID
+        $sent = Message::where('sender_id', $userId)
+            ->selectRaw('receiver_id as contact_id, MAX(id) as last_message_id')
+            ->groupBy('receiver_id');
+
+        $received = Message::where('receiver_id', $userId)
+            ->selectRaw('sender_id as contact_id, MAX(id) as last_message_id')
+            ->groupBy('sender_id');
+
+        // Union and get the latest message per contact
+        $contactMessages = DB::query()
+            ->fromSub(
+                $sent->unionAll($received),
+                'combined'
+            )
+            ->selectRaw('contact_id, MAX(last_message_id) as last_message_id')
+            ->groupBy('contact_id')
+            ->orderByDesc('last_message_id')
+            ->get();
+
+        $conversations = $contactMessages->map(function ($row) use ($userId) {
+            $message = Message::find($row->last_message_id);
+            $contact = User::find($row->contact_id);
+
+            if (!$message || !$contact) return null;
+
+            $unread = Message::where('sender_id', $row->contact_id)
+                ->where('receiver_id', $userId)
+                ->whereNull('read_at')
+                ->count();
+
+            return [
+                'contact_id' => (int) $row->contact_id,
+                'contact_name' => $contact->name,
+                'contact_avatar' => $contact->avatar,
+                'last_message' => $message->body,
+                'last_at' => $message->created_at,
+                'unread' => $unread,
+            ];
+        })->filter()->values();
 
         return response()->json(['data' => $conversations]);
     }

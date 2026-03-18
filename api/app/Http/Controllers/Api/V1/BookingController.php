@@ -87,14 +87,30 @@ class BookingController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        // If recurring, create the next 4 weekly lessons
+        // If recurring, create the next 4 weekly lessons (with per-lesson conflict check)
         if ($recurrenceGroup) {
             for ($i = 1; $i <= 4; $i++) {
+                $recurDate = $scheduledAt->copy()->addWeeks($i);
+                $recurEnd = $recurDate->copy()->addMinutes($duration);
+
+                $recurConflict = Lesson::where('tutor_id', $tutorUser->id)
+                    ->where('status', 'scheduled')
+                    ->where('scheduled_at', '<', $recurEnd)
+                    ->get()
+                    ->contains(function ($existing) use ($recurDate) {
+                        $existingEnd = $existing->scheduled_at->copy()->addMinutes($existing->duration_minutes);
+                        return $existingEnd->greaterThan($recurDate);
+                    });
+
+                if ($recurConflict) {
+                    continue; // Skip conflicting weeks instead of failing
+                }
+
                 Lesson::create([
                     'tutor_id' => $tutorUser->id,
                     'student_id' => $request->user()->id,
                     'subject_id' => $validated['subject_id'] ?? null,
-                    'scheduled_at' => $scheduledAt->copy()->addWeeks($i),
+                    'scheduled_at' => $recurDate,
                     'duration_minutes' => $duration,
                     'status' => 'scheduled',
                     'is_recurring' => true,

@@ -60,8 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   loadUser: async () => {
-    const token = authService.restoreToken()
-    if (!token) {
+    if (!authService.hasToken()) {
       set({ isLoading: false })
       return
     }

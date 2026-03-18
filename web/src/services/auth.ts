@@ -28,14 +28,12 @@ export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>('/login', payload)
     localStorage.setItem('token', data.token)
-    api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
     return data
   },
 
   async register(payload: RegisterPayload): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>('/register', payload)
     localStorage.setItem('token', data.token)
-    api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
     return data
   },
 
@@ -47,14 +45,9 @@ export const authService = {
   async logout(): Promise<void> {
     await api.post('/logout')
     localStorage.removeItem('token')
-    delete api.defaults.headers.common['Authorization']
   },
 
-  restoreToken(): string | null {
-    const token = localStorage.getItem('token')
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    }
-    return token
+  hasToken(): boolean {
+    return !!localStorage.getItem('token')
   },
 }
