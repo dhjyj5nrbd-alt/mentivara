@@ -1,0 +1,14 @@
+{
+  "name": "mentivara",
+  "version": "0.0.1",
+  "private": true,
+  "description": "AI-powered tutoring platform",
+  "scripts": {
+    "dev:web": "cd web && npm run dev",
+    "dev:api": "cd api && php artisan serve",
+    "build:web": "cd web && npm run build",
+    "lint:web": "cd web && npm run lint",
+    "test:api": "cd api && php artisan test",
+    "test:web": "cd web && npm run test"
+  }
+}
