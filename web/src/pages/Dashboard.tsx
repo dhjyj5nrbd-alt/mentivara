@@ -1,100 +1,94 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import Layout from '../components/Layout'
+import {
+  BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
+  Dumbbell, MessageSquare, Shield, Users, Trophy, Flame,
+} from 'lucide-react'
+
+interface CardProps {
+  to: string
+  icon: React.ElementType
+  title: string
+  desc: string
+  accent?: string
+}
+
+function DashCard({ to, icon: Icon, title, desc, accent }: CardProps) {
+  return (
+    <Link to={to} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all group">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${accent || 'bg-[#EDE9FE] text-[#7C3AED]'}`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
+      <p className="text-slate-500 text-sm">{desc}</p>
+    </Link>
+  )
+}
 
 export default function Dashboard() {
-  const { user, logout } = useAuthStore()
-  const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const firstName = user?.name?.split(' ')[0]
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
-
-  const roleLabel = {
-    admin: 'Administrator',
-    tutor: 'Tutor',
-    student: 'Student',
-    parent: 'Parent',
-  }
-
-  const roleBadgeColor = {
-    admin: 'bg-red-100 text-red-700',
-    tutor: 'bg-blue-100 text-blue-700',
-    student: 'bg-emerald-100 text-emerald-700',
-    parent: 'bg-amber-100 text-amber-700',
-  }
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Top bar */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <h1 className="text-xl font-bold text-[#1E1B4B]">Mentivara</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-600">{user?.name}</span>
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${roleBadgeColor[user?.role || 'student']}`}>
-              {roleLabel[user?.role || 'student']}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-slate-500 hover:text-slate-700"
-            >
-              Sign out
-            </button>
-          </div>
+    <Layout>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B]">{greeting}, {firstName}</h1>
+          <p className="text-slate-500 mt-1">Here's your learning overview</p>
         </div>
-      </header>
-
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-semibold text-[#1E1B4B] mb-6">
-          Welcome back, {user?.name?.split(' ')[0]}
-        </h2>
 
         {user?.role === 'tutor' && user?.status === 'pending' && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-xl mb-6">
-            <p className="font-medium">Your account is pending approval</p>
-            <p className="text-sm mt-1">An admin will review your application shortly.</p>
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-xl mb-6 flex items-start gap-3">
+            <Flame className="w-5 h-5 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium">Your account is pending approval</p>
+              <p className="text-sm mt-1">An admin will review your application shortly.</p>
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link to="/lessons" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-semibold text-slate-900 mb-2">My Lessons</h3>
-            <p className="text-slate-500 text-sm">View upcoming and past lessons</p>
-          </Link>
-          <Link to="/payments" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-semibold text-slate-900 mb-2">{user?.role === 'tutor' ? 'Earnings' : 'Payments'}</h3>
-            <p className="text-slate-500 text-sm">View payment history</p>
-          </Link>
-          {user?.role === 'student' && (
-            <>
-              <Link to="/tutors" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                <h3 className="font-semibold text-slate-900 mb-2">Find a Tutor</h3>
-                <p className="text-slate-500 text-sm">Browse and book tutors</p>
-              </Link>
-              <Link to="/exam" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                <h3 className="font-semibold text-slate-900 mb-2">Exam Simulator</h3>
-                <p className="text-slate-500 text-sm">Practice with timed exams</p>
-              </Link>
-              <Link to="/knowledge-map" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                <h3 className="font-semibold text-slate-900 mb-2">Knowledge Map</h3>
-                <p className="text-slate-500 text-sm">Track your topic mastery</p>
-              </Link>
-              <Link to="/doubts" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                <h3 className="font-semibold text-slate-900 mb-2">AI Doubt Solver</h3>
-                <p className="text-slate-500 text-sm">Get instant answers to questions</p>
-              </Link>
-            </>
-          )}
-          {user?.role === 'admin' && (
-            <Link to="/admin" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-              <h3 className="font-semibold text-slate-900 mb-2">Admin Panel</h3>
-              <p className="text-slate-500 text-sm">Manage users and platform</p>
-            </Link>
-          )}
-        </div>
-      </main>
-    </div>
+        {user?.role === 'student' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons" />
+            <DashCard to="/tutors" icon={Search} title="Find a Tutor" desc="Browse and book verified tutors" accent="bg-blue-50 text-blue-600" />
+            <DashCard to="/exam" icon={GraduationCap} title="Exam Simulator" desc="Practice with timed mock exams" accent="bg-emerald-50 text-emerald-600" />
+            <DashCard to="/knowledge-map" icon={Brain} title="Knowledge Map" desc="Track your topic mastery" accent="bg-sky-50 text-sky-600" />
+            <DashCard to="/doubts" icon={HelpCircle} title="AI Doubt Solver" desc="Get instant answers" accent="bg-amber-50 text-amber-600" />
+            <DashCard to="/mental-dojo" icon={Dumbbell} title="Mental Dojo" desc="Focus, calmness, confidence" accent="bg-rose-50 text-rose-600" />
+            <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history" />
+            <DashCard to="/messages/conversations" icon={MessageSquare} title="Messages" desc="Chat with your tutors" />
+            <DashCard to="/leaderboard" icon={Trophy} title="Leaderboard" desc="Top students by XP" accent="bg-amber-50 text-amber-600" />
+          </div>
+        )}
+
+        {user?.role === 'tutor' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons" />
+            <DashCard to="/payments" icon={CreditCard} title="Earnings" desc="View your earnings" accent="bg-emerald-50 text-emerald-600" />
+            <DashCard to="/messages/conversations" icon={MessageSquare} title="Messages" desc="Chat with students" />
+          </div>
+        )}
+
+        {user?.role === 'parent' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons" />
+            <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history" />
+          </div>
+        )}
+
+        {user?.role === 'admin' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <DashCard to="/admin" icon={Shield} title="Admin Dashboard" desc="Platform overview" accent="bg-red-50 text-red-600" />
+            <DashCard to="/admin/users" icon={Users} title="Users" desc="Manage platform users" />
+            <DashCard to="/admin/tutors-pending" icon={GraduationCap} title="Pending Tutors" desc="Review applications" accent="bg-amber-50 text-amber-600" />
+            <DashCard to="/admin/payments" icon={CreditCard} title="Payments" desc="All transactions" accent="bg-emerald-50 text-emerald-600" />
+          </div>
+        )}
+      </div>
+    </Layout>
   )
 }

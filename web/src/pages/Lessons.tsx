@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { lessonService, type LessonItem } from '../services/lessons'
 import { useAuthStore } from '../store/authStore'
+import Layout from '../components/Layout'
 import { Calendar, Clock, X } from 'lucide-react'
 
 function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: number) => void }) {
@@ -14,18 +15,25 @@ function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: 
   const dateStr = date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
   const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     scheduled: 'bg-blue-50 text-blue-700',
     in_progress: 'bg-emerald-50 text-emerald-700',
     completed: 'bg-slate-100 text-slate-600',
     cancelled: 'bg-red-50 text-red-600',
   }
 
+  const statusLabels: Record<string, string> = {
+    scheduled: 'Scheduled',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+  }
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold">
+          <div className="w-10 h-10 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold" aria-hidden="true">
             {otherPerson.name.charAt(0)}
           </div>
           <div>
@@ -34,7 +42,7 @@ function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: 
           </div>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[lesson.status]}`}>
-          {lesson.status}
+          {statusLabels[lesson.status] || lesson.status}
         </span>
       </div>
       <div className="flex items-center gap-4 text-sm text-slate-600">
@@ -46,18 +54,29 @@ function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: 
         <div className="mt-3 flex items-center gap-3">
           <Link
             to={`/classroom/${lesson.id}`}
-            className="text-xs px-3 py-1.5 bg-[#7C3AED] text-white rounded-lg font-medium hover:bg-[#6D28D9]"
+            className="text-sm px-4 py-2 bg-[#7C3AED] text-white rounded-lg font-medium hover:bg-[#6D28D9] transition-colors"
           >
             {lesson.status === 'in_progress' ? 'Rejoin Classroom' : 'Join Classroom'}
           </Link>
           {lesson.status === 'scheduled' && onCancel && (
             <button
-              onClick={() => onCancel(lesson.id)}
-              className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
+              onClick={() => { if (window.confirm('Are you sure you want to cancel this lesson?')) onCancel(lesson.id) }}
+              className="text-sm px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg flex items-center gap-1 transition-colors"
+              aria-label={`Cancel lesson with ${otherPerson.name}`}
             >
-              <X className="w-3 h-3" /> Cancel
+              <X className="w-4 h-4" /> Cancel
             </button>
           )}
+        </div>
+      )}
+      {lesson.status === 'completed' && (
+        <div className="mt-3">
+          <Link
+            to={`/lessons/${lesson.id}/package`}
+            className="text-sm text-[#7C3AED] hover:underline font-medium"
+          >
+            View Lesson Package
+          </Link>
         </div>
       )}
     </div>
@@ -91,14 +110,8 @@ export default function Lessons() {
   const isLoading = tab === 'upcoming' ? loadingUpcoming : loadingPast
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">My Lessons</h1>
 
         <div className="flex gap-2 mb-6">
@@ -135,7 +148,7 @@ export default function Lessons() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

@@ -61,8 +61,10 @@ export default function Register() {
                       ? 'border-[#7C3AED] bg-[#EDE9FE] text-[#7C3AED]'
                       : 'border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
+                  aria-pressed={form.role === r.value}
                 >
                   <div className="font-medium text-sm">{r.label}</div>
+                  <div className="text-[10px] mt-0.5 opacity-70">{r.desc}</div>
                 </button>
               ))}
             </div>
