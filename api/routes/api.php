@@ -1,17 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| All routes are prefixed with /api by default.
-| V1 routes are grouped under /api/v1.
-|
-*/
 
 Route::prefix('v1')->group(function () {
     // Health check
@@ -23,16 +13,36 @@ Route::prefix('v1')->group(function () {
         ]);
     });
 
-    // Auth routes (public)
-    // Route::post('/register', [AuthController::class, 'register']);
-    // Route::post('/login', [AuthController::class, 'login']);
+    // Public auth routes
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
 
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/user', function (Request $request) {
-            return $request->user();
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me', [AuthController::class, 'me']);
+
+        // Admin-only routes
+        Route::middleware('role:admin')->prefix('admin')->group(function () {
+            Route::get('/', function () {
+                return response()->json(['message' => 'Admin area']);
+            });
+            // Tutor approval, user management — will be added next
         });
 
-        // Route::post('/logout', [AuthController::class, 'logout']);
+        // Tutor-only routes
+        Route::middleware('role:tutor')->prefix('tutor')->group(function () {
+            // Profile management, availability — will be added next
+        });
+
+        // Student-only routes
+        Route::middleware('role:student')->prefix('student')->group(function () {
+            // Bookings, study tools — will be added next
+        });
+
+        // Parent-only routes
+        Route::middleware('role:parent')->prefix('parent')->group(function () {
+            // Dashboard — will be added next
+        });
     });
 });
