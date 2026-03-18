@@ -17,7 +17,10 @@ use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\MissionController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReelController;
+use App\Http\Controllers\Api\V1\StudyCoachController;
 use App\Http\Controllers\Api\V1\StudyGroupController;
+use App\Http\Controllers\Api\V1\StudyScheduleController;
+use App\Http\Controllers\Api\V1\MentalDojoController;
 use App\Http\Controllers\Api\V1\TutorDirectoryController;
 use App\Http\Controllers\Api\V1\TutorProfileController;
 use App\Models\CurriculumTopic;
@@ -108,6 +111,22 @@ Route::prefix('v1')->group(function () {
         // Knowledge Map
         Route::get('/knowledge-map', [KnowledgeMapController::class, 'index']);
         Route::get('/knowledge-map/weak-topics', [KnowledgeMapController::class, 'weakTopics']);
+
+        // Mental Dojo
+        Route::get('/mental-dojo/courses', [MentalDojoController::class, 'courses']);
+        Route::get('/mental-dojo/courses/{courseId}/modules', [MentalDojoController::class, 'courseModules']);
+        Route::post('/mental-dojo/modules/{moduleId}/complete', [MentalDojoController::class, 'completeModule']);
+
+        // AI Study Coach
+        Route::get('/coach/recommendations', [StudyCoachController::class, 'recommendations']);
+        Route::post('/coach/generate', [StudyCoachController::class, 'generate']);
+        Route::post('/coach/recommendations/{id}/dismiss', [StudyCoachController::class, 'dismiss']);
+        Route::get('/coach/stats', [StudyCoachController::class, 'stats']);
+
+        // Study Schedule Optimizer
+        Route::get('/schedule/current', [StudyScheduleController::class, 'current']);
+        Route::post('/schedule/generate', [StudyScheduleController::class, 'generate']);
+        Route::get('/schedule/history', [StudyScheduleController::class, 'history']);
 
         // Reels (authenticated actions)
         Route::post('/reels/{id}/like', [ReelController::class, 'toggleLike']);

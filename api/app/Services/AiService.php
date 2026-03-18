@@ -117,6 +117,26 @@ class AiService
             return 'Great question! The answer involves understanding the fundamental principle. Let me break it down step by step: First, identify the key components. Then, apply the relevant method. Finally, verify your answer by checking it against known results.';
         }
 
+        if (str_contains($systemPrompt, 'study coach') || str_contains($systemPrompt, 'recommendations')) {
+            return json_encode([
+                ['type' => 'focus_area', 'content' => 'Based on your recent performance, focus more time on your weakest topics. Spending just 20 extra minutes per day on these areas will significantly improve your scores.'],
+                ['type' => 'study_strategy', 'content' => 'Try the Pomodoro technique: 25 minutes of focused study followed by a 5-minute break. This has been shown to improve retention and reduce burnout.'],
+                ['type' => 'encouragement', 'content' => 'You are making great progress! Keep up your study streak and remember that consistency beats intensity when it comes to learning.'],
+            ]);
+        }
+
+        if (str_contains($systemPrompt, 'study planner') || str_contains($systemPrompt, 'study schedule')) {
+            return json_encode([
+                ['day' => 'Monday', 'blocks' => [['start' => '16:00', 'end' => '16:45', 'subject' => 'Mathematics', 'topic' => 'Algebra', 'type' => 'study'], ['start' => '16:45', 'end' => '17:00', 'subject' => '', 'topic' => 'Break', 'type' => 'break']]],
+                ['day' => 'Tuesday', 'blocks' => [['start' => '16:00', 'end' => '16:45', 'subject' => 'English', 'topic' => 'Reading', 'type' => 'study']]],
+                ['day' => 'Wednesday', 'blocks' => [['start' => '16:00', 'end' => '16:45', 'subject' => 'Biology', 'topic' => 'Cell Biology', 'type' => 'study']]],
+                ['day' => 'Thursday', 'blocks' => [['start' => '16:00', 'end' => '16:45', 'subject' => 'Chemistry', 'topic' => 'Atomic Structure', 'type' => 'practice']]],
+                ['day' => 'Friday', 'blocks' => [['start' => '16:00', 'end' => '16:45', 'subject' => 'Physics', 'topic' => 'Forces', 'type' => 'review']]],
+                ['day' => 'Saturday', 'blocks' => [['start' => '10:00', 'end' => '11:30', 'subject' => 'Mathematics', 'topic' => 'Mock Exam', 'type' => 'practice']]],
+                ['day' => 'Sunday', 'blocks' => []],
+            ]);
+        }
+
         return 'AI response placeholder. Configure ANTHROPIC_API_KEY in .env for real AI responses.';
     }
 }
