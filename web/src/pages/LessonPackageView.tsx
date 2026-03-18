@@ -1,0 +1,96 @@
+import { useParams, Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { aiService } from '../services/ai'
+import { BookOpen, Brain, HelpCircle, FileText } from 'lucide-react'
+
+export default function LessonPackageView() {
+  const { lessonId } = useParams<{ lessonId: string }>()
+  const id = Number(lessonId)
+  const queryClient = useQueryClient()
+
+  const { data: pkg, isLoading, error } = useQuery({
+    queryKey: ['lesson-package', id],
+    queryFn: () => aiService.getPackage(id),
+    retry: false,
+  })
+
+  const generateMutation = useMutation({
+    mutationFn: () => aiService.generatePackage(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lesson-package', id] }),
+  })
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+  }
+
+  if (error || !pkg) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600 mb-4">No lesson package generated yet.</p>
+          <button
+            onClick={() => generateMutation.mutate()}
+            disabled={generateMutation.isPending}
+            className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold"
+          >
+            {generateMutation.isPending ? 'Generating...' : 'Generate Lesson Package'}
+          </button>
+          <div className="mt-4"><Link to="/lessons" className="text-sm text-slate-500">Back to lessons</Link></div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-200">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-[#1E1B4B]">Lesson Package</h1>
+          <Link to="/lessons" className="text-sm text-slate-500">Back</Link>
+        </div>
+      </header>
+      <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        {pkg.summary && (
+          <section className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center gap-2 mb-3"><FileText className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Summary</h2></div>
+            <p className="text-slate-700">{pkg.summary}</p>
+          </section>
+        )}
+        {pkg.key_notes && (
+          <section className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center gap-2 mb-3"><BookOpen className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Key Notes</h2></div>
+            <ul className="space-y-2">{pkg.key_notes.map((note, i) => <li key={i} className="text-slate-700 flex gap-2"><span className="text-[#7C3AED] font-bold">{i+1}.</span>{note}</li>)}</ul>
+          </section>
+        )}
+        {pkg.flashcards && (
+          <section className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center gap-2 mb-3"><Brain className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Flashcards</h2></div>
+            <div className="grid gap-3">{pkg.flashcards.map((fc, i) => (
+              <div key={i} className="border border-slate-200 rounded-lg p-4">
+                <p className="font-medium text-slate-900 mb-2">{fc.front}</p>
+                <p className="text-slate-600 text-sm">{fc.back}</p>
+              </div>
+            ))}</div>
+          </section>
+        )}
+        {pkg.practice_questions && (
+          <section className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center gap-2 mb-3"><HelpCircle className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Practice Questions</h2></div>
+            <div className="space-y-3">{pkg.practice_questions.map((pq, i) => (
+              <div key={i} className="border border-slate-200 rounded-lg p-4">
+                <p className="font-medium text-slate-900">{pq.question}</p>
+                {pq.hint && <p className="text-slate-500 text-sm mt-1">Hint: {pq.hint}</p>}
+              </div>
+            ))}</div>
+          </section>
+        )}
+        {pkg.homework && (
+          <section className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center gap-2 mb-3"><FileText className="w-5 h-5 text-amber-500" /><h2 className="font-semibold text-slate-900">Homework</h2></div>
+            <p className="text-slate-700">{pkg.homework}</p>
+          </section>
+        )}
+      </main>
+    </div>
+  )
+}
