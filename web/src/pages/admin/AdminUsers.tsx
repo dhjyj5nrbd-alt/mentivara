@@ -124,9 +124,9 @@ export default function AdminUsers() {
                 ))}
               </tbody>
             </table>
-            {data?.total > 0 && (
-              <div className="px-4 py-3 bg-slate-50 text-xs text-slate-500">{data.total} users total</div>
-            )}
+            {(data?.total ?? data?.meta?.total) ? (
+              <div className="px-4 py-3 bg-slate-50 text-xs text-slate-500">{data?.total ?? data?.meta?.total} users total</div>
+            ) : null}
           </div>
         )}
       </main>

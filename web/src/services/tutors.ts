@@ -1,4 +1,5 @@
 import api from './api'
+import type { PaginatedResponse } from './types'
 
 export interface TutorSubjectEntry {
   name: string
@@ -53,7 +54,7 @@ export const tutorService = {
     if (filters.search) params.set('search', filters.search)
     if (filters.page) params.set('page', String(filters.page))
 
-    const { data } = await api.get<{ data: TutorListItem[]; meta: any }>(`/tutors?${params}`)
+    const { data } = await api.get<PaginatedResponse<TutorListItem>>(`/tutors?${params}`)
     return data
   },
 

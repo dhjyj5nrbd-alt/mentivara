@@ -1,4 +1,5 @@
 import api from './api'
+import type { PaginatedResponse } from './types'
 
 export interface PaymentItem {
   id: number
@@ -15,23 +16,30 @@ export interface PaymentItem {
   created_at: string
 }
 
+export interface CheckoutResult {
+  payment_id: number
+  amount: string
+  currency: string
+  status: string
+}
+
 export const paymentService = {
-  async checkout(lessonId: number) {
-    const { data } = await api.post<{ data: any }>('/payments/checkout', { lesson_id: lessonId })
+  async checkout(lessonId: number): Promise<CheckoutResult> {
+    const { data } = await api.post<{ data: CheckoutResult }>('/payments/checkout', { lesson_id: lessonId })
     return data.data
   },
 
-  async confirm(paymentId: number) {
-    const { data } = await api.post(`/payments/${paymentId}/confirm`)
+  async confirm(paymentId: number): Promise<{ message: string; data: PaymentItem }> {
+    const { data } = await api.post<{ message: string; data: PaymentItem }>(`/payments/${paymentId}/confirm`)
     return data
   },
 
-  async history() {
-    const { data } = await api.get('/payments')
+  async history(): Promise<PaginatedResponse<PaymentItem>> {
+    const { data } = await api.get<PaginatedResponse<PaymentItem>>('/payments')
     return data
   },
 
-  async get(id: number) {
+  async get(id: number): Promise<PaymentItem> {
     const { data } = await api.get<{ data: PaymentItem }>(`/payments/${id}`)
     return data.data
   },
