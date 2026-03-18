@@ -15,6 +15,7 @@ class TutorProfile extends Model
         'intro_video_url',
         'verified',
         'onboarding_complete',
+        'hourly_rate',
     ];
 
     protected function casts(): array

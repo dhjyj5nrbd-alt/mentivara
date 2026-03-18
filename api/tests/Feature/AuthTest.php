@@ -176,7 +176,7 @@ class AuthTest extends TestCase
         $student = User::factory()->create(['role' => 'student']);
 
         // Student trying to access admin routes should be blocked
-        $this->actingAs($student)->getJson('/api/v1/admin')
+        $this->actingAs($student)->getJson('/api/v1/admin/dashboard')
             ->assertStatus(403);
     }
 }

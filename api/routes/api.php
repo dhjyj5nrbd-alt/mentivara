@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\ClassroomController;
 use App\Http\Controllers\Api\V1\LessonController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\TutorDirectoryController;
 use App\Http\Controllers\Api\V1\TutorProfileController;
 use App\Models\ExamBoard;
@@ -48,6 +50,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/lessons/{id}', [LessonController::class, 'show']);
         Route::post('/lessons/{id}/cancel', [BookingController::class, 'cancel']);
 
+        // Payments (shared)
+        Route::get('/payments', [PaymentController::class, 'history']);
+        Route::get('/payments/{id}', [PaymentController::class, 'show']);
+        Route::post('/payments/checkout', [PaymentController::class, 'createCheckout']);
+        Route::post('/payments/{id}/confirm', [PaymentController::class, 'confirmPayment']);
+
         // Live classroom
         Route::prefix('classroom/{lessonId}')->group(function () {
             Route::get('/join', [ClassroomController::class, 'join']);
@@ -63,9 +71,16 @@ Route::prefix('v1')->group(function () {
 
         // Admin-only routes
         Route::middleware('role:admin')->prefix('admin')->group(function () {
-            Route::get('/', function () {
-                return response()->json(['message' => 'Admin area']);
-            });
+            Route::get('/dashboard', [AdminController::class, 'dashboard']);
+            Route::get('/users', [AdminController::class, 'users']);
+            Route::get('/users/{id}', [AdminController::class, 'showUser']);
+            Route::patch('/users/{id}/status', [AdminController::class, 'updateUserStatus']);
+            Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+            Route::get('/tutors/pending', [AdminController::class, 'pendingTutors']);
+            Route::post('/tutors/{id}/approve', [AdminController::class, 'approveTutor']);
+            Route::post('/tutors/{id}/reject', [AdminController::class, 'rejectTutor']);
+            Route::get('/payments', [PaymentController::class, 'adminPayments']);
+            Route::post('/payments/{id}/refund', [PaymentController::class, 'refund']);
         });
 
         // Tutor-only routes

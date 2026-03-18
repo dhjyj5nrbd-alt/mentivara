@@ -63,14 +63,22 @@ export default function Dashboard() {
             <h3 className="font-semibold text-slate-900 mb-2">My Lessons</h3>
             <p className="text-slate-500 text-sm">View upcoming and past lessons</p>
           </Link>
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 className="font-semibold text-slate-900 mb-2">Recent Activity</h3>
-            <p className="text-slate-500 text-sm">Nothing to show yet.</p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 className="font-semibold text-slate-900 mb-2">Quick Actions</h3>
-            <p className="text-slate-500 text-sm">Features coming soon.</p>
-          </div>
+          <Link to="/payments" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+            <h3 className="font-semibold text-slate-900 mb-2">{user?.role === 'tutor' ? 'Earnings' : 'Payments'}</h3>
+            <p className="text-slate-500 text-sm">View payment history</p>
+          </Link>
+          {user?.role === 'student' && (
+            <Link to="/tutors" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+              <h3 className="font-semibold text-slate-900 mb-2">Find a Tutor</h3>
+              <p className="text-slate-500 text-sm">Browse and book tutors</p>
+            </Link>
+          )}
+          {user?.role === 'admin' && (
+            <Link to="/admin" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+              <h3 className="font-semibold text-slate-900 mb-2">Admin Panel</h3>
+              <p className="text-slate-500 text-sm">Manage users and platform</p>
+            </Link>
+          )}
         </div>
       </main>
     </div>

@@ -25,6 +25,7 @@ class TutorProfileController extends Controller
             'bio' => ['sometimes', 'string', 'max:2000'],
             'qualifications' => ['sometimes', 'string', 'max:2000'],
             'intro_video_url' => ['sometimes', 'nullable', 'url', 'max:500'],
+            'hourly_rate' => ['sometimes', 'integer', 'min:500', 'max:50000'], // £5–£500
         ]);
 
         $profile = $request->user()->tutorProfile;

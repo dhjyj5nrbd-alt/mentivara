@@ -12,6 +12,11 @@ import TutorView from './pages/TutorView'
 import Lessons from './pages/Lessons'
 import BookLesson from './pages/BookLesson'
 import Classroom from './pages/Classroom'
+import Payments from './pages/Payments'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminUsers from './pages/admin/AdminUsers'
+import PendingTutors from './pages/admin/PendingTutors'
+import AdminPayments from './pages/admin/AdminPayments'
 
 const queryClient = new QueryClient()
 
@@ -46,6 +51,7 @@ function AppRoutes() {
       <Route path="/tutors/:id/book" element={<ProtectedRoute roles={['student']}><BookLesson /></ProtectedRoute>} />
       <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
       <Route path="/classroom/:lessonId" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
+      <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
       <Route
         path="/dashboard"
         element={
@@ -54,6 +60,11 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Admin routes */}
+      <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
+      <Route path="/admin/tutors-pending" element={<ProtectedRoute roles={['admin']}><PendingTutors /></ProtectedRoute>} />
+      <Route path="/admin/payments" element={<ProtectedRoute roles={['admin']}><AdminPayments /></ProtectedRoute>} />
     </Routes>
   )
 }
