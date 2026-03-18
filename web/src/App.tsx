@@ -9,6 +9,8 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import TutorDirectory from './pages/TutorDirectory'
 import TutorView from './pages/TutorView'
+import Lessons from './pages/Lessons'
+import BookLesson from './pages/BookLesson'
 
 const queryClient = new QueryClient()
 
@@ -40,6 +42,8 @@ function AppRoutes() {
       />
       <Route path="/tutors" element={<TutorDirectory />} />
       <Route path="/tutors/:id" element={<TutorView />} />
+      <Route path="/tutors/:id/book" element={<ProtectedRoute roles={['student']}><BookLesson /></ProtectedRoute>} />
+      <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
       <Route
         path="/dashboard"
         element={

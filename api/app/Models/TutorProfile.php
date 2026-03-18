@@ -34,4 +34,9 @@ class TutorProfile extends Model
     {
         return $this->hasMany(TutorSubject::class);
     }
+
+    public function availabilitySlots(): HasMany
+    {
+        return $this->hasMany(AvailabilitySlot::class);
+    }
 }

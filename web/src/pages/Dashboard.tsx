@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 
 export default function Dashboard() {
@@ -59,10 +59,10 @@ export default function Dashboard() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 className="font-semibold text-slate-900 mb-2">Upcoming Lessons</h3>
-            <p className="text-slate-500 text-sm">No lessons scheduled yet.</p>
-          </div>
+          <Link to="/lessons" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+            <h3 className="font-semibold text-slate-900 mb-2">My Lessons</h3>
+            <p className="text-slate-500 text-sm">View upcoming and past lessons</p>
+          </Link>
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="font-semibold text-slate-900 mb-2">Recent Activity</h3>
             <p className="text-slate-500 text-sm">Nothing to show yet.</p>

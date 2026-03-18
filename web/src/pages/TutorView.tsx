@@ -117,7 +117,7 @@ export default function TutorView() {
         {/* Book button */}
         <div className="text-center">
           <Link
-            to="/register"
+            to={`/tutors/${id}/book`}
             className="inline-block px-8 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold rounded-lg transition-colors"
           >
             Book a Lesson

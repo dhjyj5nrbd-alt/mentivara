@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AvailabilityController;
+use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\LessonController;
 use App\Http\Controllers\Api\V1\TutorDirectoryController;
 use App\Http\Controllers\Api\V1\TutorProfileController;
 use App\Models\ExamBoard;
@@ -30,11 +33,19 @@ Route::prefix('v1')->group(function () {
     // Public tutor directory
     Route::get('/tutors', [TutorDirectoryController::class, 'index']);
     Route::get('/tutors/{id}', [TutorDirectoryController::class, 'show']);
+    Route::get('/tutors/{id}/availability', [AvailabilityController::class, 'forTutor']);
 
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+
+        // Lessons (shared by tutors and students)
+        Route::get('/lessons/upcoming', [LessonController::class, 'upcoming']);
+        Route::get('/lessons/past', [LessonController::class, 'past']);
+        Route::get('/lessons/calendar', [LessonController::class, 'calendar']);
+        Route::get('/lessons/{id}', [LessonController::class, 'show']);
+        Route::post('/lessons/{id}/cancel', [BookingController::class, 'cancel']);
 
         // Admin-only routes
         Route::middleware('role:admin')->prefix('admin')->group(function () {
@@ -49,11 +60,16 @@ Route::prefix('v1')->group(function () {
             Route::put('/profile', [TutorProfileController::class, 'update']);
             Route::post('/profile/subjects', [TutorProfileController::class, 'addSubject']);
             Route::delete('/profile/subjects/{tutorSubjectId}', [TutorProfileController::class, 'removeSubject']);
+
+            // Availability management
+            Route::get('/availability', [AvailabilityController::class, 'index']);
+            Route::post('/availability', [AvailabilityController::class, 'store']);
+            Route::delete('/availability/{id}', [AvailabilityController::class, 'destroy']);
         });
 
         // Student-only routes
         Route::middleware('role:student')->prefix('student')->group(function () {
-            // Bookings, study tools — will be added next
+            Route::post('/book', [BookingController::class, 'store']);
         });
 
         // Parent-only routes
