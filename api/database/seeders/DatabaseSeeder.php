@@ -14,9 +14,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CurriculumSeeder::class,
+            TopicSeeder::class,
+            QuestionSeeder::class,
         ]);
 
-        // Create admin user
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@mentivara.com',

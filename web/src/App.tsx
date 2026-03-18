@@ -13,6 +13,10 @@ import Lessons from './pages/Lessons'
 import BookLesson from './pages/BookLesson'
 import Classroom from './pages/Classroom'
 import Payments from './pages/Payments'
+import LessonPackageView from './pages/LessonPackageView'
+import DoubtSolver from './pages/DoubtSolver'
+import ExamSimulator from './pages/ExamSimulator'
+import KnowledgeMap from './pages/KnowledgeMap'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import PendingTutors from './pages/admin/PendingTutors'
@@ -23,44 +27,28 @@ const queryClient = new QueryClient()
 function AppRoutes() {
   const { loadUser, isAuthenticated, isLoading } = useAuthStore()
 
-  useEffect(() => {
-    loadUser()
-  }, [loadUser])
+  useEffect(() => { loadUser() }, [loadUser])
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
-      </div>
-    )
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
   }
 
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
-      />
-      <Route
-        path="/register"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />}
-      />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} />
       <Route path="/tutors" element={<TutorDirectory />} />
       <Route path="/tutors/:id" element={<TutorView />} />
       <Route path="/tutors/:id/book" element={<ProtectedRoute roles={['student']}><BookLesson /></ProtectedRoute>} />
       <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
       <Route path="/classroom/:lessonId" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
       <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      {/* Admin routes */}
+      <Route path="/lessons/:lessonId/package" element={<ProtectedRoute><LessonPackageView /></ProtectedRoute>} />
+      <Route path="/doubts" element={<ProtectedRoute roles={['student']}><DoubtSolver /></ProtectedRoute>} />
+      <Route path="/exam" element={<ProtectedRoute roles={['student']}><ExamSimulator /></ProtectedRoute>} />
+      <Route path="/knowledge-map" element={<ProtectedRoute roles={['student']}><KnowledgeMap /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
       <Route path="/admin/tutors-pending" element={<ProtectedRoute roles={['admin']}><PendingTutors /></ProtectedRoute>} />

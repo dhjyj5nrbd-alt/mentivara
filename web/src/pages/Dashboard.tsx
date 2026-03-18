@@ -68,10 +68,24 @@ export default function Dashboard() {
             <p className="text-slate-500 text-sm">View payment history</p>
           </Link>
           {user?.role === 'student' && (
-            <Link to="/tutors" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-              <h3 className="font-semibold text-slate-900 mb-2">Find a Tutor</h3>
-              <p className="text-slate-500 text-sm">Browse and book tutors</p>
-            </Link>
+            <>
+              <Link to="/tutors" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-slate-900 mb-2">Find a Tutor</h3>
+                <p className="text-slate-500 text-sm">Browse and book tutors</p>
+              </Link>
+              <Link to="/exam" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-slate-900 mb-2">Exam Simulator</h3>
+                <p className="text-slate-500 text-sm">Practice with timed exams</p>
+              </Link>
+              <Link to="/knowledge-map" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-slate-900 mb-2">Knowledge Map</h3>
+                <p className="text-slate-500 text-sm">Track your topic mastery</p>
+              </Link>
+              <Link to="/doubts" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-slate-900 mb-2">AI Doubt Solver</h3>
+                <p className="text-slate-500 text-sm">Get instant answers to questions</p>
+              </Link>
+            </>
           )}
           {user?.role === 'admin' && (
             <Link to="/admin" className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
