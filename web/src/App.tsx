@@ -7,6 +7,8 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import TutorDirectory from './pages/TutorDirectory'
+import TutorView from './pages/TutorView'
 
 const queryClient = new QueryClient()
 
@@ -36,6 +38,8 @@ function AppRoutes() {
         path="/register"
         element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />}
       />
+      <Route path="/tutors" element={<TutorDirectory />} />
+      <Route path="/tutors/:id" element={<TutorView />} />
       <Route
         path="/dashboard"
         element={

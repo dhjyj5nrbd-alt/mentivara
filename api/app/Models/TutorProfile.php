@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TutorProfile extends Model
 {
@@ -27,5 +28,10 @@ class TutorProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function tutorSubjects(): HasMany
+    {
+        return $this->hasMany(TutorSubject::class);
     }
 }

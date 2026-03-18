@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\TutorDirectoryController;
+use App\Http\Controllers\Api\V1\TutorProfileController;
+use App\Models\ExamBoard;
+use App\Models\Level;
+use App\Models\Subject;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -17,6 +22,15 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
+    // Public curriculum reference data
+    Route::get('/subjects', fn () => Subject::all());
+    Route::get('/levels', fn () => Level::all());
+    Route::get('/exam-boards', fn () => ExamBoard::all());
+
+    // Public tutor directory
+    Route::get('/tutors', [TutorDirectoryController::class, 'index']);
+    Route::get('/tutors/{id}', [TutorDirectoryController::class, 'show']);
+
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -27,12 +41,14 @@ Route::prefix('v1')->group(function () {
             Route::get('/', function () {
                 return response()->json(['message' => 'Admin area']);
             });
-            // Tutor approval, user management — will be added next
         });
 
         // Tutor-only routes
         Route::middleware('role:tutor')->prefix('tutor')->group(function () {
-            // Profile management, availability — will be added next
+            Route::get('/profile', [TutorProfileController::class, 'show']);
+            Route::put('/profile', [TutorProfileController::class, 'update']);
+            Route::post('/profile/subjects', [TutorProfileController::class, 'addSubject']);
+            Route::delete('/profile/subjects/{tutorSubjectId}', [TutorProfileController::class, 'removeSubject']);
         });
 
         // Student-only routes
