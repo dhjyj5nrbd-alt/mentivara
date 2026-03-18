@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             CurriculumSeeder::class,
             TopicSeeder::class,
             QuestionSeeder::class,
+            ForumSeeder::class,
         ]);
 
         User::factory()->create([

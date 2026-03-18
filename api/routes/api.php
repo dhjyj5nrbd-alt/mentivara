@@ -6,12 +6,18 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\ClassroomController;
+use App\Http\Controllers\Api\V1\CompetitionController;
 use App\Http\Controllers\Api\V1\DoubtController;
 use App\Http\Controllers\Api\V1\ExamController;
+use App\Http\Controllers\Api\V1\ForumController;
 use App\Http\Controllers\Api\V1\KnowledgeMapController;
 use App\Http\Controllers\Api\V1\LessonController;
 use App\Http\Controllers\Api\V1\LessonPackageController;
+use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\MissionController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\ReelController;
+use App\Http\Controllers\Api\V1\StudyGroupController;
 use App\Http\Controllers\Api\V1\TutorDirectoryController;
 use App\Http\Controllers\Api\V1\TutorProfileController;
 use App\Models\CurriculumTopic;
@@ -21,10 +27,9 @@ use App\Models\Subject;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    // Health check
-    Route::get('/health', fn () => response()->json(['status' => 'ok', 'app' => 'Mentivara API', 'version' => '0.2.0']));
+    Route::get('/health', fn () => response()->json(['status' => 'ok', 'app' => 'Mentivara API', 'version' => '0.3.0']));
 
-    // Public auth
+    // Auth
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
@@ -39,12 +44,20 @@ Route::prefix('v1')->group(function () {
         return $query->whereNull('parent_id')->orderBy('order')->get();
     });
 
-    // Public tutor directory
+    // Public directory
     Route::get('/tutors', [TutorDirectoryController::class, 'index']);
     Route::get('/tutors/{id}', [TutorDirectoryController::class, 'show']);
     Route::get('/tutors/{id}/availability', [AvailabilityController::class, 'forTutor']);
 
-    // Authenticated routes
+    // Public reels + forum categories
+    Route::get('/reels', [ReelController::class, 'index']);
+    Route::get('/reels/{id}', [ReelController::class, 'show']);
+    Route::get('/forum/categories', [ForumController::class, 'categories']);
+    Route::get('/forum/categories/{categoryId}/threads', [ForumController::class, 'threads']);
+    Route::get('/forum/threads/{id}', [ForumController::class, 'showThread']);
+    Route::get('/leaderboard', [CompetitionController::class, 'leaderboard']);
+
+    // Authenticated
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
@@ -55,8 +68,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/lessons/calendar', [LessonController::class, 'calendar']);
         Route::get('/lessons/{id}', [LessonController::class, 'show']);
         Route::post('/lessons/{id}/cancel', [BookingController::class, 'cancel']);
-
-        // Lesson packages (AI-generated post-lesson study materials)
         Route::post('/lessons/{lessonId}/package/generate', [LessonPackageController::class, 'generate']);
         Route::get('/lessons/{lessonId}/package', [LessonPackageController::class, 'show']);
 
@@ -80,13 +91,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/copilot', [AiCopilotController::class, 'assist']);
         });
 
-        // AI Doubt Solver
+        // Doubts
         Route::post('/doubts', [DoubtController::class, 'ask']);
         Route::get('/doubts', [DoubtController::class, 'index']);
         Route::get('/doubts/{id}', [DoubtController::class, 'show']);
         Route::post('/doubts/{id}/escalate', [DoubtController::class, 'escalate']);
 
-        // Exam Simulator
+        // Exams
         Route::get('/questions', [ExamController::class, 'questions']);
         Route::post('/exams/start', [ExamController::class, 'startExam']);
         Route::post('/exams/{sessionId}/answer', [ExamController::class, 'submitAnswer']);
@@ -97,6 +108,36 @@ Route::prefix('v1')->group(function () {
         // Knowledge Map
         Route::get('/knowledge-map', [KnowledgeMapController::class, 'index']);
         Route::get('/knowledge-map/weak-topics', [KnowledgeMapController::class, 'weakTopics']);
+
+        // Reels (authenticated actions)
+        Route::post('/reels/{id}/like', [ReelController::class, 'toggleLike']);
+        Route::post('/reels/{id}/save', [ReelController::class, 'toggleSave']);
+
+        // Forum (authenticated actions)
+        Route::post('/forum/threads', [ForumController::class, 'createThread']);
+        Route::post('/forum/threads/{threadId}/replies', [ForumController::class, 'reply']);
+        Route::post('/forum/replies/{replyId}/best', [ForumController::class, 'markBestAnswer']);
+
+        // Competitions
+        Route::get('/competitions', [CompetitionController::class, 'index']);
+        Route::post('/competitions/{id}/enter', [CompetitionController::class, 'enter']);
+
+        // Messaging
+        Route::get('/messages/conversations', [MessageController::class, 'conversations']);
+        Route::get('/messages/{contactId}', [MessageController::class, 'thread']);
+        Route::post('/messages', [MessageController::class, 'send']);
+
+        // Study Groups
+        Route::get('/study-groups', [StudyGroupController::class, 'index']);
+        Route::post('/study-groups', [StudyGroupController::class, 'store']);
+        Route::post('/study-groups/{id}/join', [StudyGroupController::class, 'join']);
+        Route::post('/study-groups/{id}/leave', [StudyGroupController::class, 'leave']);
+        Route::get('/study-groups/{id}/messages', [StudyGroupController::class, 'messages']);
+        Route::post('/study-groups/{id}/messages', [StudyGroupController::class, 'sendMessage']);
+
+        // Daily Missions + XP
+        Route::get('/missions/today', [MissionController::class, 'today']);
+        Route::post('/missions/complete-task', [MissionController::class, 'completeTask']);
 
         // Admin
         Route::middleware('role:admin')->prefix('admin')->group(function () {
@@ -122,16 +163,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/availability', [AvailabilityController::class, 'store']);
             Route::delete('/availability/{id}', [AvailabilityController::class, 'destroy']);
             Route::post('/doubts/{id}/answer', [DoubtController::class, 'tutorAnswer']);
+            Route::post('/reels', [ReelController::class, 'store']);
+            Route::delete('/reels/{id}', [ReelController::class, 'destroy']);
+            Route::post('/competitions', [CompetitionController::class, 'store']);
+            Route::post('/competitions/entries/{entryId}/correct', [CompetitionController::class, 'markCorrect']);
         });
 
         // Student
         Route::middleware('role:student')->prefix('student')->group(function () {
             Route::post('/book', [BookingController::class, 'store']);
-        });
-
-        // Parent
-        Route::middleware('role:parent')->prefix('parent')->group(function () {
-            // Dashboard — Phase 3
         });
     });
 });
