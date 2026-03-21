@@ -24,21 +24,21 @@ function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel
   return (
     <Link
       to={to}
-      className={`rounded-xl p-5 hover:shadow-lg transition-all group border ${accent}`}
+      className={`rounded-xl p-4 hover:shadow-lg transition-all group border ${accent}`}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${iconBg}`}>
+      <div className="flex items-start justify-between mb-2.5">
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg}`}>
           <Icon className="w-5 h-5" />
         </div>
         {stat && (
           <div className="text-right">
-            <p className="text-lg font-bold text-slate-800">{stat}</p>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wide">{statLabel}</p>
+            <p className="text-base font-bold text-slate-800 leading-none">{stat}</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-wide mt-0.5">{statLabel}</p>
           </div>
         )}
       </div>
-      <h3 className="font-semibold text-slate-900 mb-0.5 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
-      <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+      <h3 className="font-semibold text-slate-900 text-sm mb-0.5 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
+      <p className="text-slate-400 text-xs leading-relaxed">{desc}</p>
     </Link>
   )
 }
@@ -77,8 +77,8 @@ function ReelsBanner() {
             onClick={() => navigate('/reels')}
             onMouseEnter={() => setHoveredId(reel.id)}
             onMouseLeave={() => setHoveredId(null)}
-            className="shrink-0 w-44 rounded-xl overflow-hidden relative group cursor-pointer"
-            style={{ aspectRatio: '9/14' }}
+            className="shrink-0 w-36 sm:w-40 rounded-xl overflow-hidden relative group cursor-pointer"
+            style={{ aspectRatio: '9/13' }}
           >
             {/* Background photo */}
             <img
@@ -145,8 +145,8 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B]">{greeting}, {firstName}</h1>
           <p className="text-slate-500 mt-1">Here's your learning overview</p>
         </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
         {user?.role === 'student' && <ReelsBanner />}
 
         {user?.role === 'student' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <DashCard
               to="/lessons" icon={BookOpen} title="My Lessons"
               desc="View upcoming and past lessons"
@@ -230,7 +230,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'tutor' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons"
               accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
             <DashCard to="/payments" icon={CreditCard} title="Earnings" desc="View your earnings"
@@ -241,7 +241,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'parent' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons"
               accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
             <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history"
@@ -250,7 +250,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'admin' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <DashCard to="/admin" icon={Shield} title="Admin Dashboard" desc="Platform overview"
               accent="bg-white border-slate-200 hover:border-red-300" iconBg="bg-red-100 text-red-600" />
             <DashCard to="/admin/users" icon={Users} title="Users" desc="Manage platform users"
