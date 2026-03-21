@@ -19,6 +19,353 @@ const AMBIENT_THEMES = [
   { id: 'silence', label: '🤫 Silence', color: '#64748B' },
 ]
 
+// ── Voice helpers ───────────────────────────────────────────
+
+function getVoice(): SpeechSynthesisVoice | null {
+  const voices = speechSynthesis.getVoices()
+  const preferred = [
+    'Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa',
+    'Google UK English Female', 'Google UK English Male',
+    'Microsoft Hazel', 'Microsoft Susan', 'Microsoft George',
+  ]
+  for (const name of preferred) {
+    const match = voices.find((v) => v.name.includes(name) && v.lang.startsWith('en'))
+    if (match) return match
+  }
+  return voices.find((v) => v.lang.startsWith('en')) || null
+}
+
+function speakAsync(text: string, rate = 0.8, pitch = 0.9): Promise<void> {
+  return new Promise((resolve) => {
+    speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    const voice = getVoice()
+    if (voice) utterance.voice = voice
+    utterance.rate = rate
+    utterance.pitch = pitch
+    utterance.volume = 1
+    utterance.onend = () => resolve()
+    utterance.onerror = () => resolve()
+    speechSynthesis.speak(utterance)
+  })
+}
+
+function playTone(freq: number, dur: number, vol = 0.1) {
+  try {
+    const ctx = new AudioContext()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, ctx.currentTime)
+    gain.gain.setValueAtTime(vol, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + dur)
+  } catch { /* silent */ }
+}
+
+// ── Ambient sound engine (Web Audio API synthesis) ──────────
+
+class AmbientEngine {
+  private ctx: AudioContext | null = null
+  private nodes: AudioNode[] = []
+  private intervalIds: ReturnType<typeof setInterval>[] = []
+  private running = false
+
+  start(themeId: string) {
+    this.stop()
+    try {
+      this.ctx = new AudioContext()
+      this.running = true
+      if (themeId === 'rain') this.startRain()
+      else if (themeId === 'forest') this.startForest()
+      else if (themeId === 'waves') this.startWaves()
+      // silence = no audio
+    } catch { /* no audio support */ }
+  }
+
+  stop() {
+    this.running = false
+    this.intervalIds.forEach((id) => clearInterval(id))
+    this.intervalIds = []
+    this.nodes.forEach((n) => { try { n.disconnect() } catch {} })
+    this.nodes = []
+    if (this.ctx) { try { this.ctx.close() } catch {} }
+    this.ctx = null
+  }
+
+  /** Create a noise buffer */
+  private makeNoise(type: 'white' | 'pink' | 'brown'): AudioBufferSourceNode {
+    const ctx = this.ctx!
+    const bufferSize = 2 * ctx.sampleRate
+    const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate)
+
+    for (let ch = 0; ch < 2; ch++) {
+      const data = buffer.getChannelData(ch)
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, lastOut = 0
+
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1
+
+        if (type === 'white') {
+          data[i] = white * 0.5
+        } else if (type === 'pink') {
+          b0 = 0.99886 * b0 + white * 0.0555179
+          b1 = 0.99332 * b1 + white * 0.0750759
+          b2 = 0.96900 * b2 + white * 0.1538520
+          b3 = 0.86650 * b3 + white * 0.3104856
+          b4 = 0.55000 * b4 + white * 0.5329522
+          b5 = -0.7616 * b5 - white * 0.0168980
+          data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11
+          b6 = white * 0.115926
+        } else {
+          data[i] = (lastOut + 0.02 * white) / 1.02
+          lastOut = data[i]
+          data[i] *= 3.5
+        }
+      }
+    }
+
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.loop = true
+    return source
+  }
+
+  // ── RAIN ──────────────────────────────────────────────────
+  private startRain() {
+    if (!this.ctx) return
+    const ctx = this.ctx
+
+    // Layer 1: Steady rain — pink noise, highpass to remove rumble
+    const rain = this.makeNoise('pink')
+    const hp = ctx.createBiquadFilter()
+    hp.type = 'highpass'
+    hp.frequency.value = 800
+    const lp = ctx.createBiquadFilter()
+    lp.type = 'lowpass'
+    lp.frequency.value = 6000
+    const rainGain = ctx.createGain()
+    rainGain.gain.value = 0.18
+    rain.connect(hp)
+    hp.connect(lp)
+    lp.connect(rainGain)
+    rainGain.connect(ctx.destination)
+    rain.start()
+    this.nodes.push(rain, hp, lp, rainGain)
+
+    // Layer 2: Higher rain shimmer
+    const shimmer = this.makeNoise('white')
+    const shimmerHp = ctx.createBiquadFilter()
+    shimmerHp.type = 'highpass'
+    shimmerHp.frequency.value = 4000
+    const shimmerGain = ctx.createGain()
+    shimmerGain.gain.value = 0.04
+    shimmer.connect(shimmerHp)
+    shimmerHp.connect(shimmerGain)
+    shimmerGain.connect(ctx.destination)
+    shimmer.start()
+    this.nodes.push(shimmer, shimmerHp, shimmerGain)
+
+    // Layer 3: Occasional heavier rain gusts (volume modulation)
+    const lfo = ctx.createOscillator()
+    lfo.frequency.value = 0.08
+    const lfoGain = ctx.createGain()
+    lfoGain.gain.value = 0.04
+    lfo.connect(lfoGain)
+    lfoGain.connect(rainGain.gain)
+    lfo.start()
+    this.nodes.push(lfo, lfoGain)
+  }
+
+  // ── FOREST ────────────────────────────────────────────────
+  private startForest() {
+    if (!this.ctx) return
+    const ctx = this.ctx
+
+    // Layer 1: Gentle breeze — pink noise, bandpass around 2-4kHz (rustling leaves)
+    const wind = this.makeNoise('pink')
+    const bp = ctx.createBiquadFilter()
+    bp.type = 'bandpass'
+    bp.frequency.value = 3000
+    bp.Q.value = 0.3
+    const windGain = ctx.createGain()
+    windGain.gain.value = 0.08
+    wind.connect(bp)
+    bp.connect(windGain)
+    windGain.connect(ctx.destination)
+    wind.start()
+    this.nodes.push(wind, bp, windGain)
+
+    // Breeze gusts — slow LFO on the wind volume
+    const breezeLfo = ctx.createOscillator()
+    breezeLfo.frequency.value = 0.05
+    const breezeDepth = ctx.createGain()
+    breezeDepth.gain.value = 0.04
+    breezeLfo.connect(breezeDepth)
+    breezeDepth.connect(windGain.gain)
+    breezeLfo.start()
+    this.nodes.push(breezeLfo, breezeDepth)
+
+    // Layer 2: Low ambient hum (distant sounds)
+    const hum = ctx.createOscillator()
+    hum.type = 'sine'
+    hum.frequency.value = 120
+    const humGain = ctx.createGain()
+    humGain.gain.value = 0.015
+    hum.connect(humGain)
+    humGain.connect(ctx.destination)
+    hum.start()
+    this.nodes.push(hum, humGain)
+
+    // Bird chirps — multi-note, varied timing, louder
+    const birdLoop = () => {
+      if (!this.ctx || !this.running) return
+      this.makeBirdChirp()
+      const nextDelay = 1500 + Math.random() * 4000
+      const id = setTimeout(() => birdLoop(), nextDelay) as unknown as ReturnType<typeof setInterval>
+      this.intervalIds.push(id)
+    }
+    const startId = setTimeout(() => birdLoop(), 1000 + Math.random() * 2000) as unknown as ReturnType<typeof setInterval>
+    this.intervalIds.push(startId)
+
+    // Second bird with different timing
+    const bird2Loop = () => {
+      if (!this.ctx || !this.running) return
+      this.makeBirdChirp(true)
+      const nextDelay = 3000 + Math.random() * 6000
+      const id = setTimeout(() => bird2Loop(), nextDelay) as unknown as ReturnType<typeof setInterval>
+      this.intervalIds.push(id)
+    }
+    const start2Id = setTimeout(() => bird2Loop(), 3000 + Math.random() * 3000) as unknown as ReturnType<typeof setInterval>
+    this.intervalIds.push(start2Id)
+  }
+
+  private makeBirdChirp(isSecondBird = false) {
+    if (!this.ctx) return
+    const ctx = this.ctx
+    const now = ctx.currentTime
+
+    // Each chirp is 2-4 short notes
+    const noteCount = 2 + Math.floor(Math.random() * 3)
+    const baseFreq = isSecondBird
+      ? 3500 + Math.random() * 1500  // higher bird
+      : 2200 + Math.random() * 1200  // lower bird
+
+    for (let n = 0; n < noteCount; n++) {
+      const noteStart = now + n * 0.12
+      const freq = baseFreq + (Math.random() - 0.5) * 600
+      const osc = ctx.createOscillator()
+      const g = ctx.createGain()
+      osc.connect(g)
+      g.connect(ctx.destination)
+      osc.type = 'sine'
+
+      // Each note slides up or down slightly
+      osc.frequency.setValueAtTime(freq, noteStart)
+      osc.frequency.linearRampToValueAtTime(
+        freq * (0.9 + Math.random() * 0.3),
+        noteStart + 0.08,
+      )
+
+      g.gain.setValueAtTime(0, noteStart)
+      g.gain.linearRampToValueAtTime(0.06, noteStart + 0.01)
+      g.gain.linearRampToValueAtTime(0.04, noteStart + 0.04)
+      g.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.1)
+
+      osc.start(noteStart)
+      osc.stop(noteStart + 0.1)
+    }
+  }
+
+  // ── WAVES ─────────────────────────────────────────────────
+  private startWaves() {
+    if (!this.ctx) return
+    const ctx = this.ctx
+
+    // Layer 1: Deep ocean — brown noise, lowpass
+    const deep = this.makeNoise('brown')
+    const deepLp = ctx.createBiquadFilter()
+    deepLp.type = 'lowpass'
+    deepLp.frequency.value = 400
+    const deepGain = ctx.createGain()
+    deepGain.gain.value = 0.12
+    deep.connect(deepLp)
+    deepLp.connect(deepGain)
+    deepGain.connect(ctx.destination)
+    deep.start()
+    this.nodes.push(deep, deepLp, deepGain)
+
+    // Deep wave cycle — slow LFO modulating volume
+    const deepLfo = ctx.createOscillator()
+    deepLfo.frequency.value = 0.1  // ~10 second wave cycle
+    const deepLfoGain = ctx.createGain()
+    deepLfoGain.gain.value = 0.06
+    deepLfo.connect(deepLfoGain)
+    deepLfoGain.connect(deepGain.gain)
+    deepLfo.start()
+    this.nodes.push(deepLfo, deepLfoGain)
+
+    // Layer 2: Surf/foam — white noise, highpass, with faster LFO offset
+    const surf = this.makeNoise('white')
+    const surfHp = ctx.createBiquadFilter()
+    surfHp.type = 'highpass'
+    surfHp.frequency.value = 2000
+    const surfLp = ctx.createBiquadFilter()
+    surfLp.type = 'lowpass'
+    surfLp.frequency.value = 8000
+    const surfGain = ctx.createGain()
+    surfGain.gain.value = 0.04
+    surf.connect(surfHp)
+    surfHp.connect(surfLp)
+    surfLp.connect(surfGain)
+    surfGain.connect(ctx.destination)
+    surf.start()
+    this.nodes.push(surf, surfHp, surfLp, surfGain)
+
+    // Surf volume follows waves but slightly offset
+    const surfLfo = ctx.createOscillator()
+    surfLfo.frequency.value = 0.1
+    const surfLfoGain = ctx.createGain()
+    surfLfoGain.gain.value = 0.03
+    surfLfo.connect(surfLfoGain)
+    surfLfoGain.connect(surfGain.gain)
+    surfLfo.start()
+    this.nodes.push(surfLfo, surfLfoGain)
+
+    // Layer 3: Occasional wave crash — pink noise burst
+    const crashLoop = () => {
+      if (!this.ctx || !this.running) return
+      const crash = this.makeNoise('pink')
+      const crashBp = ctx.createBiquadFilter()
+      crashBp.type = 'bandpass'
+      crashBp.frequency.value = 1500
+      crashBp.Q.value = 0.5
+      const crashGain = ctx.createGain()
+      const now = ctx.currentTime
+      crashGain.gain.setValueAtTime(0, now)
+      crashGain.gain.linearRampToValueAtTime(0.08, now + 0.8)
+      crashGain.gain.linearRampToValueAtTime(0.03, now + 2.0)
+      crashGain.gain.exponentialRampToValueAtTime(0.001, now + 3.5)
+      crash.connect(crashBp)
+      crashBp.connect(crashGain)
+      crashGain.connect(ctx.destination)
+      crash.start(now)
+      crash.stop(now + 3.5)
+
+      const nextDelay = 6000 + Math.random() * 8000
+      const id = setTimeout(() => crashLoop(), nextDelay) as unknown as ReturnType<typeof setInterval>
+      this.intervalIds.push(id)
+    }
+    const startId = setTimeout(() => crashLoop(), 2000 + Math.random() * 3000) as unknown as ReturnType<typeof setInterval>
+    this.intervalIds.push(startId)
+  }
+}
+
+// ── Component ───────────────────────────────────────────────
+
 export default function FocusTimer({ onComplete }: Props) {
   const [duration, setDuration] = useState(DURATIONS[0].seconds)
   const [timeLeft, setTimeLeft] = useState(DURATIONS[0].seconds)
@@ -26,12 +373,59 @@ export default function FocusTimer({ onComplete }: Props) {
   const [isComplete, setIsComplete] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
   const [theme, setTheme] = useState(AMBIENT_THEMES[0])
+  const [soundEnabled, setSoundEnabled] = useState(true)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
+  const soundEnabledRef = useRef(true)
+  const hasSpokenHalfway = useRef(false)
+  const hasSpokenOneMin = useRef(false)
+  const ambientRef = useRef(new AmbientEngine())
 
   const progress = 1 - timeLeft / duration
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
+
+  useEffect(() => { soundEnabledRef.current = soundEnabled }, [soundEnabled])
+
+  // Load voices
+  useEffect(() => {
+    const load = () => speechSynthesis.getVoices()
+    load()
+    speechSynthesis.addEventListener('voiceschanged', load)
+    return () => speechSynthesis.removeEventListener('voiceschanged', load)
+  }, [])
+
+  // Start/stop ambient sound based on running state
+  useEffect(() => {
+    if (isRunning && soundEnabled && theme.id !== 'silence') {
+      ambientRef.current.start(theme.id)
+    } else {
+      ambientRef.current.stop()
+    }
+  }, [isRunning, soundEnabled, theme.id])
+
+  // Cleanup
+  useEffect(() => {
+    return () => { speechSynthesis.cancel(); ambientRef.current.stop() }
+  }, [])
+
+  // Voice intro when starting
+  const startWithVoice = async () => {
+    setHasStarted(true)
+    hasSpokenHalfway.current = false
+    hasSpokenOneMin.current = false
+
+    if (soundEnabled) {
+      const mins = Math.round(duration / 60)
+      await speakAsync(
+        `Deep focus session. ${mins} minutes. Remove all distractions. Put your phone away. Focus only on your study material. Let us begin.`,
+        0.78, 0.88,
+      )
+      await new Promise((r) => setTimeout(r, 500))
+    }
+
+    setIsRunning(true)
+  }
 
   // Timer
   useEffect(() => {
@@ -41,13 +435,46 @@ export default function FocusTimer({ onComplete }: Props) {
         if (prev <= 1) {
           setIsComplete(true)
           setIsRunning(false)
+
+          // Completion voice
+          if (soundEnabledRef.current) {
+            setTimeout(() => {
+              playTone(528, 1.5, 0.12)
+              setTimeout(() => {
+                const mins = Math.round(duration / 60)
+                speakAsync(
+                  `Focus session complete. You stayed focused for ${mins} minutes. Well done. Take a moment to stretch before your next session.`,
+                  0.78, 0.88,
+                )
+              }, 600)
+            }, 300)
+          }
+
           return 0
         }
+
+        // Halfway encouragement
+        const half = Math.round(duration / 2)
+        if (prev === half && !hasSpokenHalfway.current) {
+          hasSpokenHalfway.current = true
+          if (soundEnabledRef.current) {
+            speakAsync('Halfway there. You are doing great. Stay focused.', 0.78, 0.88)
+          }
+        }
+
+        // One minute warning
+        if (prev === 60 && !hasSpokenOneMin.current && duration > 120) {
+          hasSpokenOneMin.current = true
+          if (soundEnabledRef.current) {
+            speakAsync('One minute remaining. Finish strong.', 0.78, 0.88)
+          }
+        }
+
         return prev - 1
       })
     }, 1000)
     return () => clearInterval(interval)
-  }, [isRunning, isComplete])
+  }, [isRunning, isComplete, duration])
 
   // Animated background canvas
   useEffect(() => {
@@ -74,7 +501,6 @@ export default function FocusTimer({ onComplete }: Props) {
       ctx.fillStyle = '#0F172A'
       ctx.fillRect(0, 0, w, h)
 
-      // Particles
       particles.forEach((p) => {
         if (isRunning) {
           p.x += p.vx
@@ -89,19 +515,16 @@ export default function FocusTimer({ onComplete }: Props) {
         ctx.fill()
       })
 
-      // Central progress ring
       const cx = w / 2
       const cy = h / 2
       const radius = Math.min(w, h) * 0.35
 
-      // Background ring
       ctx.strokeStyle = '#ffffff10'
       ctx.lineWidth = 6
       ctx.beginPath()
       ctx.arc(cx, cy, radius, 0, Math.PI * 2)
       ctx.stroke()
 
-      // Progress ring
       if (hasStarted) {
         const grad = ctx.createLinearGradient(cx - radius, cy, cx + radius, cy)
         grad.addColorStop(0, theme.color)
@@ -114,7 +537,6 @@ export default function FocusTimer({ onComplete }: Props) {
         ctx.stroke()
       }
 
-      // Pulsing glow when running
       if (isRunning) {
         const pulse = Math.sin(Date.now() / 1000) * 0.15 + 0.15
         const glowGrad = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius * 1.2)
@@ -133,9 +555,14 @@ export default function FocusTimer({ onComplete }: Props) {
     return () => cancelAnimationFrame(animRef.current)
   }, [isRunning, progress, theme, hasStarted])
 
-  const start = () => {
-    setIsRunning(true)
-    setHasStarted(true)
+  const togglePause = () => {
+    if (isRunning) {
+      setIsRunning(false)
+      speechSynthesis.cancel()
+      ambientRef.current.stop()
+    } else {
+      setIsRunning(true)
+    }
   }
 
   const reset = () => {
@@ -143,18 +570,22 @@ export default function FocusTimer({ onComplete }: Props) {
     setIsComplete(false)
     setHasStarted(false)
     setTimeLeft(duration)
+    hasSpokenHalfway.current = false
+    hasSpokenOneMin.current = false
+    speechSynthesis.cancel()
+    ambientRef.current.stop()
   }
 
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-bold text-[#1E1B4B] mb-1">Deep Focus Timer</h2>
-      <p className="text-slate-500 mb-6">
-        {isComplete ? 'Session complete — great focus!' : 'Choose your duration and ambient theme.'}
+      <p className="text-slate-500 text-sm mb-4">
+        {isComplete ? 'Session complete — great focus!' : hasStarted ? `${theme.label} • ${Math.round(progress * 100)}%` : 'Choose your duration and ambient theme.'}
       </p>
 
       {/* Duration selector (only before starting) */}
       {!hasStarted && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-3">
           {DURATIONS.map((d) => (
             <button
               key={d.seconds}
@@ -173,7 +604,7 @@ export default function FocusTimer({ onComplete }: Props) {
 
       {/* Ambient theme selector */}
       {!hasStarted && (
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-4">
           {AMBIENT_THEMES.map((t) => (
             <button
               key={t.id}
@@ -192,18 +623,18 @@ export default function FocusTimer({ onComplete }: Props) {
       )}
 
       {/* Canvas with timer */}
-      <div className="relative mb-8 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative mb-4 rounded-2xl overflow-hidden shadow-2xl">
         <canvas
           ref={canvasRef}
-          width={400}
-          height={400}
-          className="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px]"
+          width={360}
+          height={360}
+          className="w-[280px] h-[280px] sm:w-[360px] sm:h-[360px]"
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {isComplete ? (
             <div className="flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
-                <Check className="w-8 h-8 text-emerald-400" />
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
+                <Check className="w-7 h-7 text-emerald-400" />
               </div>
               <span className="text-xl font-bold text-white">Focus Complete!</span>
               <span className="text-sm text-slate-400 mt-1">You stayed focused for {DURATIONS.find(d => d.seconds === duration)?.label}</span>
@@ -213,9 +644,6 @@ export default function FocusTimer({ onComplete }: Props) {
               <span className="text-5xl sm:text-6xl font-mono font-bold text-white tabular-nums">
                 {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
               </span>
-              {hasStarted && (
-                <span className="text-sm text-slate-400 mt-2">{theme.label} • {Math.round(progress * 100)}%</span>
-              )}
               {!hasStarted && (
                 <span className="text-sm text-slate-400 mt-2">Ready when you are</span>
               )}
@@ -235,20 +663,32 @@ export default function FocusTimer({ onComplete }: Props) {
               <Check className="w-4 h-4" /> Complete (+25 XP)
             </button>
           </>
+        ) : !hasStarted ? (
+          <button
+            onClick={startWithVoice}
+            className="px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
+          >
+            <Play className="w-5 h-5" /> Start Focus
+          </button>
         ) : (
           <>
             <button
-              onClick={() => hasStarted ? setIsRunning(!isRunning) : start()}
-              className="px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
+              onClick={togglePause}
+              className="px-5 py-2.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
             >
-              {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              {isRunning ? 'Pause' : hasStarted ? 'Resume' : 'Start Focus'}
+              {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isRunning ? 'Pause' : 'Resume'}
             </button>
-            {hasStarted && (
-              <button onClick={reset} className="p-3 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
-                <RotateCcw className="w-5 h-5 text-slate-500" />
-              </button>
-            )}
+            <button onClick={reset} className="p-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors" title="Stop">
+              <RotateCcw className="w-4 h-4 text-slate-500" />
+            </button>
+            <button
+              onClick={() => { if (soundEnabled) speechSynthesis.cancel(); setSoundEnabled(!soundEnabled) }}
+              className="p-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+              title={soundEnabled ? 'Mute' : 'Unmute'}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4 text-slate-500" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+            </button>
           </>
         )}
       </div>
