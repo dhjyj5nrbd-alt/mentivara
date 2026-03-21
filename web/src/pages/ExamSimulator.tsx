@@ -76,7 +76,11 @@ export default function ExamSimulator() {
               className="w-full py-3 bg-[#7C3AED] text-white rounded-lg font-semibold disabled:opacity-50">
               {startMutation.isPending ? 'Starting...' : 'Start Exam'}
             </button>
-            {startMutation.isError && <p className="text-red-600 text-sm">Not enough questions available for this selection.</p>}
+            {startMutation.isError && <p className="text-red-600 text-sm">{
+              (startMutation.error as any)?.response?.status === 422
+                ? 'Not enough questions available for this selection.'
+                : 'A network error occurred. Please check your connection and try again.'
+            }</p>}
           </div>
         </div>
       </Layout>
@@ -137,7 +141,8 @@ export default function ExamSimulator() {
           <span className="text-sm text-slate-500">Q {currentIdx + 1}/{questions.length}</span>
         </div>
         {/* Progress bar */}
-        <div className="w-full bg-slate-200 rounded-full h-2 mb-6">
+        <div className="w-full bg-slate-200 rounded-full h-2 mb-6" role="progressbar"
+          aria-valuenow={currentIdx + 1} aria-valuemin={1} aria-valuemax={questions.length} aria-label={`Question ${currentIdx + 1} of ${questions.length}`}>
           <div className="bg-[#7C3AED] h-2 rounded-full transition-all" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
         </div>
 
@@ -149,6 +154,7 @@ export default function ExamSimulator() {
             <div className="space-y-2">
               {currentQ.options.map((opt, i) => (
                 <button key={i} onClick={() => !currentAnswer && handleAnswer(opt)} disabled={!!currentAnswer}
+                  role="radio" aria-checked={currentAnswer?.answer === opt}
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                     currentAnswer?.answer === opt
                       ? currentAnswer.correct ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'
@@ -163,10 +169,13 @@ export default function ExamSimulator() {
               ))}
             </div>
           ) : (
-            <input placeholder="Type your answer..." onKeyDown={(e) => {
-              if (e.key === 'Enter' && !currentAnswer) handleAnswer((e.target as HTMLInputElement).value)
-            }} disabled={!!currentAnswer}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg" />
+            <div>
+              <label htmlFor="short-answer-input" className="sr-only">Your answer</label>
+              <input id="short-answer-input" placeholder="Type your answer..." onKeyDown={(e) => {
+                if (e.key === 'Enter' && !currentAnswer) handleAnswer((e.target as HTMLInputElement).value)
+              }} disabled={!!currentAnswer}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg" />
+            </div>
           )}
 
           {currentAnswer && (

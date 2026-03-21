@@ -60,7 +60,7 @@ export default function KnowledgeMap() {
                   {(entries as KnowledgeEntry[]).map((entry) => (
                     <div key={entry.topic_id}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-slate-700">{entry.topic_name}</span>
+                        <span className="text-sm text-slate-700 truncate max-w-[200px]" title={entry.topic_name}>{entry.topic_name}</span>
                         <span className="text-xs text-slate-400">{entry.questions_correct}/{entry.questions_attempted} correct</span>
                       </div>
                       <MasteryBar pct={entry.mastery_pct} />

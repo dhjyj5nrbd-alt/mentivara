@@ -11,17 +11,32 @@ function Flashcard({ front, back }: { front: string; back: string }) {
     <button
       type="button"
       onClick={() => setFlipped((f) => !f)}
-      className="w-full text-left border border-slate-200 rounded-lg p-4 hover:border-[#7C3AED] transition-colors cursor-pointer"
+      aria-label={flipped ? 'Click to see question' : 'Click to reveal answer'}
+      className="w-full text-left cursor-pointer"
+      style={{ perspective: '800px' }}
     >
-      {flipped ? (
-        <>
+      <div
+        className="relative transition-transform duration-500 border border-slate-200 rounded-lg hover:border-[#7C3AED]"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
+      >
+        {/* Front face */}
+        <div className="p-4" style={{ backfaceVisibility: 'hidden' }}>
+          <p className="font-medium text-slate-900">{front}</p>
+          <p className="text-xs text-slate-400 mt-2">Click to reveal answer</p>
+        </div>
+        {/* Back face */}
+        <div
+          className="absolute inset-0 p-4 rounded-lg bg-white"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
           <p className="text-xs text-[#7C3AED] font-medium mb-1">Answer</p>
           <p className="text-slate-600 text-sm">{back}</p>
-        </>
-      ) : (
-        <p className="font-medium text-slate-900">{front}</p>
-      )}
-      <p className="text-xs text-slate-400 mt-2">{flipped ? 'Click to see question' : 'Click to reveal answer'}</p>
+          <p className="text-xs text-slate-400 mt-2">Click to see question</p>
+        </div>
+      </div>
     </button>
   )
 }
@@ -46,12 +61,14 @@ export default function LessonPackageView() {
     return <Layout><div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div></Layout>
   }
 
-  if (error) {
+  const isNotFound = error && (error as any)?.response?.status === 404
+
+  if (error && !isNotFound) {
     return (
       <Layout>
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <p className="text-red-600 mb-4">Failed to load lesson package.</p>
+            <p className="text-red-600 mb-4">Something went wrong while loading the lesson package.</p>
             <button
               onClick={() => queryClient.invalidateQueries({ queryKey: ['lesson-package', id] })}
               className="text-[#7C3AED] hover:underline font-medium"
@@ -65,7 +82,7 @@ export default function LessonPackageView() {
     )
   }
 
-  if (!pkg) {
+  if (!pkg || isNotFound) {
     return (
       <Layout>
         <div className="flex items-center justify-center py-12">
@@ -74,8 +91,11 @@ export default function LessonPackageView() {
             <button
               onClick={() => generateMutation.mutate()}
               disabled={generateMutation.isPending}
-              className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold disabled:opacity-70"
             >
+              {generateMutation.isPending && (
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              )}
               {generateMutation.isPending ? 'Generating...' : 'Generate Lesson Package'}
             </button>
             <div className="mt-4"><Link to="/lessons" className="text-sm text-slate-500">Back to lessons</Link></div>
@@ -101,7 +121,7 @@ export default function LessonPackageView() {
         {pkg.key_notes && (
           <section className="bg-white rounded-xl border border-slate-200 p-6">
             <div className="flex items-center gap-2 mb-3"><BookOpen className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Key Notes</h2></div>
-            <ul className="space-y-2">{pkg.key_notes.map((note, i) => <li key={i} className="text-slate-700 flex gap-2"><span className="text-[#7C3AED] font-bold">{i+1}.</span>{note}</li>)}</ul>
+            <ol className="space-y-2 list-none">{pkg.key_notes.map((note, i) => <li key={i} className="text-slate-700 flex gap-2"><span className="text-[#7C3AED] font-bold">{i+1}.</span>{note}</li>)}</ol>
           </section>
         )}
         {pkg.flashcards && (

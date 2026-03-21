@@ -85,7 +85,7 @@ export default function BookLesson() {
         </div>
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-2">Book a Lesson</h1>
         {tutorLoading ? (
-          <div className="h-5 w-48 bg-slate-200 rounded animate-pulse mb-6" />
+          <p className="text-slate-600 mb-6">with <span className="inline-block h-4 w-32 bg-slate-200 rounded animate-pulse align-middle" /></p>
         ) : tutor ? (
           <p className="text-slate-600 mb-6">with {tutor.user.name}</p>
         ) : null}
@@ -102,6 +102,7 @@ export default function BookLesson() {
               <button
                 key={d}
                 onClick={() => { setDuration(d); setSelectedTime('') }}
+                aria-pressed={duration === d}
                 className={`px-4 py-2 rounded-lg text-sm ${duration === d ? 'bg-[#7C3AED] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
               >
                 {d} min
@@ -125,6 +126,7 @@ export default function BookLesson() {
                 <button
                   key={slot.id}
                   onClick={() => { setSelectedSlot(slot); setSelectedTime('') }}
+                  aria-pressed={selectedSlot?.id === slot.id}
                   className={`p-3 rounded-lg border text-left ${selectedSlot?.id === slot.id ? 'border-[#7C3AED] bg-[#EDE9FE]' : 'border-slate-200 bg-white'}`}
                 >
                   <div className="font-medium text-sm">{DAY_NAMES[slot.day_of_week]}</div>
@@ -169,8 +171,9 @@ export default function BookLesson() {
 
         {/* Notes */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Notes (optional)</label>
+          <label htmlFor="booking-notes" className="block text-sm font-medium text-slate-700 mb-1">Notes (optional)</label>
           <textarea
+            id="booking-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"

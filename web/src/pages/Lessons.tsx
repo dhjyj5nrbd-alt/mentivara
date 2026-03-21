@@ -45,7 +45,7 @@ function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: 
           {statusLabels[lesson.status] || lesson.status}
         </span>
       </div>
-      <div className="flex items-center gap-4 text-sm text-slate-600">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
         <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {dateStr}</span>
         <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {timeStr}</span>
         <span>{lesson.duration_minutes} min</span>
@@ -103,6 +103,9 @@ export default function Lessons() {
     mutationFn: (id: number) => lessonService.cancel(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons'] })
+    },
+    onError: () => {
+      alert('Failed to cancel the lesson. Please try again.')
     },
   })
 

@@ -33,10 +33,12 @@ export default function DoubtSolver() {
             </select>
           </div>
           <div className="flex gap-2">
-            <input value={question} onChange={(e) => setQuestion(e.target.value)}
+            <label htmlFor="doubt-question-input" className="sr-only">Your question</label>
+            <input id="doubt-question-input" value={question} onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && question.trim() && askMutation.mutate()}
               placeholder="Ask any question..." className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7C3AED]" />
             <button onClick={() => askMutation.mutate()} disabled={!question.trim() || askMutation.isPending}
+              aria-label="Send question"
               className="px-4 py-2.5 bg-[#7C3AED] text-white rounded-lg disabled:opacity-50">
               <Send className="w-5 h-5" />
             </button>
