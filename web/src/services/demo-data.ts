@@ -445,7 +445,7 @@ export const TUTOR_REELS: TutorReel[] = [
     id: 3,
     tutorName: 'Dr. Emily Brooks',
     tutorInitial: 'E',
-    tutorPhoto: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=600&h=800&fit=crop',
+    tutorPhoto: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&h=800&fit=crop',
     tutorAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face',
     subject: 'Biology',
     level: 'GCSE',
