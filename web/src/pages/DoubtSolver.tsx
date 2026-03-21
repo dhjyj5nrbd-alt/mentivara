@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { aiService, type DoubtItem } from '../services/ai'
-import { tutorService } from '../services/tutors'
+import { tutorService, type RefData } from '../services/tutors'
 import { Send, MessageCircle } from 'lucide-react'
 import Layout from '../components/Layout'
 
@@ -29,7 +29,7 @@ export default function DoubtSolver() {
             <select value={subjectId ?? ''} onChange={(e) => setSubjectId(e.target.value ? Number(e.target.value) : undefined)}
               className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
               <option value="">Any Subject</option>
-              {subjects?.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {subjects?.map((s: RefData) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div className="flex gap-2">
@@ -42,14 +42,20 @@ export default function DoubtSolver() {
             </button>
           </div>
           {askMutation.isPending && <p className="text-sm text-slate-500 mt-2">AI is thinking...</p>}
+          {askMutation.isError && <p className="text-sm text-red-600 mt-2">Failed to submit your question. Please try again.</p>}
         </div>
 
         {/* Doubts list */}
         {isLoading ? (
           <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+        ) : !doubtsData?.data?.length ? (
+          <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+            <MessageCircle className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500">No questions yet. Ask your first question above!</p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {doubtsData?.data?.map((doubt: DoubtItem) => (
+            {doubtsData.data.map((doubt: DoubtItem) => (
               <div key={doubt.id} className="bg-white rounded-xl border border-slate-200 p-6">
                 <div className="flex items-start gap-3 mb-3">
                   <MessageCircle className="w-5 h-5 text-[#7C3AED] mt-0.5 shrink-0" />
@@ -73,7 +79,7 @@ export default function DoubtSolver() {
                     doubt.status === 'tutor_answered' ? 'bg-emerald-50 text-emerald-600' :
                     doubt.status === 'escalated' ? 'bg-amber-50 text-amber-600' :
                     'bg-slate-100 text-slate-500'
-                  }`}>{doubt.status.replace('_', ' ')}</span>
+                  }`}>{doubt.status.replace(/_/g, ' ')}</span>
                   <span className="text-xs text-slate-400">{new Date(doubt.created_at).toLocaleDateString('en-GB')}</span>
                 </div>
               </div>

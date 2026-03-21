@@ -3,14 +3,24 @@ import { useQuery } from '@tanstack/react-query'
 import { aiService, type KnowledgeEntry } from '../services/ai'
 import Layout from '../components/Layout'
 
+const MASTERY_HIGH = 80
+const MASTERY_MID = 50
+
 function MasteryBar({ pct }: { pct: number }) {
-  const color = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'
+  const color = pct >= MASTERY_HIGH ? 'bg-emerald-500' : pct >= MASTERY_MID ? 'bg-amber-500' : 'bg-red-500'
   return (
     <div className="flex items-center gap-3 w-full">
       <div className="flex-1 bg-slate-200 rounded-full h-3">
-        <div className={`h-3 rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-3 rounded-full transition-all ${color}`}
+          style={{ width: `${pct}%` }}
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        />
       </div>
-      <span className={`text-sm font-semibold w-12 text-right ${pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+      <span className={`text-sm font-semibold w-12 text-right ${pct >= MASTERY_HIGH ? 'text-emerald-600' : pct >= MASTERY_MID ? 'text-amber-600' : 'text-red-600'}`}>
         {pct}%
       </span>
     </div>
@@ -18,7 +28,7 @@ function MasteryBar({ pct }: { pct: number }) {
 }
 
 export default function KnowledgeMap() {
-  const { data: knowledgeMap, isLoading } = useQuery({
+  const { data: knowledgeMap, isLoading, error } = useQuery({
     queryKey: ['knowledge-map'],
     queryFn: aiService.getKnowledgeMap,
   })
@@ -31,6 +41,11 @@ export default function KnowledgeMap() {
 
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+        ) : error ? (
+          <div className="text-center py-12 bg-white rounded-xl border border-red-200">
+            <p className="text-red-600 mb-4">Failed to load your knowledge map.</p>
+            <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
+          </div>
         ) : !knowledgeMap || Object.keys(knowledgeMap).length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
             <p className="text-slate-500 mb-4">No data yet. Complete an exam to start building your knowledge map.</p>

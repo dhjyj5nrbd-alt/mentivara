@@ -14,7 +14,7 @@ export default function ExamSimulator() {
   const [questions, setQuestions] = useState<ExamQuestion[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
   const [answers, setAnswers] = useState<Record<number, { answer: string; correct: boolean; explanation: string }>>({})
-  const [results, setResults] = useState<any>(null)
+  const [results, setResults] = useState<{ score: number; correct: number; total: number; grade_prediction: string } | null>(null)
 
   const { data: subjects } = useQuery({ queryKey: ['subjects'], queryFn: tutorService.getSubjects })
   const { data: levels } = useQuery({ queryKey: ['levels'], queryFn: tutorService.getLevels })
@@ -97,6 +97,24 @@ export default function ExamSimulator() {
               className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold">Try Again</button>
             <Link to="/dashboard" className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold">Dashboard</Link>
           </div>
+
+          {/* Answer Review */}
+          <div className="mt-10 text-left max-w-xl mx-auto space-y-4">
+            <h2 className="text-lg font-semibold text-slate-900">Answer Review</h2>
+            {questions.map((q, idx) => {
+              const a = answers[q.id]
+              return (
+                <div key={q.id} className={`border rounded-lg p-4 ${a?.correct ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+                  <p className="text-sm font-medium text-slate-900 mb-1">Q{idx + 1}. {q.content}</p>
+                  <p className="text-sm text-slate-700">Your answer: <span className="font-medium">{a?.answer ?? 'No answer'}</span></p>
+                  <p className={`text-sm font-medium ${a?.correct ? 'text-emerald-700' : 'text-red-700'}`}>
+                    {a?.correct ? 'Correct' : 'Incorrect'}
+                  </p>
+                  {a?.explanation && <p className="text-sm text-slate-600 mt-1">{a.explanation}</p>}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </Layout>
     )
@@ -109,7 +127,13 @@ export default function ExamSimulator() {
   return (
     <Layout>
       <div className="max-w-xl mx-auto px-4 py-8">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => { if (window.confirm('Are you sure you want to quit? Your progress will be lost.')) { setPhase('setup'); setAnswers({}); setCurrentIdx(0) } }}
+            className="text-sm text-red-500 hover:text-red-700 hover:underline"
+          >
+            Quit Exam
+          </button>
           <span className="text-sm text-slate-500">Q {currentIdx + 1}/{questions.length}</span>
         </div>
         {/* Progress bar */}

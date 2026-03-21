@@ -87,13 +87,13 @@ export default function Lessons() {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming')
   const queryClient = useQueryClient()
 
-  const { data: upcoming, isLoading: loadingUpcoming } = useQuery({
+  const { data: upcoming, isLoading: loadingUpcoming, error: errorUpcoming } = useQuery({
     queryKey: ['lessons', 'upcoming'],
     queryFn: lessonService.upcoming,
     enabled: tab === 'upcoming',
   })
 
-  const { data: past, isLoading: loadingPast } = useQuery({
+  const { data: past, isLoading: loadingPast, error: errorPast } = useQuery({
     queryKey: ['lessons', 'past'],
     queryFn: lessonService.past,
     enabled: tab === 'past',
@@ -108,6 +108,7 @@ export default function Lessons() {
 
   const lessons = tab === 'upcoming' ? upcoming : past
   const isLoading = tab === 'upcoming' ? loadingUpcoming : loadingPast
+  const error = tab === 'upcoming' ? errorUpcoming : errorPast
 
   return (
     <Layout>
@@ -116,12 +117,16 @@ export default function Lessons() {
 
         <div className="flex gap-2 mb-6">
           <button
+            role="tab"
+            aria-selected={tab === 'upcoming'}
             onClick={() => setTab('upcoming')}
             className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'upcoming' ? 'bg-[#7C3AED] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
           >
             Upcoming
           </button>
           <button
+            role="tab"
+            aria-selected={tab === 'past'}
             onClick={() => setTab('past')}
             className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'past' ? 'bg-[#7C3AED] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
           >
@@ -132,6 +137,11 @@ export default function Lessons() {
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 bg-white rounded-xl border border-red-200">
+            <p className="text-red-600 mb-4">Failed to load lessons.</p>
+            <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
           </div>
         ) : !lessons?.length ? (
           <div className="text-center py-12 text-slate-500">

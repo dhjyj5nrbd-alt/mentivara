@@ -6,7 +6,7 @@ import Layout from '../components/Layout'
 
 export default function Payments() {
   const { user } = useAuthStore()
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['payments'],
     queryFn: paymentService.history,
   })
@@ -18,6 +18,16 @@ export default function Payments() {
     refunded: 'bg-slate-100 text-slate-600',
   }
 
+  const statusLabels: Record<string, string> = {
+    pending: 'Pending',
+    completed: 'Completed',
+    failed: 'Failed',
+    refunded: 'Refunded',
+  }
+
+  const formatCurrency = (amount: number, currency: string) =>
+    new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100)
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -28,6 +38,11 @@ export default function Payments() {
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 bg-white rounded-xl border border-red-200">
+            <p className="text-red-600 mb-4">Failed to load payment history.</p>
+            <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
           </div>
         ) : !data?.data?.length ? (
           <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
@@ -48,10 +63,10 @@ export default function Payments() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[payment.status]}`}>
-                    {payment.status}
+                    {statusLabels[payment.status] || payment.status}
                   </span>
                   <span className="font-semibold text-slate-900">
-                    £{(payment.amount / 100).toFixed(2)}
+                    {formatCurrency(payment.amount, payment.currency)}
                   </span>
                 </div>
               </div>

@@ -26,13 +26,13 @@ export default function BookLesson() {
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
 
-  const { data: tutor } = useQuery({
+  const { data: tutor, isLoading: tutorLoading } = useQuery({
     queryKey: ['tutor', id],
     queryFn: () => tutorService.get(Number(id)),
     enabled: !!id,
   })
 
-  const { data: slots } = useQuery({
+  const { data: slots, isLoading: slotsLoading } = useQuery({
     queryKey: ['availability', id],
     queryFn: () => lessonService.getTutorAvailability(Number(id)),
     enabled: !!id,
@@ -84,7 +84,11 @@ export default function BookLesson() {
           <Link to={`/tutors/${id}`} className="text-sm text-slate-600">Back to profile</Link>
         </div>
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-2">Book a Lesson</h1>
-        {tutor && <p className="text-slate-600 mb-6">with {tutor.user.name}</p>}
+        {tutorLoading ? (
+          <div className="h-5 w-48 bg-slate-200 rounded animate-pulse mb-6" />
+        ) : tutor ? (
+          <p className="text-slate-600 mb-6">with {tutor.user.name}</p>
+        ) : null}
 
         {error && (
           <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">{error}</div>
@@ -109,7 +113,11 @@ export default function BookLesson() {
         {/* Day selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">Select a Day</label>
-          {!slots?.length ? (
+          {slotsLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#7C3AED]" />
+            </div>
+          ) : !slots?.length ? (
             <p className="text-slate-500 text-sm">No availability set by this tutor yet.</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
