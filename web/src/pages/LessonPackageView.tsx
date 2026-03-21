@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { aiService } from '../services/ai'
 import { BookOpen, Brain, HelpCircle, FileText } from 'lucide-react'
+import Layout from '../components/Layout'
 
 export default function LessonPackageView() {
   const { lessonId } = useParams<{ lessonId: string }>()
@@ -20,36 +21,36 @@ export default function LessonPackageView() {
   })
 
   if (isLoading) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+    return <Layout><div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div></Layout>
   }
 
   if (error || !pkg) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-slate-600 mb-4">No lesson package generated yet.</p>
-          <button
-            onClick={() => generateMutation.mutate()}
-            disabled={generateMutation.isPending}
-            className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold"
-          >
-            {generateMutation.isPending ? 'Generating...' : 'Generate Lesson Package'}
-          </button>
-          <div className="mt-4"><Link to="/lessons" className="text-sm text-slate-500">Back to lessons</Link></div>
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-slate-600 mb-4">No lesson package generated yet.</p>
+            <button
+              onClick={() => generateMutation.mutate()}
+              disabled={generateMutation.isPending}
+              className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold"
+            >
+              {generateMutation.isPending ? 'Generating...' : 'Generate Lesson Package'}
+            </button>
+            <div className="mt-4"><Link to="/lessons" className="text-sm text-slate-500">Back to lessons</Link></div>
+          </div>
         </div>
-      </div>
+      </Layout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-[#1E1B4B]">Lesson Package</h1>
           <Link to="/lessons" className="text-sm text-slate-500">Back</Link>
         </div>
-      </header>
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {pkg.summary && (
           <section className="bg-white rounded-xl border border-slate-200 p-6">
             <div className="flex items-center gap-2 mb-3"><FileText className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Summary</h2></div>
@@ -90,7 +91,7 @@ export default function LessonPackageView() {
             <p className="text-slate-700">{pkg.homework}</p>
           </section>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

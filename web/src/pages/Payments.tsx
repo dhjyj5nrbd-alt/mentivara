@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { paymentService, type PaymentItem } from '../services/payments'
 import { useAuthStore } from '../store/authStore'
 import { CreditCard } from 'lucide-react'
+import Layout from '../components/Layout'
 
 export default function Payments() {
   const { user } = useAuthStore()
@@ -19,14 +19,8 @@ export default function Payments() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">
           {user?.role === 'tutor' ? 'Earnings' : 'Payment History'}
         </h1>
@@ -64,7 +58,7 @@ export default function Payments() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

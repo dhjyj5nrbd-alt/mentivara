@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { aiService, type ExamQuestion } from '../services/ai'
 import { tutorService, type RefData } from '../services/tutors'
 import { CheckCircle, XCircle, Trophy } from 'lucide-react'
+import Layout from '../components/Layout'
 
 export default function ExamSimulator() {
   const [phase, setPhase] = useState<'setup' | 'exam' | 'results'>('setup')
@@ -51,13 +52,8 @@ export default function ExamSimulator() {
 
   if (phase === 'setup') {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <header className="bg-white border-b border-slate-200">
-          <div className="max-w-xl mx-auto px-4 flex items-center justify-between h-16">
-            <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
-          </div>
-        </header>
-        <main className="max-w-xl mx-auto px-4 py-8">
+      <Layout>
+        <div className="max-w-xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">Exam Simulator</h1>
           <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
             <div>
@@ -82,20 +78,15 @@ export default function ExamSimulator() {
             </button>
             {startMutation.isError && <p className="text-red-600 text-sm">Not enough questions available for this selection.</p>}
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     )
   }
 
   if (phase === 'results' && results) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <header className="bg-white border-b border-slate-200">
-          <div className="max-w-xl mx-auto px-4 flex items-center h-16">
-            <span className="text-xl font-bold text-[#1E1B4B]">Mentivara</span>
-          </div>
-        </header>
-        <main className="max-w-xl mx-auto px-4 py-8 text-center">
+      <Layout>
+        <div className="max-w-xl mx-auto px-4 py-8 text-center">
           <Trophy className="w-16 h-16 text-amber-500 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-[#1E1B4B] mb-2">Exam Complete</h1>
           <p className="text-6xl font-bold text-[#7C3AED] my-6">{results.score}%</p>
@@ -106,8 +97,8 @@ export default function ExamSimulator() {
               className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold">Try Again</button>
             <Link to="/dashboard" className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold">Dashboard</Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     )
   }
 
@@ -116,14 +107,11 @@ export default function ExamSimulator() {
   const currentAnswer = answers[currentQ?.id]
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-xl mx-auto px-4 flex items-center justify-between h-16">
-          <span className="text-xl font-bold text-[#1E1B4B]">Mentivara</span>
+    <Layout>
+      <div className="max-w-xl mx-auto px-4 py-8">
+        <div className="flex justify-end mb-4">
           <span className="text-sm text-slate-500">Q {currentIdx + 1}/{questions.length}</span>
         </div>
-      </header>
-      <main className="max-w-xl mx-auto px-4 py-8">
         {/* Progress bar */}
         <div className="w-full bg-slate-200 rounded-full h-2 mb-6">
           <div className="bg-[#7C3AED] h-2 rounded-full transition-all" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
@@ -172,7 +160,7 @@ export default function ExamSimulator() {
             </button>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { tutorService } from '../services/tutors'
 import { lessonService, type AvailabilitySlot } from '../services/lessons'
+import Layout from '../components/Layout'
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -77,15 +78,11 @@ export default function BookLesson() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
+    <Layout>
+      <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-end mb-4">
           <Link to={`/tutors/${id}`} className="text-sm text-slate-600">Back to profile</Link>
         </div>
-      </header>
-
-      <main className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-2">Book a Lesson</h1>
         {tutor && <p className="text-slate-600 mb-6">with {tutor.user.name}</p>}
 
@@ -181,7 +178,7 @@ export default function BookLesson() {
         >
           {bookMutation.isPending ? 'Booking...' : 'Confirm Booking'}
         </button>
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

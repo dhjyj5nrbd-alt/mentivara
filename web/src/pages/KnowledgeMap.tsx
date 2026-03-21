@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { aiService, type KnowledgeEntry } from '../services/ai'
+import Layout from '../components/Layout'
 
 function MasteryBar({ pct }: { pct: number }) {
   const color = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'
@@ -23,13 +24,8 @@ export default function KnowledgeMap() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-16">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
-        </div>
-      </header>
-      <main className="max-w-3xl mx-auto px-4 py-8">
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-2">Knowledge Map</h1>
         <p className="text-slate-600 mb-6">Track your mastery across topics. Complete exams to update your map.</p>
 
@@ -60,7 +56,7 @@ export default function KnowledgeMap() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

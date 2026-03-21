@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { aiService, type DoubtItem } from '../services/ai'
 import { tutorService } from '../services/tutors'
 import { Send, MessageCircle } from 'lucide-react'
+import Layout from '../components/Layout'
 
 export default function DoubtSolver() {
   const [question, setQuestion] = useState('')
@@ -19,13 +19,8 @@ export default function DoubtSolver() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-16">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
-        </div>
-      </header>
-      <main className="max-w-3xl mx-auto px-4 py-8">
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">AI Doubt Solver</h1>
 
         {/* Ask form */}
@@ -85,7 +80,7 @@ export default function DoubtSolver() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }

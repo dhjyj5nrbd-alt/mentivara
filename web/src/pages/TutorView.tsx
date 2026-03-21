@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { tutorService } from '../services/tutors'
+import Layout from '../components/Layout'
 
 export default function TutorView() {
   const { id } = useParams<{ id: string }>()
@@ -13,20 +14,24 @@ export default function TutorView() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
+        </div>
+      </Layout>
     )
   }
 
   if (error || !tutor) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Tutor not found</h2>
-          <Link to="/tutors" className="text-[#7C3AED] hover:underline">Back to directory</Link>
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">Tutor not found</h2>
+            <Link to="/tutors" className="text-[#7C3AED] hover:underline">Back to directory</Link>
+          </div>
         </div>
-      </div>
+      </Layout>
     )
   }
 
@@ -41,15 +46,11 @@ export default function TutorView() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-end mb-4">
           <Link to="/tutors" className="text-sm text-slate-600 hover:text-slate-900">Back to directory</Link>
         </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile header */}
         <div className="bg-white rounded-xl border border-slate-200 p-8 mb-6">
           <div className="flex items-center gap-4 mb-6">
@@ -123,7 +124,7 @@ export default function TutorView() {
             Book a Lesson
           </Link>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }
