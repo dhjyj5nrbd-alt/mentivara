@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import Layout from '../components/Layout'
@@ -6,7 +6,7 @@ import { TUTOR_REELS } from '../services/demo-data'
 import {
   BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
   Dumbbell, MessageSquare, Shield, Users, Trophy, Flame, Clapperboard,
-  Play, Heart, ChevronRight,
+  Play, ChevronRight, ChevronLeft,
 } from 'lucide-react'
 
 interface CardProps {
@@ -45,89 +45,63 @@ function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel
 
 function ReelsBanner() {
   const navigate = useNavigate()
-  const [hoveredId, setHoveredId] = useState<number | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  const formatCount = (n: number) => {
-    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-    return n.toString()
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollRef.current) return
+    const amount = scrollRef.current.clientWidth * 0.8
+    scrollRef.current.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' })
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-lg font-bold text-[#1E1B4B]">Tutor Reels</h2>
-          <p className="text-slate-400 text-xs">Quick lessons from top tutors</p>
+    <div className="mb-5">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Clapperboard className="w-4 h-4 text-[#7C3AED]" />
+          <h2 className="text-sm font-bold text-[#1E1B4B]">Tutor Reels</h2>
         </div>
-        <Link
-          to="/reels"
-          className="text-[#7C3AED] text-sm font-medium hover:underline flex items-center gap-1"
-        >
-          View all <ChevronRight className="w-4 h-4" />
-        </Link>
+        <div className="flex items-center gap-1">
+          <button onClick={() => scroll('left')} className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" aria-label="Previous reels">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button onClick={() => scroll('right')} className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" aria-label="Next reels">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <Link to="/reels" className="text-[#7C3AED] text-xs font-medium hover:underline ml-2">
+            View all
+          </Link>
+        </div>
       </div>
 
       <div
-        className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1"
+        ref={scrollRef}
+        className="flex gap-2.5 overflow-x-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {TUTOR_REELS.map((reel) => (
           <button
             key={reel.id}
             onClick={() => navigate('/reels')}
-            onMouseEnter={() => setHoveredId(reel.id)}
-            onMouseLeave={() => setHoveredId(null)}
-            className="shrink-0 w-36 sm:w-40 rounded-xl overflow-hidden relative group cursor-pointer"
-            style={{ aspectRatio: '9/13' }}
+            className="shrink-0 rounded-lg overflow-hidden relative group cursor-pointer h-24 w-44"
           >
-            {/* Background photo */}
             <img
               src={reel.tutorPhoto}
               alt={reel.title}
-              className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 ${
-                hoveredId === reel.id ? 'scale-110' : 'scale-100'
-              }`}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/5" />
-
-            {/* Play icon */}
-            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
-              hoveredId === reel.id ? 'opacity-100' : 'opacity-70'
-            }`}>
-              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
-              </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+            {/* Play */}
+            <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center">
+              <Play className="w-3 h-3 text-white fill-white ml-px" />
             </div>
-
-            {/* Duration badge */}
-            <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-              {reel.duration}
-            </div>
-
-            {/* Subject tag */}
-            <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+            {/* Subject pill */}
+            <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm text-white text-[9px] px-1.5 py-0.5 rounded-full font-medium">
               {reel.subject}
             </div>
-
             {/* Bottom info */}
-            <div className="absolute bottom-0 left-0 right-0 p-2.5">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <img
-                  src={reel.tutorAvatar}
-                  alt={reel.tutorName}
-                  className="w-5 h-5 rounded-full object-cover border border-white/40"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                />
-                <span className="text-white/80 text-[10px] font-medium truncate">{reel.tutorName}</span>
-              </div>
-              <p className="text-white font-semibold text-xs leading-tight line-clamp-2">{reel.title}</p>
-              <div className="flex items-center gap-2 mt-1.5">
-                <div className="flex items-center gap-1 text-white/60 text-[10px]">
-                  <Heart className="w-3 h-3" />
-                  {formatCount(reel.likes)}
-                </div>
-              </div>
+            <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2">
+              <p className="text-white font-semibold text-[11px] leading-tight line-clamp-1">{reel.title}</p>
+              <p className="text-white/60 text-[9px] mt-0.5">{reel.tutorName} · {reel.duration}</p>
             </div>
           </button>
         ))}
@@ -145,7 +119,7 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-4 sm:px-6 py-6 max-w-full overflow-x-hidden">
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B]">{greeting}, {firstName}</h1>
           <p className="text-slate-500 mt-1">Here's your learning overview</p>
@@ -164,7 +138,7 @@ export default function Dashboard() {
         {user?.role === 'student' && <ReelsBanner />}
 
         {user?.role === 'student' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
             <DashCard
               to="/lessons" icon={BookOpen} title="My Lessons"
               desc="View upcoming and past lessons"
@@ -230,7 +204,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'tutor' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
             <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons"
               accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
             <DashCard to="/payments" icon={CreditCard} title="Earnings" desc="View your earnings"
@@ -241,7 +215,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'parent' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
             <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons"
               accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
             <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history"
@@ -250,7 +224,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'admin' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
             <DashCard to="/admin" icon={Shield} title="Admin Dashboard" desc="Platform overview"
               accent="bg-white border-slate-200 hover:border-red-300" iconBg="bg-red-100 text-red-600" />
             <DashCard to="/admin/users" icon={Users} title="Users" desc="Manage platform users"

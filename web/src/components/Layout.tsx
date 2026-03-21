@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
-  LayoutDashboard, MessageSquare, Users, Dumbbell,
+  LayoutDashboard, MessageSquare, Users, Dumbbell, Clapperboard,
   LogOut, Shield, Menu, X, MoreHorizontal,
 } from 'lucide-react'
 
@@ -29,6 +29,7 @@ export default function Layout({ children }: Props) {
     { to: '/exam', icon: GraduationCap, label: 'Exams' },
     { to: '/knowledge-map', icon: Brain, label: 'Knowledge' },
     { to: '/doubts', icon: HelpCircle, label: 'AI Help' },
+    { to: '/reels', icon: Clapperboard, label: 'Reels' },
     { to: '/mental-dojo', icon: Dumbbell, label: 'Mental Dojo' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
     { to: '/payments', icon: CreditCard, label: 'Payments' },
@@ -192,11 +193,11 @@ export default function Layout({ children }: Props) {
       )}
 
       {/* Main content */}
-      <main className="flex-1 md:ml-56 pt-14 md:pt-0 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-56 pt-14 md:pt-0 pb-20 md:pb-0 min-w-0 overflow-x-hidden">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-[#7C3AED] text-white px-4 py-2 rounded-lg z-50">
           Skip to content
         </a>
-        <div id="main-content">
+        <div id="main-content" className="max-w-full">
           {children}
         </div>
       </main>
