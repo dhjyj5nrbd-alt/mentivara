@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Play, Check, Volume2, VolumeX, Pause } from 'lucide-react'
+import { speakAsync, initVoices } from './voice'
 
 interface Props {
   title: string
@@ -168,33 +169,8 @@ const VISUALIZATIONS: Record<string, Step[]> = {
 
 // ── Voice narration ─────────────────────────────────────────
 
-function getCalcVoice(): SpeechSynthesisVoice | null {
-  const voices = speechSynthesis.getVoices()
-  const preferred = [
-    'Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa',
-    'Google UK English Female', 'Google UK English Male',
-    'Microsoft Hazel', 'Microsoft Susan', 'Microsoft George',
-  ]
-  for (const name of preferred) {
-    const match = voices.find((v) => v.name.includes(name) && v.lang.startsWith('en'))
-    if (match) return match
-  }
-  return voices.find((v) => v.lang.startsWith('en')) || null
-}
-
 function speak(text: string, rate = 0.85, pitch = 0.9): Promise<void> {
-  return new Promise((resolve) => {
-    speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    const voice = getCalcVoice()
-    if (voice) utterance.voice = voice
-    utterance.rate = rate
-    utterance.pitch = pitch
-    utterance.volume = 1
-    utterance.onend = () => resolve()
-    utterance.onerror = () => resolve()
-    speechSynthesis.speak(utterance)
-  })
+  return speakAsync(text, { rate, pitch })
 }
 
 function playChime() {
@@ -252,12 +228,7 @@ export default function VisualizationExercise({ title, onComplete }: Props) {
   useEffect(() => { voiceEnabledRef.current = voiceEnabled }, [voiceEnabled])
 
   // Load voices
-  useEffect(() => {
-    const load = () => speechSynthesis.getVoices()
-    load()
-    speechSynthesis.addEventListener('voiceschanged', load)
-    return () => speechSynthesis.removeEventListener('voiceschanged', load)
-  }, [])
+  useEffect(() => initVoices(), [])
 
   // Track whether we're on the final step so we don't cancel its speech
   const isLastStepRef = useRef(false)

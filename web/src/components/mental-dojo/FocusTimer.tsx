@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, RotateCcw, Check, Volume2, VolumeX } from 'lucide-react'
+import { speakAsync, initVoices } from './voice'
 
 interface Props {
   onComplete: () => void
@@ -18,37 +19,6 @@ const AMBIENT_THEMES = [
   { id: 'waves', label: '🌊 Waves', color: '#6366F1' },
   { id: 'silence', label: '🤫 Silence', color: '#64748B' },
 ]
-
-// ── Voice helpers ───────────────────────────────────────────
-
-function getVoice(): SpeechSynthesisVoice | null {
-  const voices = speechSynthesis.getVoices()
-  const preferred = [
-    'Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa',
-    'Google UK English Female', 'Google UK English Male',
-    'Microsoft Hazel', 'Microsoft Susan', 'Microsoft George',
-  ]
-  for (const name of preferred) {
-    const match = voices.find((v) => v.name.includes(name) && v.lang.startsWith('en'))
-    if (match) return match
-  }
-  return voices.find((v) => v.lang.startsWith('en')) || null
-}
-
-function speakAsync(text: string, rate = 0.8, pitch = 0.9): Promise<void> {
-  return new Promise((resolve) => {
-    speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    const voice = getVoice()
-    if (voice) utterance.voice = voice
-    utterance.rate = rate
-    utterance.pitch = pitch
-    utterance.volume = 1
-    utterance.onend = () => resolve()
-    utterance.onerror = () => resolve()
-    speechSynthesis.speak(utterance)
-  })
-}
 
 function playTone(freq: number, dur: number, vol = 0.1) {
   try {
@@ -388,12 +358,7 @@ export default function FocusTimer({ onComplete }: Props) {
   useEffect(() => { soundEnabledRef.current = soundEnabled }, [soundEnabled])
 
   // Load voices
-  useEffect(() => {
-    const load = () => speechSynthesis.getVoices()
-    load()
-    speechSynthesis.addEventListener('voiceschanged', load)
-    return () => speechSynthesis.removeEventListener('voiceschanged', load)
-  }, [])
+  useEffect(() => initVoices(), [])
 
   // Start/stop ambient sound based on running state
   useEffect(() => {
@@ -419,7 +384,7 @@ export default function FocusTimer({ onComplete }: Props) {
       const mins = Math.round(duration / 60)
       await speakAsync(
         `Deep focus session. ${mins} minutes. Remove all distractions. Put your phone away. Focus only on your study material. Let us begin.`,
-        0.78, 0.88,
+        { rate: 0.78, pitch: 0.88 },
       )
       await new Promise((r) => setTimeout(r, 500))
     }
@@ -444,7 +409,7 @@ export default function FocusTimer({ onComplete }: Props) {
                 const mins = Math.round(duration / 60)
                 speakAsync(
                   `Focus session complete. You stayed focused for ${mins} minutes. Well done. Take a moment to stretch before your next session.`,
-                  0.78, 0.88,
+                  { rate: 0.78, pitch: 0.88 },
                 )
               }, 600)
             }, 300)
@@ -458,7 +423,7 @@ export default function FocusTimer({ onComplete }: Props) {
         if (prev === half && !hasSpokenHalfway.current) {
           hasSpokenHalfway.current = true
           if (soundEnabledRef.current) {
-            speakAsync('Halfway there. You are doing great. Stay focused.', 0.78, 0.88)
+            speakAsync('Halfway there. You are doing great. Stay focused.', { rate: 0.78, pitch: 0.88 })
           }
         }
 
@@ -466,7 +431,7 @@ export default function FocusTimer({ onComplete }: Props) {
         if (prev === 60 && !hasSpokenOneMin.current && duration > 120) {
           hasSpokenOneMin.current = true
           if (soundEnabledRef.current) {
-            speakAsync('One minute remaining. Finish strong.', 0.78, 0.88)
+            speakAsync('One minute remaining. Finish strong.', { rate: 0.78, pitch: 0.88 })
           }
         }
 

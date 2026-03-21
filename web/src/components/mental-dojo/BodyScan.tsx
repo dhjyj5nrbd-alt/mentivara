@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Play, Check, Volume2, VolumeX } from 'lucide-react'
+import { speakFire, initVoices } from './voice'
 
 interface Props {
   onComplete: () => void
@@ -22,25 +23,8 @@ const BODY_PARTS: BodyPart[] = [
   { name: 'Feet', instruction: 'Release tension in your feet and toes. Feel grounded and connected to the earth.', y: 88, duration: 8 },
 ]
 
-function getCalcVoice(): SpeechSynthesisVoice | null {
-  const voices = speechSynthesis.getVoices()
-  const preferred = ['Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa', 'Google UK English Female', 'Microsoft Hazel', 'Microsoft Susan']
-  for (const name of preferred) {
-    const match = voices.find((v) => v.name.includes(name) && v.lang.startsWith('en'))
-    if (match) return match
-  }
-  return voices.find((v) => v.lang.startsWith('en')) || null
-}
-
 function speakText(text: string) {
-  speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(text)
-  const voice = getCalcVoice()
-  if (voice) utterance.voice = voice
-  utterance.rate = 0.82
-  utterance.pitch = 0.9
-  utterance.volume = 1
-  speechSynthesis.speak(utterance)
+  speakFire(text, { rate: 0.82, pitch: 1.05 })
 }
 
 export default function BodyScan({ onComplete }: Props) {
@@ -68,9 +52,10 @@ export default function BodyScan({ onComplete }: Props) {
     }
   }, [isComplete, voiceEnabled])
 
-  // Cleanup
+  // Init voices & cleanup
   useEffect(() => {
-    return () => { speechSynthesis.cancel() }
+    const cleanup = initVoices()
+    return () => { cleanup(); speechSynthesis.cancel() }
   }, [])
 
   // Timer

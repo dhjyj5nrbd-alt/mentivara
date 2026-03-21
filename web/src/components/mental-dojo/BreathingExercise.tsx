@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Play, RotateCcw, Check, Volume2, VolumeX } from 'lucide-react'
+import { speakAsync as speak, speakFire as speakFireVoice, initVoices } from './voice'
 
 interface Props {
   title: string
@@ -19,46 +20,7 @@ const PHASE_COLORS: Record<Phase, string> = {
   'hold-out': '#0284C7',
 }
 
-// ── Voice ───────────────────────────────────────────────────
-
-function getVoice(): SpeechSynthesisVoice | null {
-  const voices = speechSynthesis.getVoices()
-  const preferred = [
-    'Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa',
-    'Google UK English Female', 'Google UK English Male',
-    'Microsoft Hazel', 'Microsoft Susan', 'Microsoft George',
-  ]
-  for (const name of preferred) {
-    const match = voices.find((v) => v.name.includes(name) && v.lang.startsWith('en'))
-    if (match) return match
-  }
-  return voices.find((v) => v.lang.startsWith('en')) || null
-}
-
-function speak(text: string, rate = 0.78, pitch = 0.88): Promise<void> {
-  return new Promise((resolve) => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    const voice = getVoice()
-    if (voice) utterance.voice = voice
-    utterance.rate = rate
-    utterance.pitch = pitch
-    utterance.volume = 1
-    utterance.onend = () => resolve()
-    utterance.onerror = () => resolve()
-    speechSynthesis.speak(utterance)
-  })
-}
-
-function speakFire(text: string, rate = 0.72, pitch = 0.85) {
-  speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(text)
-  const voice = getVoice()
-  if (voice) utterance.voice = voice
-  utterance.rate = rate
-  utterance.pitch = pitch
-  utterance.volume = 1
-  speechSynthesis.speak(utterance)
-}
+// ── Audio ───────────────────────────────────────────────────
 
 function playTone(freq: number, dur: number, vol = 0.06) {
   try {
@@ -98,12 +60,7 @@ export default function BreathingExercise({ title, onComplete }: Props) {
   const phaseStartRef = useRef(0)
 
   // Load voices
-  useEffect(() => {
-    const load = () => speechSynthesis.getVoices()
-    load()
-    speechSynthesis.addEventListener('voiceschanged', load)
-    return () => speechSynthesis.removeEventListener('voiceschanged', load)
-  }, [])
+  useEffect(() => initVoices(), [])
 
   // Cleanup
   useEffect(() => {
@@ -152,7 +109,7 @@ export default function BreathingExercise({ title, onComplete }: Props) {
 
         // Say the voice cue FIRST — wait for it to finish
         if (soundEnabled) {
-          await speak(cue, 0.72, 0.85)
+          await speak(cue, { rate: 0.72, pitch: 0.85 })
           if (cancelledRef.current) return
         }
 
