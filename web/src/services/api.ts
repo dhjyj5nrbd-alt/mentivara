@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { isDemoMode, handleDemoRequest } from './demo-interceptor'
 
 const api = axios.create({
   baseURL: '/api/v1',
@@ -10,12 +11,31 @@ const api = axios.create({
   timeout: 30000,
 })
 
-// Request interceptor: attach token from localStorage on every request
+// Request interceptor: attach token and use custom adapter for demo mode
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // In demo mode, replace the adapter so the request never hits the network
+  if (isDemoMode()) {
+    config.adapter = async (cfg) => {
+      const mock = await handleDemoRequest(cfg)
+      if (mock) {
+        return {
+          data: mock.data,
+          status: mock.status,
+          statusText: 'OK',
+          headers: {},
+          config: cfg,
+        } as any
+      }
+      // Fallback: return empty success
+      return { data: null, status: 200, statusText: 'OK', headers: {}, config: cfg } as any
+    }
+  }
+
   return config
 })
 

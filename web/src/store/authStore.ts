@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { authService, type LoginPayload, type RegisterPayload } from '../services/auth'
+import { DEMO_USER } from '../services/demo-data'
+import { enableDemoMode, disableDemoMode, isDemoMode } from '../services/demo-interceptor'
 
 interface User {
   id: number
@@ -16,6 +18,7 @@ interface AuthState {
   error: string | null
   login: (payload: LoginPayload) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
+  loginDemo: () => void
   logout: () => Promise<void>
   loadUser: () => Promise<void>
   clearError: () => void
@@ -39,6 +42,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
+  loginDemo: () => {
+    enableDemoMode()
+    set({ user: DEMO_USER, isAuthenticated: true, isLoading: false, error: null })
+  },
+
   register: async (payload) => {
     set({ isLoading: true, error: null })
     try {
@@ -53,13 +61,23 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     try {
-      await authService.logout()
+      if (!isDemoMode()) {
+        await authService.logout()
+      }
     } finally {
+      disableDemoMode()
+      localStorage.removeItem('token')
       set({ user: null, isAuthenticated: false, isLoading: false })
     }
   },
 
   loadUser: async () => {
+    // Demo mode: restore user from local mock data
+    if (isDemoMode()) {
+      set({ user: DEMO_USER, isAuthenticated: true, isLoading: false })
+      return
+    }
+
     if (!authService.hasToken()) {
       set({ isLoading: false })
       return

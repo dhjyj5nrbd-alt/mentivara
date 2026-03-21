@@ -18,6 +18,7 @@ import LessonPackageView from './pages/LessonPackageView'
 import DoubtSolver from './pages/DoubtSolver'
 import ExamSimulator from './pages/ExamSimulator'
 import KnowledgeMap from './pages/KnowledgeMap'
+import MentalDojo from './pages/MentalDojo'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import PendingTutors from './pages/admin/PendingTutors'
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Route path="/doubts" element={<ProtectedRoute roles={['student']}><DoubtSolver /></ProtectedRoute>} />
       <Route path="/exam" element={<ProtectedRoute roles={['student']}><ExamSimulator /></ProtectedRoute>} />
       <Route path="/knowledge-map" element={<ProtectedRoute roles={['student']}><KnowledgeMap /></ProtectedRoute>} />
+      <Route path="/mental-dojo" element={<ProtectedRoute roles={['student']}><MentalDojo /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
