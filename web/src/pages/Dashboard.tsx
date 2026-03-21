@@ -24,10 +24,10 @@ function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel
   return (
     <Link
       to={to}
-      className={`rounded-xl p-4 hover:shadow-lg transition-all group border ${accent} dark:bg-[#1a1d2e] dark:border-[#232536]`}
+      className={`rounded-xl p-3 hover:shadow-lg transition-all group border ${accent} dark:bg-[#1a1d2e] dark:border-[#232536]`}
     >
-      <div className="flex items-start justify-between mb-2.5">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg}`}>
+      <div className="flex items-start justify-between mb-2">
+        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${iconBg}`}>
           <Icon className="w-5 h-5" />
         </div>
         {stat && (
@@ -54,8 +54,8 @@ function ReelsBanner() {
   }
 
   return (
-    <div className="mb-5">
-      <div className="flex items-center justify-between mb-2">
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <Clapperboard className="w-4 h-4 text-[#7C3AED]" />
           <h2 className="text-sm font-bold text-[#1E1B4B] dark:text-white">Tutor Reels</h2>
@@ -82,7 +82,7 @@ function ReelsBanner() {
           <button
             key={reel.id}
             onClick={() => navigate('/reels')}
-            className="shrink-0 rounded-lg overflow-hidden relative group cursor-pointer h-24 w-44"
+            className="shrink-0 rounded-lg overflow-hidden relative group cursor-pointer h-20 w-40"
           >
             <img
               src={reel.tutorPhoto}
@@ -119,10 +119,10 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="px-4 sm:px-6 py-6 max-w-full overflow-x-hidden">
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B] dark:text-white">{greeting}, {firstName}</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Here's your learning overview</p>
+      <div className="px-4 sm:px-6 py-4 max-w-full overflow-x-hidden">
+        <div className="mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1E1B4B] dark:text-white">{greeting}, {firstName}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Here's your learning overview</p>
         </div>
 
         {user?.role === 'tutor' && user?.status === 'pending' && (
@@ -138,7 +138,7 @@ export default function Dashboard() {
         {user?.role === 'student' && <ReelsBanner />}
 
         {user?.role === 'student' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 [&>*]:min-w-0">
             <DashCard
               to="/lessons" icon={BookOpen} title="My Lessons"
               desc="View upcoming and past lessons"
@@ -204,7 +204,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'tutor' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 [&>*]:min-w-0">
             <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons"
               accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
             <DashCard to="/payments" icon={CreditCard} title="Earnings" desc="View your earnings"
@@ -215,7 +215,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'parent' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 [&>*]:min-w-0">
             <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons"
               accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
             <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history"
@@ -224,7 +224,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === 'admin' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 [&>*]:min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 [&>*]:min-w-0">
             <DashCard to="/admin" icon={Shield} title="Admin Dashboard" desc="Platform overview"
               accent="bg-white border-slate-200 hover:border-red-300" iconBg="bg-red-100 text-red-600" />
             <DashCard to="/admin/users" icon={Users} title="Users" desc="Manage platform users"

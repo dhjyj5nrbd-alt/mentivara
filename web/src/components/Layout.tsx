@@ -207,14 +207,14 @@ export default function Layout({ children }: Props) {
           Skip to content
         </a>
 
-        {/* Desktop top bar with theme toggle */}
-        <div className="hidden md:flex items-center justify-end px-6 py-2">
+        {/* Desktop theme toggle — floating top-right */}
+        <div className="hidden md:block fixed top-3 right-4 z-30">
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-100 dark:bg-[#1a1d2e] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-[#232536]"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all bg-white dark:bg-[#1a1d2e] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#252839] border border-slate-200 dark:border-[#232536] shadow-sm"
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
             {theme === 'dark' ? 'Light' : 'Dark'}
           </button>
         </div>
