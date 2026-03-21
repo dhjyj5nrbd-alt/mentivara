@@ -14,17 +14,31 @@ interface CardProps {
   icon: React.ElementType
   title: string
   desc: string
-  accent?: string
+  accent: string
+  iconBg: string
+  stat?: string
+  statLabel?: string
 }
 
-function DashCard({ to, icon: Icon, title, desc, accent }: CardProps) {
+function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel }: CardProps) {
   return (
-    <Link to={to} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all group">
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${accent || 'bg-[#EDE9FE] text-[#7C3AED]'}`}>
-        <Icon className="w-5 h-5" />
+    <Link
+      to={to}
+      className={`rounded-xl p-5 hover:shadow-lg transition-all group border ${accent}`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${iconBg}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        {stat && (
+          <div className="text-right">
+            <p className="text-lg font-bold text-slate-800">{stat}</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wide">{statLabel}</p>
+          </div>
+        )}
       </div>
-      <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
-      <p className="text-slate-500 text-sm">{desc}</p>
+      <h3 className="font-semibold text-slate-900 mb-0.5 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
+      <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
     </Link>
   )
 }
@@ -151,40 +165,100 @@ export default function Dashboard() {
 
         {user?.role === 'student' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons" />
-            <DashCard to="/tutors" icon={Search} title="Find a Tutor" desc="Browse and book verified tutors" accent="bg-blue-50 text-blue-600" />
-            <DashCard to="/exam" icon={GraduationCap} title="Exam Simulator" desc="Practice with timed mock exams" accent="bg-emerald-50 text-emerald-600" />
-            <DashCard to="/knowledge-map" icon={Brain} title="Knowledge Map" desc="Track your topic mastery" accent="bg-sky-50 text-sky-600" />
-            <DashCard to="/doubts" icon={HelpCircle} title="AI Doubt Solver" desc="Get instant answers" accent="bg-amber-50 text-amber-600" />
-            <DashCard to="/reels" icon={Clapperboard} title="Tutor Reels" desc="Quick tips from top tutors" accent="bg-fuchsia-50 text-fuchsia-600" />
-            <DashCard to="/mental-dojo" icon={Dumbbell} title="Mental Dojo" desc="Focus, calmness, confidence" accent="bg-rose-50 text-rose-600" />
-            <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history" />
-            <DashCard to="/messages/conversations" icon={MessageSquare} title="Messages" desc="Chat with your tutors" />
-            <DashCard to="/leaderboard" icon={Trophy} title="Leaderboard" desc="Top students by XP" accent="bg-amber-50 text-amber-600" />
+            <DashCard
+              to="/lessons" icon={BookOpen} title="My Lessons"
+              desc="View upcoming and past lessons"
+              accent="bg-white border-slate-200 hover:border-[#7C3AED]/30"
+              iconBg="bg-[#EDE9FE] text-[#7C3AED]"
+              stat="3" statLabel="Upcoming"
+            />
+            <DashCard
+              to="/tutors" icon={Search} title="Find a Tutor"
+              desc="Browse and book verified tutors"
+              accent="bg-white border-slate-200 hover:border-blue-300"
+              iconBg="bg-blue-100 text-blue-600"
+              stat="12" statLabel="Available"
+            />
+            <DashCard
+              to="/exam" icon={GraduationCap} title="Exam Simulator"
+              desc="Practice with timed mock exams"
+              accent="bg-white border-slate-200 hover:border-emerald-300"
+              iconBg="bg-emerald-100 text-emerald-600"
+              stat="B+" statLabel="Predicted"
+            />
+            <DashCard
+              to="/knowledge-map" icon={Brain} title="Knowledge Map"
+              desc="Track your topic mastery"
+              accent="bg-white border-slate-200 hover:border-sky-300"
+              iconBg="bg-sky-100 text-sky-600"
+              stat="67%" statLabel="Mastery"
+            />
+            <DashCard
+              to="/doubts" icon={HelpCircle} title="AI Doubt Solver"
+              desc="Get instant help with any question"
+              accent="bg-white border-slate-200 hover:border-amber-300"
+              iconBg="bg-amber-100 text-amber-600"
+            />
+            <DashCard
+              to="/mental-dojo" icon={Dumbbell} title="Mental Dojo"
+              desc="Focus, calmness, and confidence"
+              accent="bg-white border-slate-200 hover:border-rose-300"
+              iconBg="bg-rose-100 text-rose-600"
+              stat="3" statLabel="Day streak"
+            />
+            <DashCard
+              to="/messages/conversations" icon={MessageSquare} title="Messages"
+              desc="Chat with your tutors"
+              accent="bg-white border-slate-200 hover:border-indigo-300"
+              iconBg="bg-indigo-100 text-indigo-600"
+              stat="2" statLabel="Unread"
+            />
+            <DashCard
+              to="/payments" icon={CreditCard} title="Payments"
+              desc="View payment history"
+              accent="bg-white border-slate-200 hover:border-slate-300"
+              iconBg="bg-slate-100 text-slate-600"
+            />
+            <DashCard
+              to="/leaderboard" icon={Trophy} title="Leaderboard"
+              desc="Compete with other students"
+              accent="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300"
+              iconBg="bg-amber-100 text-amber-600"
+              stat="#14" statLabel="Your rank"
+            />
           </div>
         )}
 
         {user?.role === 'tutor' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons" />
-            <DashCard to="/payments" icon={CreditCard} title="Earnings" desc="View your earnings" accent="bg-emerald-50 text-emerald-600" />
-            <DashCard to="/messages/conversations" icon={MessageSquare} title="Messages" desc="Chat with students" />
+            <DashCard to="/lessons" icon={BookOpen} title="My Lessons" desc="View upcoming and past lessons"
+              accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
+            <DashCard to="/payments" icon={CreditCard} title="Earnings" desc="View your earnings"
+              accent="bg-white border-slate-200 hover:border-emerald-300" iconBg="bg-emerald-100 text-emerald-600" />
+            <DashCard to="/messages/conversations" icon={MessageSquare} title="Messages" desc="Chat with students"
+              accent="bg-white border-slate-200 hover:border-indigo-300" iconBg="bg-indigo-100 text-indigo-600" />
           </div>
         )}
 
         {user?.role === 'parent' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons" />
-            <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history" />
+            <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons"
+              accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
+            <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history"
+              accent="bg-white border-slate-200 hover:border-slate-300" iconBg="bg-slate-100 text-slate-600" />
           </div>
         )}
 
         {user?.role === 'admin' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DashCard to="/admin" icon={Shield} title="Admin Dashboard" desc="Platform overview" accent="bg-red-50 text-red-600" />
-            <DashCard to="/admin/users" icon={Users} title="Users" desc="Manage platform users" />
-            <DashCard to="/admin/tutors-pending" icon={GraduationCap} title="Pending Tutors" desc="Review applications" accent="bg-amber-50 text-amber-600" />
-            <DashCard to="/admin/payments" icon={CreditCard} title="Payments" desc="All transactions" accent="bg-emerald-50 text-emerald-600" />
+            <DashCard to="/admin" icon={Shield} title="Admin Dashboard" desc="Platform overview"
+              accent="bg-white border-slate-200 hover:border-red-300" iconBg="bg-red-100 text-red-600" />
+            <DashCard to="/admin/users" icon={Users} title="Users" desc="Manage platform users"
+              accent="bg-white border-slate-200 hover:border-slate-300" iconBg="bg-slate-100 text-slate-600" />
+            <DashCard to="/admin/tutors-pending" icon={GraduationCap} title="Pending Tutors" desc="Review applications"
+              accent="bg-white border-slate-200 hover:border-amber-300" iconBg="bg-amber-100 text-amber-600" />
+            <DashCard to="/admin/payments" icon={CreditCard} title="Payments" desc="All transactions"
+              accent="bg-white border-slate-200 hover:border-emerald-300" iconBg="bg-emerald-100 text-emerald-600" />
           </div>
         )}
       </div>
