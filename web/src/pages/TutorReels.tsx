@@ -415,7 +415,7 @@ function ReelCard({ reel, isActive, onLike, onSave }: ReelCardProps) {
             {/* Tutor info */}
             <div className="flex items-center gap-3 mb-3">
               <img
-                src={reel.tutorPhoto}
+                src={reel.tutorAvatar}
                 alt={reel.tutorName}
                 className="w-12 h-12 rounded-full object-cover border-2 border-white/50 shadow-lg"
                 onError={(e) => {
@@ -467,7 +467,7 @@ function ReelCard({ reel, isActive, onLike, onSave }: ReelCardProps) {
           {/* Tutor photo + name in top-left */}
           <div className="absolute top-8 left-3 z-20 flex items-center gap-2">
             <img
-              src={reel.tutorPhoto}
+              src={reel.tutorAvatar}
               alt={reel.tutorName}
               className="w-8 h-8 rounded-full object-cover border border-white/40"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
