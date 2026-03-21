@@ -83,16 +83,16 @@ export default function Layout({ children }: Props) {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1117] flex">
       {/* Sidebar — hidden on mobile, shown on md+ */}
       <aside className="hidden md:flex flex-col w-56 bg-white dark:bg-[#161822] border-r border-slate-200 dark:border-[#232536] fixed h-full z-10">
-        <div className="p-4 border-b border-slate-100 dark:border-[#232536]">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B] dark:text-white">Mentivara</Link>
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-[#232536]">
+          <Link to="/dashboard" className="text-lg font-bold text-[#1E1B4B] dark:text-white">Mentivara</Link>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-3 px-2" aria-label="Main navigation">
+        <nav className="flex-1 overflow-y-auto py-2 px-2" aria-label="Main navigation">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-colors ${
+              className={`flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-colors ${
                 isActive(item.to)
                   ? 'bg-[#EDE9FE] text-[#7C3AED] dark:bg-[#7C3AED]/20 dark:text-[#A78BFA] font-medium'
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
@@ -104,26 +104,26 @@ export default function Layout({ children }: Props) {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-slate-100 dark:border-[#232536]">
-          <div className="flex items-center gap-2 px-3 py-2">
-            <div className="w-8 h-8 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold text-sm" aria-hidden="true">
+        <div className="p-2 border-t border-slate-100 dark:border-[#232536]">
+          <div className="flex items-center gap-2 px-2 py-1.5">
+            <div className="w-7 h-7 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold text-xs" aria-hidden="true">
               {user?.name?.charAt(0) || '?'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name}</p>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium capitalize ${roleColors[user?.role || 'student'] || 'bg-slate-100 text-slate-600'}`}>
+              <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{user?.name}</p>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium capitalize ${roleColors[user?.role || 'student'] || 'bg-slate-100 text-slate-600'}`}>
                 {user?.role}
               </span>
             </div>
+            <button
+              onClick={handleLogout}
+              className="text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors shrink-0"
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-1"
-            aria-label="Sign out"
-          >
-            <LogOut className="w-4 h-4" aria-hidden="true" />
-            Sign out
-          </button>
         </div>
       </aside>
 
