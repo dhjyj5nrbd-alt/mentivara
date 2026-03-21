@@ -24,7 +24,7 @@ function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel
   return (
     <Link
       to={to}
-      className={`rounded-xl p-4 hover:shadow-lg transition-all group border ${accent} dark:bg-slate-800 dark:border-slate-700`}
+      className={`rounded-xl p-4 hover:shadow-lg transition-all group border ${accent} dark:bg-[#1a1d2e] dark:border-[#232536]`}
     >
       <div className="flex items-start justify-between mb-2.5">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg}`}>

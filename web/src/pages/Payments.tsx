@@ -40,19 +40,19 @@ export default function Payments() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
           </div>
         ) : error ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-red-200">
+          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-red-200">
             <p className="text-red-600 mb-4">Failed to load payment history.</p>
             <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
           </div>
         ) : !data?.data?.length ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536]">
             <CreditCard className="w-8 h-8 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 dark:text-slate-400">No payments yet.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {data.data.map((payment: PaymentItem) => (
-              <div key={payment.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 flex items-center justify-between">
+              <div key={payment.id} className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-5 flex items-center justify-between">
                 <div>
                   <p className="font-medium text-slate-900 dark:text-white">
                     {user?.role === 'student' ? payment.tutor?.name : payment.student?.name}

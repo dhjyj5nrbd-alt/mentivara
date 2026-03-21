@@ -24,10 +24,10 @@ export default function DoubtSolver() {
         <h1 className="text-2xl font-bold text-[#1E1B4B] dark:text-white mb-6">AI Doubt Solver</h1>
 
         {/* Ask form */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+        <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-6 mb-6">
           <div className="flex gap-3 mb-3">
             <select value={subjectId ?? ''} onChange={(e) => setSubjectId(e.target.value ? Number(e.target.value) : undefined)}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 dark:text-white">
+              className="px-3 py-2 border border-slate-300 dark:border-[#2d3048] rounded-lg text-sm bg-white dark:bg-[#252839] dark:text-white">
               <option value="">Any Subject</option>
               {subjects?.map((s: RefData) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -36,7 +36,7 @@ export default function DoubtSolver() {
             <label htmlFor="doubt-question-input" className="sr-only">Your question</label>
             <input id="doubt-question-input" value={question} onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && question.trim() && askMutation.mutate()}
-              placeholder="Ask any question..." className="flex-1 px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]" />
+              placeholder="Ask any question..." className="flex-1 px-4 py-2.5 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]" />
             <button onClick={() => askMutation.mutate()} disabled={!question.trim() || askMutation.isPending}
               aria-label="Send question"
               className="px-4 py-2.5 bg-[#7C3AED] text-white rounded-lg disabled:opacity-50">
@@ -51,14 +51,14 @@ export default function DoubtSolver() {
         {isLoading ? (
           <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
         ) : !doubtsData?.data?.length ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536]">
             <MessageCircle className="w-8 h-8 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 dark:text-slate-400">No questions yet. Ask your first question above!</p>
           </div>
         ) : (
           <div className="space-y-4">
             {doubtsData.data.map((doubt: DoubtItem) => (
-              <div key={doubt.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <div key={doubt.id} className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-6">
                 <div className="flex items-start gap-3 mb-3">
                   <MessageCircle className="w-5 h-5 text-[#7C3AED] mt-0.5 shrink-0" />
                   <p className="font-medium text-slate-900 dark:text-white">{doubt.question_text}</p>

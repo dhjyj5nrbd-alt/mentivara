@@ -15,7 +15,7 @@ export default function Home() {
   const { isAuthenticated } = useAuthStore()
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-white dark:bg-[#0f1117]">
       {/* Nav */}
       <header className="border-b border-slate-100 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
@@ -48,7 +48,7 @@ export default function Home() {
           <Link to="/register" className="px-8 py-3.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl font-semibold text-lg transition-colors shadow-lg shadow-violet-200">
             Start Learning Today
           </Link>
-          <Link to="/tutors" className="px-8 py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[#1E1B4B] dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl font-semibold text-lg transition-colors">
+          <Link to="/tutors" className="px-8 py-3.5 bg-white dark:bg-[#1a1d2e] hover:bg-slate-50 dark:hover:bg-[#252839] text-[#1E1B4B] dark:text-white border border-slate-300 dark:border-[#2d3048] rounded-xl font-semibold text-lg transition-colors">
             Browse Tutors
           </Link>
         </div>
@@ -56,13 +56,13 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="bg-slate-50 dark:bg-slate-800 py-20">
+      <section className="bg-slate-50 dark:bg-[#1a1d2e] py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-bold text-[#1E1B4B] dark:text-white text-center mb-4">Everything you need to succeed</h2>
           <p className="text-slate-600 dark:text-slate-400 text-center mb-12 max-w-xl mx-auto">One platform combining expert tutoring, AI learning tools, and mental wellbeing.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+              <div key={f.title} className="bg-white dark:bg-[#1a1d2e] rounded-xl p-6 border border-slate-200 dark:border-[#232536]">
                 <div className="w-10 h-10 rounded-lg bg-[#EDE9FE] flex items-center justify-center mb-4">
                   <f.icon className="w-5 h-5 text-[#7C3AED]" />
                 </div>
@@ -86,7 +86,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-700 py-8">
+      <footer className="border-t border-slate-200 dark:border-[#232536] py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <span className="font-semibold text-[#1E1B4B] dark:text-white">Mentivara</span>
           <p className="mt-2 sm:mt-0">Your mind, amplified.</p>

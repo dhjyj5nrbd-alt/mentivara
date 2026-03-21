@@ -55,11 +55,11 @@ export default function ExamSimulator() {
       <Layout>
         <div className="max-w-xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold text-[#1E1B4B] dark:text-white mb-6">Exam Simulator</h1>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+          <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
               <select value={subjectId} onChange={(e) => setSubjectId(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white">
+                className="w-full px-3 py-2 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white">
                 <option value={0}>Select subject</option>
                 {subjects?.map((s: RefData) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
@@ -67,7 +67,7 @@ export default function ExamSimulator() {
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Level</label>
               <select value={levelId} onChange={(e) => setLevelId(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white">
+                className="w-full px-3 py-2 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white">
                 <option value={0}>Select level</option>
                 {levels?.map((l: RefData) => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
@@ -99,7 +99,7 @@ export default function ExamSimulator() {
           <div className="mt-8 flex gap-3 justify-center">
             <button onClick={() => { setPhase('setup'); setAnswers({}); setCurrentIdx(0) }}
               className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold">Try Again</button>
-            <Link to="/dashboard" className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-semibold">Dashboard</Link>
+            <Link to="/dashboard" className="px-6 py-3 bg-white dark:bg-[#1a1d2e] border border-slate-300 dark:border-[#2d3048] text-slate-700 dark:text-slate-300 rounded-lg font-semibold">Dashboard</Link>
           </div>
 
           {/* Answer Review */}
@@ -141,12 +141,12 @@ export default function ExamSimulator() {
           <span className="text-sm text-slate-500 dark:text-slate-400">Q {currentIdx + 1}/{questions.length}</span>
         </div>
         {/* Progress bar */}
-        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-6" role="progressbar"
+        <div className="w-full bg-slate-200 dark:bg-[#252839] rounded-full h-2 mb-6" role="progressbar"
           aria-valuenow={currentIdx + 1} aria-valuemin={1} aria-valuemax={questions.length} aria-label={`Question ${currentIdx + 1} of ${questions.length}`}>
           <div className="bg-[#7C3AED] h-2 rounded-full transition-all" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+        <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-6">
           <p className="text-xs text-slate-400 mb-2 uppercase">{currentQ?.difficulty} | {currentQ?.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}</p>
           <p className="text-lg font-medium text-slate-900 dark:text-white mb-6">{currentQ?.content}</p>
 
@@ -158,7 +158,7 @@ export default function ExamSimulator() {
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                     currentAnswer?.answer === opt
                       ? currentAnswer.correct ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-[#7C3AED]'
+                      : 'border-slate-200 dark:border-[#232536] hover:border-[#7C3AED]'
                   } ${currentAnswer ? 'cursor-default' : ''}`}>
                   {opt}
                   {currentAnswer?.answer === opt && (currentAnswer.correct
@@ -174,7 +174,7 @@ export default function ExamSimulator() {
               <input id="short-answer-input" placeholder="Type your answer..." onKeyDown={(e) => {
                 if (e.key === 'Enter' && !currentAnswer) handleAnswer((e.target as HTMLInputElement).value)
               }} disabled={!!currentAnswer}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400" />
+                className="w-full px-4 py-2.5 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400" />
             </div>
           )}
 

@@ -10,7 +10,7 @@ function MasteryBar({ pct }: { pct: number }) {
   const color = pct >= MASTERY_HIGH ? 'bg-emerald-500' : pct >= MASTERY_MID ? 'bg-amber-500' : 'bg-red-500'
   return (
     <div className="flex items-center gap-3 w-full">
-      <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+      <div className="flex-1 bg-slate-200 dark:bg-[#252839] rounded-full h-3">
         <div
           className={`h-3 rounded-full transition-all ${color}`}
           style={{ width: `${pct}%` }}
@@ -42,19 +42,19 @@ export default function KnowledgeMap() {
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
         ) : error ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-red-200">
+          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-red-200">
             <p className="text-red-600 mb-4">Failed to load your knowledge map.</p>
             <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
           </div>
         ) : !knowledgeMap || Object.keys(knowledgeMap).length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536]">
             <p className="text-slate-500 dark:text-slate-400 mb-4">No data yet. Complete an exam to start building your knowledge map.</p>
             <Link to="/exam" className="text-[#7C3AED] hover:underline font-medium">Take an Exam</Link>
           </div>
         ) : (
           <div className="space-y-6">
             {Object.entries(knowledgeMap).map(([subject, entries]) => (
-              <div key={subject} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <div key={subject} className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-6">
                 <h2 className="font-semibold text-slate-900 dark:text-white mb-4">{subject}</h2>
                 <div className="space-y-3">
                   {(entries as KnowledgeEntry[]).map((entry) => (

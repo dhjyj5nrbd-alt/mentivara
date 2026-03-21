@@ -103,7 +103,7 @@ export default function BookLesson() {
                 key={d}
                 onClick={() => { setDuration(d); setSelectedTime('') }}
                 aria-pressed={duration === d}
-                className={`px-4 py-2 rounded-lg text-sm ${duration === d ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
+                className={`px-4 py-2 rounded-lg text-sm ${duration === d ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] text-slate-600 dark:text-slate-400'}`}
               >
                 {d} min
               </button>
@@ -127,7 +127,7 @@ export default function BookLesson() {
                   key={slot.id}
                   onClick={() => { setSelectedSlot(slot); setSelectedTime('') }}
                   aria-pressed={selectedSlot?.id === slot.id}
-                  className={`p-3 rounded-lg border text-left ${selectedSlot?.id === slot.id ? 'border-[#7C3AED] bg-[#EDE9FE]' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'}`}
+                  className={`p-3 rounded-lg border text-left ${selectedSlot?.id === slot.id ? 'border-[#7C3AED] bg-[#EDE9FE]' : 'border-slate-200 dark:border-[#232536] bg-white dark:bg-[#1a1d2e]'}`}
                 >
                   <div className="font-medium text-sm dark:text-white">{DAY_NAMES[slot.day_of_week]}</div>
                   <div className="text-xs text-slate-500 dark:text-slate-400">{slot.start_time} - {slot.end_time}</div>
@@ -146,7 +146,7 @@ export default function BookLesson() {
                 <button
                   key={time}
                   onClick={() => setSelectedTime(time)}
-                  className={`px-3 py-2 rounded-lg text-sm ${selectedTime === time ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
+                  className={`px-3 py-2 rounded-lg text-sm ${selectedTime === time ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] text-slate-600 dark:text-slate-400'}`}
                 >
                   {time}
                 </button>
@@ -176,7 +176,7 @@ export default function BookLesson() {
             id="booking-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-[#2d3048] rounded-lg text-sm bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
             rows={3}
             placeholder="Any topics or questions for the lesson..."
           />

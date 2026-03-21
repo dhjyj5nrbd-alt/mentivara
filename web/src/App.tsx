@@ -40,7 +40,7 @@ function AppRoutes() {
   }, [theme])
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0f1117]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
   }
 
   return (

@@ -251,21 +251,21 @@ export default function MentalDojo() {
 
             {/* Stats bar */}
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+              <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-4 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Trophy className="w-4 h-4 text-amber-500" />
                   <span className="text-2xl font-bold text-[#1E1B4B] dark:text-white">{xpEarned}</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Dojo XP</p>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+              <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-4 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Check className="w-4 h-4 text-emerald-500" />
                   <span className="text-2xl font-bold text-[#1E1B4B] dark:text-white">{totalCompleted}/{totalModules}</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Exercises Done</p>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+              <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-4 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Flame className="w-4 h-4 text-orange-500" />
                   <span className="text-2xl font-bold text-[#1E1B4B] dark:text-white">3</span>
@@ -347,7 +347,7 @@ export default function MentalDojo() {
                         ? 'bg-emerald-50 border-emerald-200'
                         : isLocked
                           ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-[#7C3AED] hover:shadow-md cursor-pointer'
+                          : 'bg-white dark:bg-[#1a1d2e] border-slate-200 dark:border-[#232536] hover:border-[#7C3AED] hover:shadow-md cursor-pointer'
                       }`}
                   >
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0

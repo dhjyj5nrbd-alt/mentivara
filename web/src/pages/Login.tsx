@@ -24,14 +24,14 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1117] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#1E1B4B] dark:text-white">Mentivara</h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1a1d2e] rounded-xl shadow-sm border border-slate-200 dark:border-[#232536] p-8 space-y-5">
           {error && (
             <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
@@ -48,7 +48,7 @@ export default function Login() {
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
               placeholder="you@example.com"
             />
           </div>
@@ -63,7 +63,7 @@ export default function Login() {
               required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
               placeholder="Enter your password"
             />
           </div>
@@ -85,10 +85,10 @@ export default function Login() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+              <div className="w-full border-t border-slate-200 dark:border-[#232536]" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white dark:bg-slate-800 px-2 text-slate-400">or</span>
+              <span className="bg-white dark:bg-[#1a1d2e] px-2 text-slate-400">or</span>
             </div>
           </div>
 
