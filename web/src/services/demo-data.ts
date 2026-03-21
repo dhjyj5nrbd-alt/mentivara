@@ -374,3 +374,184 @@ export const MENTAL_DOJO_COURSES = [
     ],
   },
 ]
+
+// ── Tutor Reels ───────────────────────────────────────────
+
+export interface TutorReel {
+  id: number
+  tutorName: string
+  tutorInitial: string
+  tutorPhoto: string
+  subject: string
+  level: string
+  title: string
+  description: string
+  duration: string
+  likes: number
+  comments: number
+  isLiked: boolean
+  isSaved: boolean
+  isCompetition: boolean
+  competitionAnswer?: string
+  xpReward?: number
+  gradientFrom: string
+  gradientTo: string
+  gradientVia?: string
+}
+
+export const TUTOR_REELS: TutorReel[] = [
+  {
+    id: 1,
+    tutorName: 'Dr. Sarah Chen',
+    tutorInitial: 'S',
+    tutorPhoto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
+    subject: 'Maths',
+    level: 'GCSE',
+    title: '3 Quick Tricks for Quadratic Equations',
+    description: 'Learn how to factorise any quadratic in under 30 seconds using these simple tricks.',
+    duration: '2:45',
+    likes: 342,
+    comments: 47,
+    isLiked: false,
+    isSaved: false,
+    isCompetition: false,
+    gradientFrom: '#3B82F6',
+    gradientTo: '#1D4ED8',
+    gradientVia: '#2563EB',
+  },
+  {
+    id: 2,
+    tutorName: 'Prof. James Wilson',
+    tutorInitial: 'J',
+    tutorPhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=face',
+    subject: 'English',
+    level: 'A-Level',
+    title: 'How to Structure a Perfect Essay',
+    description: 'The PEEL method will transform your essay writing. Point, Evidence, Explain, Link.',
+    duration: '3:10',
+    likes: 518,
+    comments: 63,
+    isLiked: true,
+    isSaved: false,
+    isCompetition: false,
+    gradientFrom: '#F59E0B',
+    gradientTo: '#D97706',
+    gradientVia: '#FBBF24',
+  },
+  {
+    id: 3,
+    tutorName: 'Dr. Emily Brooks',
+    tutorInitial: 'E',
+    tutorPhoto: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face',
+    subject: 'Biology',
+    level: 'GCSE',
+    title: 'Photosynthesis in 60 Seconds',
+    description: 'Carbon dioxide + water + light energy = glucose + oxygen. Here is how it all works.',
+    duration: '1:00',
+    likes: 891,
+    comments: 112,
+    isLiked: false,
+    isSaved: true,
+    isCompetition: false,
+    gradientFrom: '#10B981',
+    gradientTo: '#059669',
+    gradientVia: '#34D399',
+  },
+  {
+    id: 4,
+    tutorName: 'Mark Thompson',
+    tutorInitial: 'M',
+    tutorPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+    subject: 'Physics',
+    level: 'A-Level',
+    title: "Newton's Laws Made Simple",
+    description: 'Every action has an equal and opposite reaction. But what does that really mean?',
+    duration: '2:30',
+    likes: 267,
+    comments: 34,
+    isLiked: false,
+    isSaved: false,
+    isCompetition: false,
+    gradientFrom: '#F97316',
+    gradientTo: '#EA580C',
+    gradientVia: '#FB923C',
+  },
+  {
+    id: 5,
+    tutorName: 'Dr. Sarah Chen',
+    tutorInitial: 'S',
+    tutorPhoto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
+    subject: 'Exam Tips',
+    level: 'All Levels',
+    title: 'Exam Day Checklist',
+    description: 'The 5 things every student must do before walking into the exam hall.',
+    duration: '3:45',
+    likes: 1203,
+    comments: 189,
+    isLiked: false,
+    isSaved: false,
+    isCompetition: false,
+    gradientFrom: '#8B5CF6',
+    gradientTo: '#6D28D9',
+    gradientVia: '#A78BFA',
+  },
+  {
+    id: 6,
+    tutorName: 'Dr. Sarah Chen',
+    tutorInitial: 'S',
+    tutorPhoto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
+    subject: 'Maths',
+    level: 'GCSE',
+    title: 'Can you solve this? x\u00B2 + 5x + 6 = 0',
+    description: 'Drop your answer below! First correct answer wins 50 XP.',
+    duration: '1:30',
+    likes: 756,
+    comments: 234,
+    isLiked: false,
+    isSaved: false,
+    isCompetition: true,
+    competitionAnswer: '(-2,-3)',
+    xpReward: 50,
+    gradientFrom: '#3B82F6',
+    gradientTo: '#7C3AED',
+    gradientVia: '#6366F1',
+  },
+  {
+    id: 7,
+    tutorName: 'Dr. Emily Brooks',
+    tutorInitial: 'E',
+    tutorPhoto: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face',
+    subject: 'Chemistry',
+    level: 'GCSE',
+    title: 'Balancing Chemical Equations',
+    description: 'The atom-counting method that makes balancing equations easy every time.',
+    duration: '2:15',
+    likes: 445,
+    comments: 56,
+    isLiked: false,
+    isSaved: false,
+    isCompetition: false,
+    gradientFrom: '#A855F7',
+    gradientTo: '#7C3AED',
+    gradientVia: '#C084FC',
+  },
+  {
+    id: 8,
+    tutorName: 'Prof. James Wilson',
+    tutorInitial: 'J',
+    tutorPhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=face',
+    subject: 'English',
+    level: 'GCSE',
+    title: '5 Common Grammar Mistakes',
+    description: "Their, there, they're — and 4 other mistakes that cost you marks every exam.",
+    duration: '2:00',
+    likes: 623,
+    comments: 78,
+    isLiked: false,
+    isSaved: false,
+    isCompetition: false,
+    gradientFrom: '#F59E0B',
+    gradientTo: '#B45309',
+    gradientVia: '#D97706',
+  },
+]

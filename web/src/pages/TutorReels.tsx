@@ -258,15 +258,16 @@ function ReelCard({ reel, isActive, onLike, onSave }: ReelCardProps) {
   const [competitionInput, setCompetitionInput] = useState('')
   const [competitionSubmitted, setCompetitionSubmitted] = useState(false)
   const [competitionCorrect, setCompetitionCorrect] = useState<boolean | null>(null)
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(-1) // -1 = thumbnail view
   const [isPlaying, setIsPlaying] = useState(false)
   const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const slides = getReelContent(reel.id)
+  const isThumbnail = currentSlide === -1
 
   // Auto-advance slides when playing
   useEffect(() => {
-    if (isPlaying && isActive) {
+    if (isPlaying && isActive && !isThumbnail) {
       playTimerRef.current = setInterval(() => {
         setCurrentSlide((prev) => {
           if (prev >= slides.length - 1) {
@@ -280,17 +281,26 @@ function ReelCard({ reel, isActive, onLike, onSave }: ReelCardProps) {
     return () => {
       if (playTimerRef.current) clearInterval(playTimerRef.current)
     }
-  }, [isPlaying, isActive, slides.length])
+  }, [isPlaying, isActive, isThumbnail, slides.length])
 
-  // Pause when not active
+  // Reset when not active
   useEffect(() => {
     if (!isActive) {
       setIsPlaying(false)
-      setCurrentSlide(0)
+      setCurrentSlide(-1)
     }
   }, [isActive])
 
+  const startPlaying = () => {
+    setCurrentSlide(0)
+    setIsPlaying(true)
+  }
+
   const togglePlay = () => {
+    if (isThumbnail) {
+      startPlaying()
+      return
+    }
     if (isPlaying) {
       setIsPlaying(false)
     } else {
@@ -325,250 +335,322 @@ function ReelCard({ reel, isActive, onLike, onSave }: ReelCardProps) {
     return n.toString()
   }
 
-  const slide = slides[currentSlide] || slides[0]
+  const slide = !isThumbnail ? (slides[currentSlide] || slides[0]) : null
 
   return (
-    <div
-      className="snap-start shrink-0 w-full h-full relative flex"
-    >
-      {/* Gradient background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: reel.gradientVia
-            ? `linear-gradient(135deg, ${reel.gradientFrom} 0%, ${reel.gradientVia} 50%, ${reel.gradientTo} 100%)`
-            : `linear-gradient(135deg, ${reel.gradientFrom} 0%, ${reel.gradientTo} 100%)`,
-        }}
-      />
-
-      {/* Subtle pattern */}
-      <div className="absolute inset-0 opacity-[0.07]" style={{
-        backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px), radial-gradient(circle at 75% 75%, white 1px, transparent 1px)',
-        backgroundSize: '40px 40px',
-      }} />
-
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-black/30" />
-
-      {/* Slide progress bar at top */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 px-3 pt-3">
-        {slides.map((_, i) => (
-          <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-white/20">
+    <div className="snap-start shrink-0 w-full h-full relative flex">
+      {/* Background — teacher photo for thumbnail, gradient for content */}
+      {isThumbnail ? (
+        <>
+          {/* Teacher photo background */}
+          <div className="absolute inset-0">
+            <img
+              src={reel.tutorPhoto}
+              alt={reel.tutorName}
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+            />
+            {/* Fallback gradient if image fails */}
             <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                i < currentSlide ? 'bg-white w-full' :
-                i === currentSlide ? 'bg-white' : 'w-0'
-              }`}
-              style={{ width: i < currentSlide ? '100%' : i === currentSlide ? '100%' : '0%' }}
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(135deg, ${reel.gradientFrom} 0%, ${reel.gradientTo} 100%)`,
+                zIndex: -1,
+              }}
             />
           </div>
-        ))}
-      </div>
-
-      {/* Main content area — the AI-generated slide */}
-      <div className="absolute inset-0 flex items-center justify-center z-10 px-6 pt-12 pb-32">
-        <div
-          className="w-full max-w-md transition-all duration-500"
-          style={{ opacity: 1, transform: 'translateY(0)' }}
-          key={currentSlide}
-        >
-          {slide.type === 'title' ? (
-            <div className="text-center">
-              {slide.emoji && <div className="text-5xl mb-4">{slide.emoji}</div>}
-              <h2 className="text-white text-2xl font-bold leading-tight">{slide.body}</h2>
-              <p className="text-white/60 text-sm mt-4">Tap play to start</p>
-            </div>
-          ) : slide.type === 'formula' ? (
-            <div>
-              {slide.heading && (
-                <h3 className="text-white/80 text-sm font-medium uppercase tracking-wider mb-3">{slide.heading}</h3>
-              )}
-              <p className="text-white text-lg mb-4">{slide.body}</p>
-              {slide.highlight && (
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <pre className="text-white font-mono text-base leading-relaxed whitespace-pre-wrap">{slide.highlight}</pre>
-                </div>
-              )}
-            </div>
-          ) : slide.type === 'diagram' ? (
-            <div>
-              {slide.heading && (
-                <h3 className="text-white/80 text-sm font-medium uppercase tracking-wider mb-3">{slide.heading}</h3>
-              )}
-              <p className="text-white text-lg mb-4">{slide.body}</p>
-              {slide.highlight && (
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <pre className="text-white text-base leading-relaxed whitespace-pre-wrap">{slide.highlight}</pre>
-                </div>
-              )}
-            </div>
-          ) : slide.type === 'tip' ? (
-            <div>
-              {slide.heading && (
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <h3 className="text-amber-300 text-sm font-bold uppercase tracking-wider">{slide.heading}</h3>
-                </div>
-              )}
-              <p className="text-white text-lg mb-4">{slide.body}</p>
-              {slide.highlight && (
-                <div className="bg-amber-500/15 backdrop-blur-sm rounded-xl p-4 border border-amber-400/30">
-                  <pre className="text-amber-100 font-mono text-base leading-relaxed whitespace-pre-wrap">{slide.highlight}</pre>
-                </div>
-              )}
-            </div>
-          ) : slide.type === 'summary' ? (
-            <div className="text-center">
-              {slide.emoji && <div className="text-4xl mb-4">{slide.emoji}</div>}
-              <h3 className="text-white font-bold text-lg mb-4">Key Takeaways</h3>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 text-left">
-                <pre className="text-white text-base leading-relaxed whitespace-pre-wrap">{slide.body}</pre>
-              </div>
-            </div>
-          ) : (
-            <div>
-              {slide.heading && (
-                <h3 className="text-white/80 text-sm font-medium uppercase tracking-wider mb-3">{slide.heading}</h3>
-              )}
-              <p className="text-white text-lg leading-relaxed mb-4">{slide.body}</p>
-              {slide.highlight && (
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <p className="text-white font-medium text-base italic">{slide.highlight}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Slide navigation — tap left/right */}
-      <button
-        className="absolute left-0 top-12 bottom-32 w-1/3 z-15"
-        onClick={() => { setIsPlaying(false); setCurrentSlide(Math.max(0, currentSlide - 1)) }}
-        aria-label="Previous slide"
-      />
-      <button
-        className="absolute right-16 top-12 bottom-32 w-1/3 z-15"
-        onClick={() => { setIsPlaying(false); setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1)) }}
-        aria-label="Next slide"
-      />
-
-      {/* Play/Pause button */}
-      <button
-        onClick={togglePlay}
-        className="absolute top-14 right-3 z-20 w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/25 transition-colors"
-        aria-label={isPlaying ? 'Pause' : 'Play'}
-      >
-        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-      </button>
-
-      {/* Competition badge */}
-      {reel.isCompetition && (
-        <div className="absolute top-14 left-3 z-20 flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
-          <Trophy className="w-3.5 h-3.5" />
-          Challenge
-          {reel.xpReward && (
-            <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full">+{reel.xpReward} XP</span>
-          )}
-        </div>
+          {/* Dark gradient overlay for text */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+        </>
+      ) : (
+        <>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: reel.gradientVia
+                ? `linear-gradient(135deg, ${reel.gradientFrom} 0%, ${reel.gradientVia} 50%, ${reel.gradientTo} 100%)`
+                : `linear-gradient(135deg, ${reel.gradientFrom} 0%, ${reel.gradientTo} 100%)`,
+            }}
+          />
+          <div className="absolute inset-0 opacity-[0.07]" style={{
+            backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px), radial-gradient(circle at 75% 75%, white 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }} />
+          <div className="absolute inset-0 bg-black/30" />
+        </>
       )}
 
-      {/* Right side action bar */}
-      <div className="absolute right-3 bottom-36 z-20 flex flex-col items-center gap-5">
-        <button onClick={handleLike} className="flex flex-col items-center gap-1" aria-label={reel.isLiked ? 'Unlike' : 'Like'}>
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-            reel.isLiked ? 'bg-red-500/20' : 'bg-white/10 backdrop-blur-sm'
-          } ${likeAnim ? 'scale-125' : 'scale-100'}`}
-          style={{ transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+      {/* ── THUMBNAIL VIEW ── */}
+      {isThumbnail ? (
+        <>
+          {/* Competition badge */}
+          {reel.isCompetition && (
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+              <Trophy className="w-3.5 h-3.5" />
+              Challenge
+              {reel.xpReward && (
+                <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full">+{reel.xpReward} XP</span>
+              )}
+            </div>
+          )}
+
+          {/* Duration badge */}
+          <div className="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-xs font-medium">
+            {reel.duration}
+          </div>
+
+          {/* Center play button */}
+          <button
+            onClick={startPlaying}
+            className="absolute inset-0 z-10 flex items-center justify-center group"
+            aria-label={`Play ${reel.title}`}
           >
-            <Heart className={`w-6 h-6 transition-colors ${reel.isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
-          </div>
-          <span className="text-white text-xs font-medium">{formatCount(reel.likes)}</span>
-        </button>
+            <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/40 group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300 shadow-2xl">
+              <Play className="w-10 h-10 text-white fill-white ml-1" />
+            </div>
+          </button>
 
-        <div className="flex flex-col items-center gap-1">
-          <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs font-medium">{formatCount(reel.comments)}</span>
-        </div>
+          {/* Bottom info */}
+          <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+            {/* Tutor info */}
+            <div className="flex items-center gap-3 mb-3">
+              <img
+                src={reel.tutorPhoto}
+                alt={reel.tutorName}
+                className="w-12 h-12 rounded-full object-cover border-2 border-white/50 shadow-lg"
+                onError={(e) => {
+                  const el = e.target as HTMLImageElement
+                  el.style.display = 'none'
+                }}
+              />
+              <div>
+                <p className="text-white font-bold text-base">{reel.tutorName}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-white/90 text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-medium">{reel.subject}</span>
+                  <span className="text-white/70 text-xs">{reel.level}</span>
+                </div>
+              </div>
+            </div>
 
-        <button onClick={handleSave} className="flex flex-col items-center gap-1" aria-label={reel.isSaved ? 'Unsave' : 'Save'}>
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-            reel.isSaved ? 'bg-[#7C3AED]/30' : 'bg-white/10 backdrop-blur-sm'
-          } ${saveAnim ? 'scale-110 -translate-y-1' : 'scale-100 translate-y-0'}`}
-          style={{ transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-          >
-            <Bookmark className={`w-6 h-6 transition-colors ${reel.isSaved ? 'text-[#7C3AED] fill-[#7C3AED]' : 'text-white'}`} />
-          </div>
-          <span className="text-white text-xs font-medium">Save</span>
-        </button>
+            {/* Title & description */}
+            <h3 className="text-white font-bold text-xl leading-tight mb-1.5">{reel.title}</h3>
+            <p className="text-white/70 text-sm leading-relaxed">{reel.description}</p>
 
-        <button className="flex flex-col items-center gap-1" aria-label="Share reel">
-          <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs font-medium">Share</span>
-        </button>
-      </div>
-
-      {/* Bottom content */}
-      <div className="absolute bottom-0 left-0 right-16 p-4 z-20">
-        {/* Tutor info */}
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-sm border-2 border-white/40">
-            {reel.tutorInitial}
-          </div>
-          <div>
-            <p className="text-white font-semibold text-sm">{reel.tutorName}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-white/80 text-xs bg-white/15 px-2 py-0.5 rounded-full">{reel.subject}</span>
-              <span className="text-white/60 text-xs">{reel.level}</span>
+            {/* Stats row */}
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                <Heart className="w-3.5 h-3.5" />
+                {formatCount(reel.likes)}
+              </div>
+              <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                <MessageCircle className="w-3.5 h-3.5" />
+                {formatCount(reel.comments)}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Title */}
-        <h3 className="text-white font-bold text-base leading-tight mb-1">{reel.title}</h3>
-        <p className="text-white/60 text-xs">{reel.description}</p>
-
-        {/* Competition input */}
-        {reel.isCompetition && (
-          <div className="mt-3">
-            {!competitionSubmitted ? (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={competitionInput}
-                  onChange={(e) => setCompetitionInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCompetitionSubmit()}
-                  placeholder="Type your answer..."
-                  className="flex-1 bg-white/15 backdrop-blur-sm text-white placeholder-white/50 px-4 py-2.5 rounded-full text-sm border border-white/20 focus:outline-none focus:border-white/50"
+        </>
+      ) : (
+        /* ── CONTENT SLIDE VIEW ── */
+        <>
+          {/* Slide progress bar at top */}
+          <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 px-3 pt-3">
+            {slides.map((_, i) => (
+              <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-white/20">
+                <div
+                  className="h-full rounded-full transition-all duration-300 bg-white"
+                  style={{ width: i <= currentSlide ? '100%' : '0%' }}
                 />
-                <button
-                  onClick={handleCompetitionSubmit}
-                  className="w-10 h-10 rounded-full bg-[#7C3AED] text-white flex items-center justify-center hover:bg-[#6D28D9] transition-colors shrink-0"
-                  aria-label="Submit answer"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
               </div>
-            ) : (
-              <div className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium ${
-                competitionCorrect
-                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30'
-                  : 'bg-red-500/20 text-red-200 border border-red-400/30'
-              }`}>
-                <Sparkles className="w-4 h-4 shrink-0" />
-                {competitionCorrect
-                  ? `Correct! +${reel.xpReward} XP earned!`
-                  : 'Not quite. Watch the reel for hints!'
-                }
+            ))}
+          </div>
+
+          {/* Tutor photo + name in top-left */}
+          <div className="absolute top-8 left-3 z-20 flex items-center gap-2">
+            <img
+              src={reel.tutorPhoto}
+              alt={reel.tutorName}
+              className="w-8 h-8 rounded-full object-cover border border-white/40"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+            />
+            <span className="text-white text-sm font-medium">{reel.tutorName}</span>
+          </div>
+
+          {/* Main content area — the AI-generated slide */}
+          <div className="absolute inset-0 flex items-center justify-center z-10 px-6 pt-16 pb-32">
+            <div className="w-full max-w-md" key={currentSlide}>
+              {slide?.type === 'title' ? (
+                <div className="text-center">
+                  {slide.emoji && <div className="text-5xl mb-4">{slide.emoji}</div>}
+                  <h2 className="text-white text-2xl font-bold leading-tight">{slide.body}</h2>
+                </div>
+              ) : slide?.type === 'formula' || slide?.type === 'diagram' ? (
+                <div>
+                  {slide.heading && <h3 className="text-white/80 text-sm font-medium uppercase tracking-wider mb-3">{slide.heading}</h3>}
+                  <p className="text-white text-lg mb-4">{slide.body}</p>
+                  {slide.highlight && (
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <pre className="text-white font-mono text-base leading-relaxed whitespace-pre-wrap">{slide.highlight}</pre>
+                    </div>
+                  )}
+                </div>
+              ) : slide?.type === 'tip' ? (
+                <div>
+                  {slide.heading && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4 text-amber-300" />
+                      <h3 className="text-amber-300 text-sm font-bold uppercase tracking-wider">{slide.heading}</h3>
+                    </div>
+                  )}
+                  <p className="text-white text-lg mb-4">{slide.body}</p>
+                  {slide.highlight && (
+                    <div className="bg-amber-500/15 backdrop-blur-sm rounded-xl p-4 border border-amber-400/30">
+                      <pre className="text-amber-100 font-mono text-base leading-relaxed whitespace-pre-wrap">{slide.highlight}</pre>
+                    </div>
+                  )}
+                </div>
+              ) : slide?.type === 'summary' ? (
+                <div className="text-center">
+                  {slide.emoji && <div className="text-4xl mb-4">{slide.emoji}</div>}
+                  <h3 className="text-white font-bold text-lg mb-4">Key Takeaways</h3>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 text-left">
+                    <pre className="text-white text-base leading-relaxed whitespace-pre-wrap">{slide.body}</pre>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {slide?.heading && <h3 className="text-white/80 text-sm font-medium uppercase tracking-wider mb-3">{slide.heading}</h3>}
+                  <p className="text-white text-lg leading-relaxed mb-4">{slide?.body}</p>
+                  {slide?.highlight && (
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <p className="text-white font-medium text-base italic">{slide.highlight}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Slide navigation — tap left/right */}
+          <button
+            className="absolute left-0 top-14 bottom-32 w-1/3 z-15"
+            onClick={() => { setIsPlaying(false); setCurrentSlide(Math.max(0, currentSlide - 1)) }}
+            aria-label="Previous slide"
+          />
+          <button
+            className="absolute right-16 top-14 bottom-32 w-1/3 z-15"
+            onClick={() => { setIsPlaying(false); setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1)) }}
+            aria-label="Next slide"
+          />
+
+          {/* Play/Pause + Back buttons */}
+          <div className="absolute top-8 right-3 z-20 flex items-center gap-2">
+            <button
+              onClick={togglePlay}
+              className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/25 transition-colors"
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            </button>
+            <button
+              onClick={() => { setIsPlaying(false); setCurrentSlide(-1) }}
+              className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/25 transition-colors text-xs font-bold"
+              aria-label="Back to thumbnail"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Competition badge */}
+          {reel.isCompetition && (
+            <div className="absolute top-16 left-3 z-20 flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+              <Trophy className="w-3.5 h-3.5" />
+              Challenge
+              {reel.xpReward && (
+                <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full">+{reel.xpReward} XP</span>
+              )}
+            </div>
+          )}
+
+          {/* Right side action bar */}
+          <div className="absolute right-3 bottom-36 z-20 flex flex-col items-center gap-5">
+            <button onClick={handleLike} className="flex flex-col items-center gap-1" aria-label={reel.isLiked ? 'Unlike' : 'Like'}>
+              <div className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+                reel.isLiked ? 'bg-red-500/20' : 'bg-white/10 backdrop-blur-sm'
+              } ${likeAnim ? 'scale-125' : 'scale-100'}`}
+              style={{ transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                <Heart className={`w-6 h-6 transition-colors ${reel.isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+              </div>
+              <span className="text-white text-xs font-medium">{formatCount(reel.likes)}</span>
+            </button>
+
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-white text-xs font-medium">{formatCount(reel.comments)}</span>
+            </div>
+
+            <button onClick={handleSave} className="flex flex-col items-center gap-1" aria-label={reel.isSaved ? 'Unsave' : 'Save'}>
+              <div className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+                reel.isSaved ? 'bg-[#7C3AED]/30' : 'bg-white/10 backdrop-blur-sm'
+              } ${saveAnim ? 'scale-110 -translate-y-1' : 'scale-100 translate-y-0'}`}
+              style={{ transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                <Bookmark className={`w-6 h-6 transition-colors ${reel.isSaved ? 'text-[#7C3AED] fill-[#7C3AED]' : 'text-white'}`} />
+              </div>
+              <span className="text-white text-xs font-medium">Save</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1" aria-label="Share reel">
+              <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                <Share2 className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-white text-xs font-medium">Share</span>
+            </button>
+          </div>
+
+          {/* Bottom — title + competition */}
+          <div className="absolute bottom-0 left-0 right-16 p-4 z-20">
+            <h3 className="text-white font-bold text-base leading-tight mb-1">{reel.title}</h3>
+            <p className="text-white/60 text-xs">{reel.description}</p>
+
+            {reel.isCompetition && (
+              <div className="mt-3">
+                {!competitionSubmitted ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={competitionInput}
+                      onChange={(e) => setCompetitionInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCompetitionSubmit()}
+                      placeholder="Type your answer..."
+                      className="flex-1 bg-white/15 backdrop-blur-sm text-white placeholder-white/50 px-4 py-2.5 rounded-full text-sm border border-white/20 focus:outline-none focus:border-white/50"
+                    />
+                    <button
+                      onClick={handleCompetitionSubmit}
+                      className="w-10 h-10 rounded-full bg-[#7C3AED] text-white flex items-center justify-center hover:bg-[#6D28D9] transition-colors shrink-0"
+                      aria-label="Submit answer"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium ${
+                    competitionCorrect
+                      ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30'
+                      : 'bg-red-500/20 text-red-200 border border-red-400/30'
+                  }`}>
+                    <Sparkles className="w-4 h-4 shrink-0" />
+                    {competitionCorrect
+                      ? `Correct! +${reel.xpReward} XP earned!`
+                      : 'Not quite. Watch the reel for hints!'
+                    }
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 }
