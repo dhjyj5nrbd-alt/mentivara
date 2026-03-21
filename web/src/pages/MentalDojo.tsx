@@ -244,33 +244,33 @@ export default function MentalDojo() {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-violet-600 flex items-center justify-center">
                   <Brain className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B]">Mental Dojo</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B] dark:text-white">Mental Dojo</h1>
               </div>
-              <p className="text-slate-500 mt-1">Train your mind for peak academic performance.</p>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">Train your mind for peak academic performance.</p>
             </div>
 
             {/* Stats bar */}
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Trophy className="w-4 h-4 text-amber-500" />
-                  <span className="text-2xl font-bold text-[#1E1B4B]">{xpEarned}</span>
+                  <span className="text-2xl font-bold text-[#1E1B4B] dark:text-white">{xpEarned}</span>
                 </div>
-                <p className="text-xs text-slate-500">Dojo XP</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Dojo XP</p>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Check className="w-4 h-4 text-emerald-500" />
-                  <span className="text-2xl font-bold text-[#1E1B4B]">{totalCompleted}/{totalModules}</span>
+                  <span className="text-2xl font-bold text-[#1E1B4B] dark:text-white">{totalCompleted}/{totalModules}</span>
                 </div>
-                <p className="text-xs text-slate-500">Exercises Done</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Exercises Done</p>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-2xl font-bold text-[#1E1B4B]">3</span>
+                  <span className="text-2xl font-bold text-[#1E1B4B] dark:text-white">3</span>
                 </div>
-                <p className="text-xs text-slate-500">Day Streak</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Day Streak</p>
               </div>
             </div>
 
@@ -294,12 +294,12 @@ export default function MentalDojo() {
                         <span className="text-sm font-medium text-slate-600">{courseProgress}%</span>
                       </div>
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-[#7C3AED] transition-colors">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-[#7C3AED] transition-colors">
                       {course.title}
                     </h3>
-                    <p className="text-sm text-slate-600 mb-4">{course.description}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{course.description}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">{course.modules.length} exercises</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{course.modules.length} exercises</span>
                       <div className="w-24 h-1.5 bg-white/60 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-violet-500 to-rose-500 rounded-full transition-all duration-500"
@@ -327,8 +327,8 @@ export default function MentalDojo() {
                   <selectedCourse.icon className="w-7 h-7" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">{selectedCourse.title}</h1>
-                  <p className="text-sm text-slate-600">{selectedCourse.description}</p>
+                  <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{selectedCourse.title}</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{selectedCourse.description}</p>
                 </div>
               </div>
             </div>
@@ -347,7 +347,7 @@ export default function MentalDojo() {
                         ? 'bg-emerald-50 border-emerald-200'
                         : isLocked
                           ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
-                          : 'bg-white border-slate-200 hover:border-[#7C3AED] hover:shadow-md cursor-pointer'
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-[#7C3AED] hover:shadow-md cursor-pointer'
                       }`}
                   >
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0
@@ -357,7 +357,7 @@ export default function MentalDojo() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className={`font-semibold ${isCompleted ? 'text-emerald-800' : 'text-slate-900'}`}>
+                        <h3 className={`font-semibold ${isCompleted ? 'text-emerald-800' : 'text-slate-900 dark:text-white'}`}>
                           {mod.title}
                         </h3>
                         {isCompleted && (
@@ -366,7 +366,7 @@ export default function MentalDojo() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5">{mod.description}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{mod.description}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="text-xs text-slate-400">{mod.duration}</span>

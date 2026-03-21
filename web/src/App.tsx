@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from './store/authStore'
+import { useThemeStore } from './store/themeStore'
 import ProtectedRoute from './components/ProtectedRoute'
 import ErrorBoundary from './components/ErrorBoundary'
 import Home from './pages/Home'
@@ -19,6 +20,7 @@ import DoubtSolver from './pages/DoubtSolver'
 import ExamSimulator from './pages/ExamSimulator'
 import KnowledgeMap from './pages/KnowledgeMap'
 import MentalDojo from './pages/MentalDojo'
+import TutorReels from './pages/TutorReels'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import PendingTutors from './pages/admin/PendingTutors'
@@ -28,11 +30,17 @@ const queryClient = new QueryClient()
 
 function AppRoutes() {
   const { loadUser, isAuthenticated, isLoading } = useAuthStore()
+  const theme = useThemeStore((s) => s.theme)
 
   useEffect(() => { loadUser() }, [loadUser])
 
+  // Sync theme to <html> element
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
+
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
   }
 
   return (
@@ -50,6 +58,7 @@ function AppRoutes() {
       <Route path="/doubts" element={<ProtectedRoute roles={['student']}><DoubtSolver /></ProtectedRoute>} />
       <Route path="/exam" element={<ProtectedRoute roles={['student']}><ExamSimulator /></ProtectedRoute>} />
       <Route path="/knowledge-map" element={<ProtectedRoute roles={['student']}><KnowledgeMap /></ProtectedRoute>} />
+      <Route path="/reels" element={<ProtectedRoute roles={['student']}><TutorReels /></ProtectedRoute>} />
       <Route path="/mental-dojo" element={<ProtectedRoute roles={['student']}><MentalDojo /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />

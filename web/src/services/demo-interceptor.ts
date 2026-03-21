@@ -8,7 +8,7 @@ import {
   UPCOMING_LESSONS, PAST_LESSONS, KNOWLEDGE_MAP,
   EXAM_QUESTIONS, EXAM_ANSWERS, DOUBTS, PAYMENTS,
   LESSON_PACKAGE, AVAILABILITY, CONVERSATIONS, MESSAGES,
-  LEADERBOARD, MENTAL_DOJO_COURSES,
+  LEADERBOARD, MENTAL_DOJO_COURSES, TUTOR_REELS,
 } from './demo-data'
 
 // Re-export TUTOR_LIST for the interceptor since it's computed in demo-data
@@ -271,6 +271,33 @@ export async function handleDemoRequest(
   }
   if (url.includes('/mental-dojo/') && url.includes('/progress') && method === 'post') {
     return { data: ok({ message: 'Progress saved' }), status: 200 }
+  }
+
+  // ── Tutor Reels ───────────────────────────────────────────
+  if (url === '/reels' && method === 'get') {
+    const params = new URLSearchParams(rawUrl.split('?')[1] ?? '')
+    const subject = params.get('subject')
+    const filtered = subject && subject !== 'All'
+      ? TUTOR_REELS.filter((r) => r.subject === subject)
+      : TUTOR_REELS
+    return { data: ok(filtered), status: 200 }
+  }
+  const reelLikeMatch = url.match(/^\/reels\/(\d+)\/like$/)
+  if (reelLikeMatch && method === 'post') {
+    const reelId = Number(reelLikeMatch[1])
+    const reel = TUTOR_REELS.find((r) => r.id === reelId)
+    if (reel) {
+      reel.isLiked = !reel.isLiked
+      reel.likes += reel.isLiked ? 1 : -1
+    }
+    return { data: ok({ isLiked: reel?.isLiked, likes: reel?.likes }), status: 200 }
+  }
+  const reelSaveMatch = url.match(/^\/reels\/(\d+)\/save$/)
+  if (reelSaveMatch && method === 'post') {
+    const reelId = Number(reelSaveMatch[1])
+    const reel = TUTOR_REELS.find((r) => r.id === reelId)
+    if (reel) reel.isSaved = !reel.isSaved
+    return { data: ok({ isSaved: reel?.isSaved }), status: 200 }
   }
 
   // ── Study coach / missions ──────────────────────────────

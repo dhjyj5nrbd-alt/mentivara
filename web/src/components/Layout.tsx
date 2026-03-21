@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import { useThemeStore } from '../store/themeStore'
 import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
   LayoutDashboard, MessageSquare, Users, Dumbbell, Clapperboard,
-  LogOut, Shield, Menu, X, MoreHorizontal,
+  LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon,
 } from 'lucide-react'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 
 export default function Layout({ children }: Props) {
   const { user, logout } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -78,11 +80,11 @@ export default function Layout({ children }: Props) {
   const mobileOverflowItems = navItems.slice(4)
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       {/* Sidebar — hidden on mobile, shown on md+ */}
-      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-slate-200 fixed h-full z-10">
-        <div className="p-4 border-b border-slate-100">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
+      <aside className="hidden md:flex flex-col w-56 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 fixed h-full z-10">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700">
+          <Link to="/dashboard" className="text-xl font-bold text-[#1E1B4B] dark:text-white">Mentivara</Link>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3 px-2" aria-label="Main navigation">
@@ -92,8 +94,8 @@ export default function Layout({ children }: Props) {
               to={item.to}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-colors ${
                 isActive(item.to)
-                  ? 'bg-[#EDE9FE] text-[#7C3AED] font-medium'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[#EDE9FE] text-[#7C3AED] dark:bg-[#7C3AED]/20 dark:text-[#A78BFA] font-medium'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <item.icon className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -102,21 +104,29 @@ export default function Layout({ children }: Props) {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-slate-100">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-700">
           <div className="flex items-center gap-2 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold text-sm" aria-hidden="true">
               {user?.name?.charAt(0) || '?'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name}</p>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium capitalize ${roleColors[user?.role || 'student'] || 'bg-slate-100 text-slate-600'}`}>
                 {user?.role}
               </span>
             </div>
           </div>
           <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-[#7C3AED] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          </button>
+          <button
             onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors mt-1"
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-1"
             aria-label="Sign out"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
@@ -126,12 +136,19 @@ export default function Layout({ children }: Props) {
       </aside>
 
       {/* Mobile top header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-20 flex items-center justify-between px-4 h-14">
-        <Link to="/dashboard" className="text-lg font-bold text-[#1E1B4B]">Mentivara</Link>
+      <header className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 z-20 flex items-center justify-between px-4 h-14">
+        <Link to="/dashboard" className="text-lg font-bold text-[#1E1B4B] dark:text-white">Mentivara</Link>
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold text-xs" aria-hidden="true">
             {user?.name?.charAt(0) || '?'}
           </div>
+          <button
+            onClick={toggleTheme}
+            className="text-slate-400 dark:text-slate-400 hover:text-[#7C3AED] transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           <button
             onClick={handleLogout}
             className="text-slate-400 hover:text-red-500 transition-colors"
@@ -143,7 +160,7 @@ export default function Layout({ children }: Props) {
       </header>
 
       {/* Mobile bottom nav — show first 4 + More */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20 flex" aria-label="Mobile navigation">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 z-20 flex" aria-label="Mobile navigation">
         {mobileNavItems.map((item) => (
           <Link
             key={item.to}
@@ -173,7 +190,7 @@ export default function Layout({ children }: Props) {
 
       {/* Mobile overflow menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-slate-200 z-20 px-4 py-3 shadow-lg">
+        <div className="md:hidden fixed bottom-16 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-20 px-4 py-3 shadow-lg">
           {mobileOverflowItems.map((item) => (
             <Link
               key={item.to}
@@ -182,7 +199,7 @@ export default function Layout({ children }: Props) {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive(item.to)
                   ? 'bg-[#EDE9FE] text-[#7C3AED] font-medium'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               <item.icon className="w-4 h-4" aria-hidden="true" />

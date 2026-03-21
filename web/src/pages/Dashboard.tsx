@@ -24,7 +24,7 @@ function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel
   return (
     <Link
       to={to}
-      className={`rounded-xl p-4 hover:shadow-lg transition-all group border ${accent}`}
+      className={`rounded-xl p-4 hover:shadow-lg transition-all group border ${accent} dark:bg-slate-800 dark:border-slate-700`}
     >
       <div className="flex items-start justify-between mb-2.5">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg}`}>
@@ -32,13 +32,13 @@ function DashCard({ to, icon: Icon, title, desc, accent, iconBg, stat, statLabel
         </div>
         {stat && (
           <div className="text-right">
-            <p className="text-base font-bold text-slate-800 leading-none">{stat}</p>
-            <p className="text-[9px] text-slate-400 uppercase tracking-wide mt-0.5">{statLabel}</p>
+            <p className="text-base font-bold text-slate-800 dark:text-white leading-none">{stat}</p>
+            <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wide mt-0.5">{statLabel}</p>
           </div>
         )}
       </div>
-      <h3 className="font-semibold text-slate-900 text-sm mb-0.5 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
-      <p className="text-slate-400 text-xs leading-relaxed">{desc}</p>
+      <h3 className="font-semibold text-slate-900 dark:text-white text-sm mb-0.5 group-hover:text-[#7C3AED] transition-colors">{title}</h3>
+      <p className="text-slate-400 dark:text-slate-500 text-xs leading-relaxed">{desc}</p>
     </Link>
   )
 }
@@ -58,13 +58,13 @@ function ReelsBanner() {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Clapperboard className="w-4 h-4 text-[#7C3AED]" />
-          <h2 className="text-sm font-bold text-[#1E1B4B]">Tutor Reels</h2>
+          <h2 className="text-sm font-bold text-[#1E1B4B] dark:text-white">Tutor Reels</h2>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => scroll('left')} className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" aria-label="Previous reels">
+          <button onClick={() => scroll('left')} className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors" aria-label="Previous reels">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button onClick={() => scroll('right')} className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" aria-label="Next reels">
+          <button onClick={() => scroll('right')} className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors" aria-label="Next reels">
             <ChevronRight className="w-4 h-4" />
           </button>
           <Link to="/reels" className="text-[#7C3AED] text-xs font-medium hover:underline ml-2">
@@ -121,12 +121,12 @@ export default function Dashboard() {
     <Layout>
       <div className="px-4 sm:px-6 py-6 max-w-full overflow-x-hidden">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B]">{greeting}, {firstName}</h1>
-          <p className="text-slate-500 mt-1">Here's your learning overview</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B4B] dark:text-white">{greeting}, {firstName}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Here's your learning overview</p>
         </div>
 
         {user?.role === 'tutor' && user?.status === 'pending' && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-xl mb-6 flex items-start gap-3">
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-300 px-6 py-4 rounded-xl mb-6 flex items-start gap-3">
             <Flame className="w-5 h-5 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium">Your account is pending approval</p>
@@ -196,7 +196,7 @@ export default function Dashboard() {
             <DashCard
               to="/leaderboard" icon={Trophy} title="Leaderboard"
               desc="Compete with other students"
-              accent="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300"
+              accent="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700"
               iconBg="bg-amber-100 text-amber-600"
               stat="#14" statLabel="Your rank"
             />

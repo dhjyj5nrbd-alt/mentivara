@@ -54,20 +54,20 @@ export default function ExamSimulator() {
     return (
       <Layout>
         <div className="max-w-xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">Exam Simulator</h1>
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+          <h1 className="text-2xl font-bold text-[#1E1B4B] dark:text-white mb-6">Exam Simulator</h1>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
               <select value={subjectId} onChange={(e) => setSubjectId(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white">
                 <option value={0}>Select subject</option>
                 {subjects?.map((s: RefData) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Level</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Level</label>
               <select value={levelId} onChange={(e) => setLevelId(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white">
                 <option value={0}>Select level</option>
                 {levels?.map((l: RefData) => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
@@ -92,29 +92,29 @@ export default function ExamSimulator() {
       <Layout>
         <div className="max-w-xl mx-auto px-4 py-8 text-center">
           <Trophy className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-[#1E1B4B] mb-2">Exam Complete</h1>
+          <h1 className="text-3xl font-bold text-[#1E1B4B] dark:text-white mb-2">Exam Complete</h1>
           <p className="text-6xl font-bold text-[#7C3AED] my-6">{results.score}%</p>
-          <p className="text-lg text-slate-600 mb-2">{results.correct}/{results.total} correct</p>
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-2">{results.correct}/{results.total} correct</p>
           <p className="text-lg font-medium">Predicted Grade: <span className="text-[#7C3AED]">{results.grade_prediction}</span></p>
           <div className="mt-8 flex gap-3 justify-center">
             <button onClick={() => { setPhase('setup'); setAnswers({}); setCurrentIdx(0) }}
               className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold">Try Again</button>
-            <Link to="/dashboard" className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold">Dashboard</Link>
+            <Link to="/dashboard" className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-semibold">Dashboard</Link>
           </div>
 
           {/* Answer Review */}
           <div className="mt-10 text-left max-w-xl mx-auto space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">Answer Review</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Answer Review</h2>
             {questions.map((q, idx) => {
               const a = answers[q.id]
               return (
                 <div key={q.id} className={`border rounded-lg p-4 ${a?.correct ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
-                  <p className="text-sm font-medium text-slate-900 mb-1">Q{idx + 1}. {q.content}</p>
-                  <p className="text-sm text-slate-700">Your answer: <span className="font-medium">{a?.answer ?? 'No answer'}</span></p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white mb-1">Q{idx + 1}. {q.content}</p>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">Your answer: <span className="font-medium">{a?.answer ?? 'No answer'}</span></p>
                   <p className={`text-sm font-medium ${a?.correct ? 'text-emerald-700' : 'text-red-700'}`}>
                     {a?.correct ? 'Correct' : 'Incorrect'}
                   </p>
-                  {a?.explanation && <p className="text-sm text-slate-600 mt-1">{a.explanation}</p>}
+                  {a?.explanation && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{a.explanation}</p>}
                 </div>
               )
             })}
@@ -138,17 +138,17 @@ export default function ExamSimulator() {
           >
             Quit Exam
           </button>
-          <span className="text-sm text-slate-500">Q {currentIdx + 1}/{questions.length}</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">Q {currentIdx + 1}/{questions.length}</span>
         </div>
         {/* Progress bar */}
-        <div className="w-full bg-slate-200 rounded-full h-2 mb-6" role="progressbar"
+        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-6" role="progressbar"
           aria-valuenow={currentIdx + 1} aria-valuemin={1} aria-valuemax={questions.length} aria-label={`Question ${currentIdx + 1} of ${questions.length}`}>
           <div className="bg-[#7C3AED] h-2 rounded-full transition-all" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
           <p className="text-xs text-slate-400 mb-2 uppercase">{currentQ?.difficulty} | {currentQ?.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}</p>
-          <p className="text-lg font-medium text-slate-900 mb-6">{currentQ?.content}</p>
+          <p className="text-lg font-medium text-slate-900 dark:text-white mb-6">{currentQ?.content}</p>
 
           {currentQ?.type === 'mcq' && currentQ.options ? (
             <div className="space-y-2">
@@ -158,7 +158,7 @@ export default function ExamSimulator() {
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                     currentAnswer?.answer === opt
                       ? currentAnswer.correct ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'
-                      : 'border-slate-200 hover:border-[#7C3AED]'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-[#7C3AED]'
                   } ${currentAnswer ? 'cursor-default' : ''}`}>
                   {opt}
                   {currentAnswer?.answer === opt && (currentAnswer.correct
@@ -174,7 +174,7 @@ export default function ExamSimulator() {
               <input id="short-answer-input" placeholder="Type your answer..." onKeyDown={(e) => {
                 if (e.key === 'Enter' && !currentAnswer) handleAnswer((e.target as HTMLInputElement).value)
               }} disabled={!!currentAnswer}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg" />
+                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400" />
             </div>
           )}
 
@@ -183,7 +183,7 @@ export default function ExamSimulator() {
               <p className={`font-medium ${currentAnswer.correct ? 'text-emerald-700' : 'text-red-700'}`}>
                 {currentAnswer.correct ? 'Correct!' : 'Incorrect'}
               </p>
-              {currentAnswer.explanation && <p className="text-sm text-slate-600 mt-1">{currentAnswer.explanation}</p>}
+              {currentAnswer.explanation && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{currentAnswer.explanation}</p>}
             </div>
           )}
 

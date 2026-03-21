@@ -30,22 +30,22 @@ function LessonCard({ lesson, onCancel }: { lesson: LessonItem; onCancel?: (id: 
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold" aria-hidden="true">
             {otherPerson.name.charAt(0)}
           </div>
           <div>
-            <p className="font-medium text-slate-900">{otherPerson.name}</p>
-            {lesson.subject && <p className="text-xs text-slate-500">{lesson.subject.name}</p>}
+            <p className="font-medium text-slate-900 dark:text-white">{otherPerson.name}</p>
+            {lesson.subject && <p className="text-xs text-slate-500 dark:text-slate-400">{lesson.subject.name}</p>}
           </div>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[lesson.status]}`}>
           {statusLabels[lesson.status] || lesson.status}
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
         <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {dateStr}</span>
         <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {timeStr}</span>
         <span>{lesson.duration_minutes} min</span>
@@ -116,14 +116,14 @@ export default function Lessons() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">My Lessons</h1>
+        <h1 className="text-2xl font-bold text-[#1E1B4B] dark:text-white mb-6">My Lessons</h1>
 
         <div className="flex gap-2 mb-6">
           <button
             role="tab"
             aria-selected={tab === 'upcoming'}
             onClick={() => setTab('upcoming')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'upcoming' ? 'bg-[#7C3AED] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'upcoming' ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'}`}
           >
             Upcoming
           </button>
@@ -131,7 +131,7 @@ export default function Lessons() {
             role="tab"
             aria-selected={tab === 'past'}
             onClick={() => setTab('past')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'past' ? 'bg-[#7C3AED] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'past' ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'}`}
           >
             Past
           </button>
@@ -142,12 +142,12 @@ export default function Lessons() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
           </div>
         ) : error ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-red-200">
+          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-red-200">
             <p className="text-red-600 mb-4">Failed to load lessons.</p>
             <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
           </div>
         ) : !lessons?.length ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
             {tab === 'upcoming' ? 'No upcoming lessons.' : 'No past lessons.'}
           </div>
         ) : (

@@ -31,7 +31,7 @@ export default function Payments() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-[#1E1B4B] mb-6">
+        <h1 className="text-2xl font-bold text-[#1E1B4B] dark:text-white mb-6">
           {user?.role === 'tutor' ? 'Earnings' : 'Payment History'}
         </h1>
 
@@ -40,24 +40,24 @@ export default function Payments() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
           </div>
         ) : error ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-red-200">
+          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-red-200">
             <p className="text-red-600 mb-4">Failed to load payment history.</p>
             <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
           </div>
         ) : !data?.data?.length ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
             <CreditCard className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No payments yet.</p>
+            <p className="text-slate-500 dark:text-slate-400">No payments yet.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {data.data.map((payment: PaymentItem) => (
-              <div key={payment.id} className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
+              <div key={payment.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-slate-900">
+                  <p className="font-medium text-slate-900 dark:text-white">
                     {user?.role === 'student' ? payment.tutor?.name : payment.student?.name}
                   </p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     {new Date(payment.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
@@ -65,7 +65,7 @@ export default function Payments() {
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[payment.status]}`}>
                     {statusLabels[payment.status] || payment.status}
                   </span>
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-slate-900 dark:text-white">
                     {formatCurrency(payment.amount, payment.currency)}
                   </span>
                 </div>

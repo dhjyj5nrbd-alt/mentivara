@@ -81,13 +81,13 @@ export default function BookLesson() {
     <Layout>
       <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-end mb-4">
-          <Link to={`/tutors/${id}`} className="text-sm text-slate-600">Back to profile</Link>
+          <Link to={`/tutors/${id}`} className="text-sm text-slate-600 dark:text-slate-400">Back to profile</Link>
         </div>
-        <h1 className="text-2xl font-bold text-[#1E1B4B] mb-2">Book a Lesson</h1>
+        <h1 className="text-2xl font-bold text-[#1E1B4B] dark:text-white mb-2">Book a Lesson</h1>
         {tutorLoading ? (
-          <p className="text-slate-600 mb-6">with <span className="inline-block h-4 w-32 bg-slate-200 rounded animate-pulse align-middle" /></p>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">with <span className="inline-block h-4 w-32 bg-slate-200 rounded animate-pulse align-middle" /></p>
         ) : tutor ? (
-          <p className="text-slate-600 mb-6">with {tutor.user.name}</p>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">with {tutor.user.name}</p>
         ) : null}
 
         {error && (
@@ -96,14 +96,14 @@ export default function BookLesson() {
 
         {/* Duration */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">Duration</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Duration</label>
           <div className="flex gap-2">
             {[30, 45, 60, 90].map((d) => (
               <button
                 key={d}
                 onClick={() => { setDuration(d); setSelectedTime('') }}
                 aria-pressed={duration === d}
-                className={`px-4 py-2 rounded-lg text-sm ${duration === d ? 'bg-[#7C3AED] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
+                className={`px-4 py-2 rounded-lg text-sm ${duration === d ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
               >
                 {d} min
               </button>
@@ -113,13 +113,13 @@ export default function BookLesson() {
 
         {/* Day selection */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">Select a Day</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select a Day</label>
           {slotsLoading ? (
             <div className="flex justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#7C3AED]" />
             </div>
           ) : !slots?.length ? (
-            <p className="text-slate-500 text-sm">No availability set by this tutor yet.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No availability set by this tutor yet.</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {slots.map((slot) => (
@@ -127,10 +127,10 @@ export default function BookLesson() {
                   key={slot.id}
                   onClick={() => { setSelectedSlot(slot); setSelectedTime('') }}
                   aria-pressed={selectedSlot?.id === slot.id}
-                  className={`p-3 rounded-lg border text-left ${selectedSlot?.id === slot.id ? 'border-[#7C3AED] bg-[#EDE9FE]' : 'border-slate-200 bg-white'}`}
+                  className={`p-3 rounded-lg border text-left ${selectedSlot?.id === slot.id ? 'border-[#7C3AED] bg-[#EDE9FE]' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'}`}
                 >
-                  <div className="font-medium text-sm">{DAY_NAMES[slot.day_of_week]}</div>
-                  <div className="text-xs text-slate-500">{slot.start_time} - {slot.end_time}</div>
+                  <div className="font-medium text-sm dark:text-white">{DAY_NAMES[slot.day_of_week]}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{slot.start_time} - {slot.end_time}</div>
                 </button>
               ))}
             </div>
@@ -140,13 +140,13 @@ export default function BookLesson() {
         {/* Time selection */}
         {selectedSlot && (
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">Select a Time</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select a Time</label>
             <div className="flex flex-wrap gap-2">
               {getTimeOptions(selectedSlot).map((time) => (
                 <button
                   key={time}
                   onClick={() => setSelectedTime(time)}
-                  className={`px-3 py-2 rounded-lg text-sm ${selectedTime === time ? 'bg-[#7C3AED] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
+                  className={`px-3 py-2 rounded-lg text-sm ${selectedTime === time ? 'bg-[#7C3AED] text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
                 >
                   {time}
                 </button>
@@ -164,19 +164,19 @@ export default function BookLesson() {
               onChange={(e) => setRecurring(e.target.checked)}
               className="rounded border-slate-300"
             />
-            <span className="text-sm text-slate-700">Make this a recurring weekly lesson</span>
+            <span className="text-sm text-slate-700 dark:text-slate-300">Make this a recurring weekly lesson</span>
           </label>
-          {recurring && <p className="text-xs text-slate-500 mt-1">This will book 5 weekly lessons.</p>}
+          {recurring && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">This will book 5 weekly lessons.</p>}
         </div>
 
         {/* Notes */}
         <div className="mb-6">
-          <label htmlFor="booking-notes" className="block text-sm font-medium text-slate-700 mb-1">Notes (optional)</label>
+          <label htmlFor="booking-notes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notes (optional)</label>
           <textarea
             id="booking-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
             rows={3}
             placeholder="Any topics or questions for the lesson..."
           />
