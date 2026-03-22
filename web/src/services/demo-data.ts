@@ -1490,3 +1490,263 @@ export const STREAK_DATA = {
     { day: 'Sun', completed: false, xp: 0 },
   ],
 }
+
+// ── Forum ──────────────────────────────────────────────────
+
+export interface ForumCategory {
+  id: number
+  name: string
+  description: string
+  icon: string
+  threadCount: number
+  color: string
+  latestPost?: { title: string; author: string; time: string }
+}
+
+export interface ForumThread {
+  id: number
+  categoryId: number
+  title: string
+  author: { name: string; avatar: string | null }
+  content: string
+  createdAt: string
+  likes: number
+  replyCount: number
+  tags: string[]
+  pinned: boolean
+  solved: boolean
+}
+
+export interface ForumReply {
+  id: number
+  threadId: number
+  author: { name: string; avatar: string | null }
+  content: string
+  createdAt: string
+  likes: number
+  isBestAnswer: boolean
+  parentReplyId?: number | null
+}
+
+export const FORUM_CATEGORIES: ForumCategory[] = [
+  { id: 1, name: 'GCSE Maths', description: 'Algebra, geometry, statistics and more', icon: '\u{1F4D0}', threadCount: 156, color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', latestPost: { title: 'Completing the square - I just cant get it!', author: 'Ryan Murphy', time: '4 hours ago' } },
+  { id: 2, name: 'A-Level Biology', description: 'Cell biology, genetics, ecology', icon: '\u{1F9EC}', threadCount: 203, color: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400', latestPost: { title: 'Can someone explain mitosis vs meiosis?', author: 'Sophie Williams', time: '2 hours ago' } },
+  { id: 3, name: 'IGCSE Chemistry', description: 'Atoms, reactions, organic chemistry', icon: '\u{2697}\u{FE0F}', threadCount: 89, color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400', latestPost: { title: 'Balancing equations tips?', author: 'Liam Chen', time: '1 day ago' } },
+  { id: 4, name: 'A-Level Physics', description: 'Mechanics, waves, electricity', icon: '\u{26A1}', threadCount: 124, color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', latestPost: { title: 'Help with moment calculations', author: 'Emma Taylor', time: '5 hours ago' } },
+  { id: 5, name: 'Medicine Applicants', description: 'UCAT, interviews, personal statements', icon: '\u{1F3E5}', threadCount: 312, color: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400', latestPost: { title: 'UCAT score needed for KCL?', author: 'Priya Sharma', time: '3 hours ago' } },
+  { id: 6, name: 'Study Tips & Advice', description: 'Revision strategies, time management', icon: '\u{1F4A1}', threadCount: 245, color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400', latestPost: { title: 'My revision timetable that got me all 9s', author: 'Amara Patel', time: '3 hours ago' } },
+  { id: 7, name: 'Exam Technique', description: 'How to answer questions, mark schemes', icon: '\u{1F4DD}', threadCount: 178, color: 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400', latestPost: { title: '6-marker structure that always works', author: 'Dr. Emily Brooks', time: '1 day ago' } },
+  { id: 8, name: 'General Discussion', description: 'Off-topic chat, introductions, fun', icon: '\u{1F4AC}', threadCount: 567, color: 'bg-slate-50 text-slate-600 dark:bg-slate-700/50 dark:text-slate-400', latestPost: { title: 'Introduce yourself here!', author: 'Mentivara Team', time: '30 minutes ago' } },
+]
+
+export const FORUM_THREADS: ForumThread[] = [
+  {
+    id: 1,
+    categoryId: 2,
+    title: 'Can someone explain the difference between mitosis and meiosis?',
+    author: { name: 'Sophie Williams', avatar: null },
+    content: 'I keep getting confused between mitosis and meiosis in my revision. I understand that mitosis produces identical cells and meiosis produces gametes, but I get mixed up with the stages. Can someone break it down simply? My exam is in 3 weeks and I really need to nail this topic.',
+    createdAt: '2 hours ago',
+    likes: 24,
+    replyCount: 8,
+    tags: ['Help', 'A-Level'],
+    pinned: false,
+    solved: true,
+  },
+  {
+    id: 2,
+    categoryId: 2,
+    title: 'A-Level Biology Revision Resources Megathread',
+    author: { name: 'Dr. Sarah Chen', avatar: null },
+    content: 'Welcome to the Biology revision megathread! Here you can find curated resources for every topic. Please add your own favourites in the replies.',
+    createdAt: '5 days ago',
+    likes: 89,
+    replyCount: 34,
+    tags: ['Resource', 'Pinned'],
+    pinned: true,
+    solved: false,
+  },
+  {
+    id: 3,
+    categoryId: 2,
+    title: 'How do I draw biological diagrams for full marks?',
+    author: { name: 'James Okafor', avatar: null },
+    content: 'Every time I draw a diagram in Biology I lose marks. The examiner reports say my labels are unclear. Does anyone have tips for drawing diagrams that examiners actually want to see?',
+    createdAt: '1 day ago',
+    likes: 15,
+    replyCount: 6,
+    tags: ['Exam Tips', 'Help'],
+    pinned: false,
+    solved: false,
+  },
+  {
+    id: 4,
+    categoryId: 6,
+    title: 'My revision timetable that got me all 9s at GCSE',
+    author: { name: 'Amara Patel', avatar: null },
+    content: 'Hi everyone! I got all 9s last summer and wanted to share my revision timetable approach. The key is spacing your revision and using active recall instead of just reading notes. Here is what I did...',
+    createdAt: '3 hours ago',
+    likes: 67,
+    replyCount: 21,
+    tags: ['Discussion', 'Study Tips'],
+    pinned: false,
+    solved: false,
+  },
+  {
+    id: 5,
+    categoryId: 1,
+    title: 'Completing the square - I just cant get it!',
+    author: { name: 'Ryan Murphy', avatar: null },
+    content: 'I have watched so many YouTube videos on completing the square but I still cannot do it reliably. Can someone walk me through it step by step with examples?',
+    createdAt: '4 hours ago',
+    likes: 12,
+    replyCount: 9,
+    tags: ['Help', 'GCSE'],
+    pinned: false,
+    solved: true,
+  },
+  {
+    id: 6,
+    categoryId: 5,
+    title: 'What UCAT score do I need for King\'s College London?',
+    author: { name: 'Priya Sharma', avatar: null },
+    content: 'I scored 2780 on my UCAT and I am wondering if this is competitive enough for KCL medicine. Does anyone know their typical cutoff or have experience applying there?',
+    createdAt: '3 hours ago',
+    likes: 18,
+    replyCount: 7,
+    tags: ['Help', 'Discussion'],
+    pinned: false,
+    solved: false,
+  },
+  {
+    id: 7,
+    categoryId: 7,
+    title: 'The 6-marker structure that always works',
+    author: { name: 'Dr. Emily Brooks', avatar: null },
+    content: 'After marking thousands of papers, I can tell you the structure that consistently gets full marks on 6-mark questions. Start with a clear opening statement, then give three developed points with evidence, and finish with a conclusion that links back to the question.',
+    createdAt: '1 day ago',
+    likes: 102,
+    replyCount: 15,
+    tags: ['Exam Tips', 'Resource'],
+    pinned: false,
+    solved: false,
+  },
+  {
+    id: 8,
+    categoryId: 4,
+    title: 'Help with moment calculations - which direction is positive?',
+    author: { name: 'Emma Taylor', avatar: null },
+    content: 'I keep getting the wrong sign when calculating moments. Sometimes I get a negative answer when it should be positive. How do I decide which direction to take as positive?',
+    createdAt: '5 hours ago',
+    likes: 9,
+    replyCount: 4,
+    tags: ['Help', 'A-Level'],
+    pinned: false,
+    solved: false,
+  },
+  {
+    id: 9,
+    categoryId: 1,
+    title: 'GCSE Maths Revision Resources - All Topics',
+    author: { name: 'Mr. David Wilson', avatar: null },
+    content: 'Here is a collection of the best free resources for GCSE Maths revision, organised by topic. I will keep updating this thread as I find more.',
+    createdAt: '1 week ago',
+    likes: 134,
+    replyCount: 42,
+    tags: ['Resource', 'Pinned'],
+    pinned: true,
+    solved: false,
+  },
+  {
+    id: 10,
+    categoryId: 8,
+    title: 'Introduce yourself here!',
+    author: { name: 'Mentivara Team', avatar: null },
+    content: 'Welcome to the Mentivara forum! Tell us a bit about yourself - what subjects are you studying, what are your goals, and how can we help?',
+    createdAt: '30 minutes ago',
+    likes: 45,
+    replyCount: 89,
+    tags: ['Discussion'],
+    pinned: true,
+    solved: false,
+  },
+]
+
+export const FORUM_REPLIES: ForumReply[] = [
+  {
+    id: 1,
+    threadId: 1,
+    author: { name: 'Dr. Emily Brooks', avatar: null },
+    content: 'Great question! Here is the simplest way to remember it:\n\n**Mitosis** = 1 division, 2 identical diploid cells (for growth and repair)\n**Meiosis** = 2 divisions, 4 different haploid cells (for gametes)\n\nKey differences:\n- Mitosis: no crossing over, identical daughter cells\n- Meiosis: crossing over in prophase I, independent assortment, genetic variation\n\nThink "Mitosis = Making Identical Twins, Meiosis = Making Eggs/Sperm"',
+    createdAt: '1 hour ago',
+    likes: 31,
+    isBestAnswer: true,
+  },
+  {
+    id: 2,
+    threadId: 1,
+    author: { name: 'Amara Patel', avatar: null },
+    content: 'That mnemonic is amazing! I also found it helpful to draw both processes side by side. Once you see them visually the differences are much clearer.',
+    createdAt: '45 minutes ago',
+    likes: 8,
+    isBestAnswer: false,
+  },
+  {
+    id: 3,
+    threadId: 1,
+    author: { name: 'James Okafor', avatar: null },
+    content: 'I made flashcards for each stage. PMAT for mitosis (Prophase, Metaphase, Anaphase, Telophase) and PMAT I + PMAT II for meiosis. Tested myself every day for a week and it finally stuck!',
+    createdAt: '30 minutes ago',
+    likes: 5,
+    isBestAnswer: false,
+    parentReplyId: null,
+  },
+  {
+    id: 4,
+    threadId: 1,
+    author: { name: 'Sophie Williams', avatar: null },
+    content: 'Thank you so much everyone! The mnemonic really helps. I am going to draw them side by side tonight.',
+    createdAt: '20 minutes ago',
+    likes: 3,
+    isBestAnswer: false,
+    parentReplyId: 1,
+  },
+  {
+    id: 5,
+    threadId: 5,
+    author: { name: 'Dr Sarah Mitchell', avatar: null },
+    content: 'Completing the square step by step:\n\n1. Start with ax\u00B2 + bx + c\n2. Factor out a from first two terms\n3. Take half the coefficient of x, square it\n4. Add and subtract that value inside the bracket\n5. Simplify\n\nExample: x\u00B2 + 6x + 2\n= (x\u00B2 + 6x + 9) - 9 + 2\n= (x + 3)\u00B2 - 7\n\nPractice with these: x\u00B2 + 4x + 1, x\u00B2 - 8x + 3',
+    createdAt: '3 hours ago',
+    likes: 19,
+    isBestAnswer: true,
+  },
+  {
+    id: 6,
+    threadId: 5,
+    author: { name: 'Ryan Murphy', avatar: null },
+    content: 'Oh wow, when you break it down like that it actually makes sense! The key step I was missing was the add and subtract part. Thank you!',
+    createdAt: '2 hours ago',
+    likes: 4,
+    isBestAnswer: false,
+    parentReplyId: 5,
+  },
+  {
+    id: 7,
+    threadId: 4,
+    author: { name: 'Liam Chen', avatar: null },
+    content: 'This is really helpful! How did you manage to revise for all subjects without burning out?',
+    createdAt: '2 hours ago',
+    likes: 6,
+    isBestAnswer: false,
+  },
+  {
+    id: 8,
+    threadId: 4,
+    author: { name: 'Amara Patel', avatar: null },
+    content: 'Great question! I made sure to take proper breaks - I used the Pomodoro technique (25 min study, 5 min break). I also kept weekends lighter and did more active things like past papers instead of just reading.',
+    createdAt: '1 hour ago',
+    likes: 12,
+    isBestAnswer: false,
+    parentReplyId: 7,
+  },
+]

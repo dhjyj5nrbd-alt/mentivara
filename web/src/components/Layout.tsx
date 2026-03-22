@@ -34,6 +34,7 @@ export default function Layout({ children }: Props) {
     { to: '/knowledge-map', icon: Brain, label: 'Knowledge' },
     { to: '/doubts', icon: HelpCircle, label: 'AI Help' },
     { to: '/reels', icon: Clapperboard, label: 'Reels' },
+    { to: '/forum', icon: Users, label: 'Forum' },
     { to: '/mental-dojo', icon: Dumbbell, label: 'Mental Dojo' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
     { to: '/payments', icon: CreditCard, label: 'Payments' },

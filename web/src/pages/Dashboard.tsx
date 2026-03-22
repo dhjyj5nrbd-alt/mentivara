@@ -196,6 +196,13 @@ export default function Dashboard() {
               iconBg="bg-amber-100 text-amber-600"
             />
             <DashCard
+              to="/forum" icon={Users} title="Student Forum"
+              desc="Ask questions and share tips"
+              accent="bg-white border-slate-200 hover:border-blue-300"
+              iconBg="bg-blue-100 text-blue-600"
+              stat="1.2k" statLabel="Threads"
+            />
+            <DashCard
               to="/mental-dojo" icon={Dumbbell} title="Mental Dojo"
               desc="Focus, calmness, and confidence"
               accent="bg-white border-slate-200 hover:border-rose-300"

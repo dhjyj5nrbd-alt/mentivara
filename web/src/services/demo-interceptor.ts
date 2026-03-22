@@ -10,8 +10,9 @@ import {
   LESSON_PACKAGE, AVAILABILITY, CONVERSATIONS, MESSAGES,
   LEADERBOARD, MENTAL_DOJO_COURSES, TUTOR_REELS,
   QUESTION_BANK, DAILY_MISSIONS, STREAK_DATA,
+  FORUM_CATEGORIES, FORUM_THREADS, FORUM_REPLIES,
 } from './demo-data'
-import type { BankQuestion } from './demo-data'
+import type { BankQuestion, ForumThread, ForumReply } from './demo-data'
 
 // Re-export TUTOR_LIST for the interceptor since it's computed in demo-data
 // Actually we need to compute it here since demo-data doesn't export it
@@ -529,6 +530,76 @@ export async function handleDemoRequest(
       }),
       status: 200,
     }
+  }
+
+  // ── Forum ─────────────────────────────────────────────────
+  if (url === '/forum/categories' && method === 'get') {
+    return { data: ok(FORUM_CATEGORIES), status: 200 }
+  }
+  const forumCategoryThreads = url.match(/^\/forum\/categories\/(\d+)\/threads$/)
+  if (forumCategoryThreads && method === 'get') {
+    const categoryId = Number(forumCategoryThreads[1])
+    const params = new URLSearchParams(rawUrl.split('?')[1] ?? '')
+    const sort = params.get('sort') ?? 'latest'
+    let threads = FORUM_THREADS.filter((t) => t.categoryId === categoryId)
+    if (sort === 'popular') threads = [...threads].sort((a, b) => b.likes - a.likes)
+    else if (sort === 'unanswered') threads = threads.filter((t) => t.replyCount === 0)
+    // Pinned first
+    threads = [...threads.filter((t) => t.pinned), ...threads.filter((t) => !t.pinned)]
+    return { data: ok(threads), status: 200 }
+  }
+  const forumThreadDetail = url.match(/^\/forum\/threads\/(\d+)$/)
+  if (forumThreadDetail && method === 'get') {
+    const threadId = Number(forumThreadDetail[1])
+    const thread = FORUM_THREADS.find((t) => t.id === threadId)
+    const replies = FORUM_REPLIES.filter((r) => r.threadId === threadId)
+    return { data: ok({ thread, replies }), status: 200 }
+  }
+  if (url === '/forum/threads' && method === 'post') {
+    const body = JSON.parse(config.data ?? '{}')
+    const newThread: ForumThread = {
+      id: Date.now(),
+      categoryId: body.categoryId ?? 1,
+      title: body.title ?? 'New Thread',
+      author: { name: DEMO_USER.name, avatar: null },
+      content: body.content ?? '',
+      createdAt: 'Just now',
+      likes: 0,
+      replyCount: 0,
+      tags: body.tags ?? [],
+      pinned: false,
+      solved: false,
+    }
+    FORUM_THREADS.unshift(newThread)
+    const cat = FORUM_CATEGORIES.find((c) => c.id === newThread.categoryId)
+    if (cat) cat.threadCount++
+    return { data: ok(newThread), status: 201 }
+  }
+  const forumReplyPost = url.match(/^\/forum\/threads\/(\d+)\/reply$/)
+  if (forumReplyPost && method === 'post') {
+    const threadId = Number(forumReplyPost[1])
+    const body = JSON.parse(config.data ?? '{}')
+    const newReply: ForumReply = {
+      id: Date.now(),
+      threadId,
+      author: { name: DEMO_USER.name, avatar: null },
+      content: body.content ?? '',
+      createdAt: 'Just now',
+      likes: 0,
+      isBestAnswer: false,
+      parentReplyId: body.parentReplyId ?? null,
+    }
+    FORUM_REPLIES.push(newReply)
+    const thread = FORUM_THREADS.find((t) => t.id === threadId)
+    if (thread) thread.replyCount++
+    return { data: ok(newReply), status: 201 }
+  }
+  const forumLike = url.match(/^\/forum\/threads\/(\d+)\/like$/)
+  if (forumLike && method === 'post') {
+    const threadId = Number(forumLike[1])
+    const thread = FORUM_THREADS.find((t) => t.id === threadId)
+    if (thread) thread.likes++
+    return { data: ok({ likes: thread?.likes }), status: 200 }
   }
 
   // ── Catch-all: return empty success ─────────────────────
