@@ -296,7 +296,7 @@ export default function BookLesson() {
                   <div key={date.toISOString()} className="min-w-0">
                     {/* Day header */}
                     <div
-                      className={`text-center py-1.5 border-b border-slate-100 dark:border-[#232536] ${
+                      className={`text-center py-px border-b border-slate-100 dark:border-[#232536] ${
                         isToday ? 'bg-[#7C3AED]/5' : ''
                       }`}
                     >
@@ -323,7 +323,7 @@ export default function BookLesson() {
                           return (
                             <div
                               key={key}
-                              className="h-6 rounded bg-slate-50 dark:bg-[#14161f] border border-transparent"
+                              className="h-[18px] rounded bg-slate-50 dark:bg-[#14161f] border border-transparent"
                             />
                           )
                         }
@@ -332,7 +332,7 @@ export default function BookLesson() {
                           return (
                             <div
                               key={key}
-                              className="h-6 rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 flex items-center justify-center overflow-hidden"
+                              className="h-[18px] rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 flex items-center justify-center overflow-hidden"
                               title={`Booked: ${slot.label} at ${formatTime(slot.hour, slot.minute)}`}
                             >
                               <span className="text-[8px] font-medium text-purple-700 dark:text-purple-300 truncate px-0.5">
@@ -350,7 +350,7 @@ export default function BookLesson() {
                             onMouseEnter={() => setHoveredSlot(key)}
                             onMouseLeave={() => setHoveredSlot(null)}
                             title={formatTime(slot.hour, slot.minute)}
-                            className={`w-full h-6 rounded border text-[9px] font-medium transition-all relative group/slot ${
+                            className={`w-full h-[18px] rounded border text-[9px] font-medium transition-all relative group/slot ${
                               selected
                                 ? 'bg-[#7C3AED] border-[#7C3AED] text-white animate-pulse-border'
                                 : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 hover:border-[#7C3AED] hover:bg-[#EDE9FE] dark:hover:bg-[#7C3AED]/20'
