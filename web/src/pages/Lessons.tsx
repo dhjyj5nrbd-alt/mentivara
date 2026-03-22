@@ -53,6 +53,14 @@ function buildDemoLessons(): DemoLesson[] {
     { id: 5, subject: 'Mathematics', tutorName: 'Dr Sarah Mitchell', tutorId: 1, date: setTime(addDays(monday, 4), 11, 0), durationMinutes: 60, status: 'scheduled', notes: 'Trigonometry revision' },
     { id: 6, subject: 'Chemistry', tutorName: 'James Chen', tutorId: 2, date: setTime(addDays(monday, 5), 10, 0), durationMinutes: 90, status: 'scheduled', notes: 'Organic chemistry intro' },
 
+    // ── Next week (upcoming) ─────────────────────
+    { id: 13, subject: 'Mathematics', tutorName: 'Dr Sarah Mitchell', tutorId: 1, date: setTime(addDays(monday, 7), 10, 0), durationMinutes: 60, status: 'scheduled', notes: 'Completing the square' },
+    { id: 14, subject: 'Physics', tutorName: 'Dr Raj Patel', tutorId: 4, date: setTime(addDays(monday, 7), 14, 0), durationMinutes: 60, status: 'scheduled', notes: 'Energy and work done' },
+    { id: 15, subject: 'English', tutorName: 'Emma Richardson', tutorId: 3, date: setTime(addDays(monday, 9), 9, 30), durationMinutes: 60, status: 'scheduled', notes: 'Unseen poetry practice' },
+    { id: 16, subject: 'Biology', tutorName: 'James Chen', tutorId: 2, date: setTime(addDays(monday, 9), 15, 0), durationMinutes: 60, status: 'scheduled', notes: 'Photosynthesis revision' },
+    { id: 17, subject: 'Mathematics', tutorName: 'Dr Sarah Mitchell', tutorId: 1, date: setTime(addDays(monday, 11), 11, 0), durationMinutes: 60, status: 'scheduled', notes: 'Simultaneous equations' },
+    { id: 18, subject: 'Chemistry', tutorName: 'James Chen', tutorId: 2, date: setTime(addDays(monday, 12), 10, 0), durationMinutes: 90, status: 'scheduled', notes: 'Rates of reaction' },
+
     // ── Last week (completed) ───────────────────
     { id: 7, subject: 'Mathematics', tutorName: 'Dr Sarah Mitchell', tutorId: 1, date: setTime(addDays(monday, -7), 10, 0), durationMinutes: 60, status: 'completed', notes: 'Linear equations' },
     { id: 8, subject: 'English', tutorName: 'Emma Richardson', tutorId: 3, date: setTime(addDays(monday, -5), 9, 30), durationMinutes: 60, status: 'completed', notes: 'Essay structure workshop' },
