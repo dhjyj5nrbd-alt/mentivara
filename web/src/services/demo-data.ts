@@ -463,7 +463,7 @@ export const TUTOR_REELS: TutorReel[] = [
   },
   {
     id: 4,
-    tutorName: 'Mark Thompson',
+    tutorName: 'Dr. Mark Thompson',
     tutorInitial: 'M',
     tutorPhoto: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=800&fit=crop',
     tutorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
