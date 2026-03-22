@@ -5,7 +5,7 @@ import { useThemeStore } from '../store/themeStore'
 import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
   LayoutDashboard, MessageSquare, Users, UsersRound, Dumbbell, Clapperboard, Target,
-  LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon, Sparkles, Clock,
+  LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon, Sparkles, Clock, Calendar, Upload, UserCheck,
 } from 'lucide-react'
 
 interface Props {
@@ -47,7 +47,10 @@ export default function Layout({ children }: Props) {
   const tutorNav = [
     { to: '/tutor-dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/lessons', icon: BookOpen, label: 'My Lessons' },
-    { to: '/payments', icon: CreditCard, label: 'Earnings' },
+    { to: '/tutor/students', icon: UserCheck, label: 'My Students' },
+    { to: '/tutor/availability', icon: Calendar, label: 'Availability' },
+    { to: '/tutor/reels', icon: Upload, label: 'My Reels' },
+    { to: '/tutor/earnings', icon: CreditCard, label: 'Earnings' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
   ]
 
