@@ -155,6 +155,13 @@ export default function Dashboard() {
               stat="3" statLabel="Upcoming"
             />
             <DashCard
+              to="/curriculum" icon={BookOpen} title="My Syllabus"
+              desc="View your curriculum progress"
+              accent="bg-white border-slate-200 hover:border-teal-300"
+              iconBg="bg-teal-50 text-teal-600"
+              stat="42%" statLabel="Complete"
+            />
+            <DashCard
               to="/tutors" icon={Search} title="Find a Tutor"
               desc="Browse and book verified tutors"
               accent="bg-white border-slate-200 hover:border-blue-300"

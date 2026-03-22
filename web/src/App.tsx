@@ -20,6 +20,7 @@ import DoubtSolver from './pages/DoubtSolver'
 import ExamSimulator from './pages/ExamSimulator'
 import KnowledgeMap from './pages/KnowledgeMap'
 import MentalDojo from './pages/MentalDojo'
+import Curriculum from './pages/Curriculum'
 import Messages from './pages/Messages'
 import TutorReels from './pages/TutorReels'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -57,6 +58,7 @@ function AppRoutes() {
       <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
       <Route path="/lessons/:lessonId/package" element={<ProtectedRoute><LessonPackageView /></ProtectedRoute>} />
       <Route path="/doubts" element={<ProtectedRoute roles={['student']}><DoubtSolver /></ProtectedRoute>} />
+      <Route path="/curriculum" element={<ProtectedRoute roles={['student']}><Curriculum /></ProtectedRoute>} />
       <Route path="/exam" element={<ProtectedRoute roles={['student']}><ExamSimulator /></ProtectedRoute>} />
       <Route path="/knowledge-map" element={<ProtectedRoute roles={['student']}><KnowledgeMap /></ProtectedRoute>} />
       <Route path="/reels" element={<ProtectedRoute roles={['student']}><TutorReels /></ProtectedRoute>} />

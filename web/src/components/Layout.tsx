@@ -27,6 +27,7 @@ export default function Layout({ children }: Props) {
   const studentNav = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/lessons', icon: BookOpen, label: 'My Lessons' },
+    { to: '/curriculum', icon: BookOpen, label: 'My Syllabus' },
     { to: '/tutors', icon: Search, label: 'Find Tutors' },
     { to: '/exam', icon: GraduationCap, label: 'Exams' },
     { to: '/knowledge-map', icon: Brain, label: 'Knowledge' },
