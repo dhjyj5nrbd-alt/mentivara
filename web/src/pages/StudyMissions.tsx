@@ -519,11 +519,10 @@ export default function StudyMissions() {
   const today = new Date()
   const dateStr = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
-  // Determine which missions are unlocked: first 3 always, rest unlock sequentially after previous is complete
-  const isUnlocked = useCallback((index: number) => {
-    if (index < 3) return true
-    return missions[index - 1]?.completed === true
-  }, [missions])
+  // All missions unlocked in demo mode for free exploration
+  const isUnlocked = useCallback((_index: number) => {
+    return true
+  }, [])
 
   const completeMission = useCallback((id: number, xpReward: number) => {
     setMissions((prev) => prev.map((m) => m.id === id ? { ...m, completed: true } : m))

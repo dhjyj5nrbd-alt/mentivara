@@ -1408,7 +1408,7 @@ export const DAILY_MISSIONS = [
     topic: 'Cell Structure',
     xp: 20,
     estimatedMinutes: 5,
-    completed: true,
+    completed: false,
   },
   {
     id: 2,
