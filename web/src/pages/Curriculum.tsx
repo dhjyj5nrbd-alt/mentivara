@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import {
   ChevronDown, ChevronRight, CheckCircle2, Clock, Circle,
   BookOpen, Target, HelpCircle, Search, Upload, Play,
-  Beaker,
+  Beaker, ArrowLeft, Check, X, Send, Bot, User,
+  FileText, RotateCcw, Sparkles, Video,
 } from 'lucide-react'
 
 /* ────────────────────────────────────────────────────────────
@@ -33,6 +34,199 @@ interface Syllabus {
   code: string
   level: string
   chapters: Chapter[]
+}
+
+type ActivePanel = 'practice' | 'study-ai' | 'resources' | null
+
+/* ────────────────────────────────────────────────────────────
+   Practice Quiz Data (Topic 1.1 — AS Biology 9700)
+   ──────────────────────────────────────────────────────────── */
+interface QuizQuestion {
+  id: number
+  type: 'mcq' | 'short'
+  question: string
+  options?: string[]
+  correctIndex?: number
+  correctAnswer?: string
+  explanation: string
+}
+
+const DEMO_QUIZ_QUESTIONS: QuizQuestion[] = [
+  {
+    id: 1, type: 'mcq',
+    question: 'What is the formula for calculating magnification?',
+    options: [
+      'Magnification = Image size \u00d7 Actual size',
+      'Magnification = Image size \u00f7 Actual size',
+      'Magnification = Actual size \u00f7 Image size',
+      'Magnification = Image size + Actual size',
+    ],
+    correctIndex: 1,
+    explanation: 'Magnification is calculated by dividing the image size by the actual size of the specimen. This can be rearranged to find image size or actual size.',
+  },
+  {
+    id: 2, type: 'mcq',
+    question: 'Which type of microscope has the highest resolution?',
+    options: [
+      'Light microscope',
+      'Scanning electron microscope',
+      'Transmission electron microscope',
+      'Fluorescence microscope',
+    ],
+    correctIndex: 2,
+    explanation: 'The TEM has the highest resolution (about 1 nm) because it uses a beam of electrons transmitted through an ultra-thin specimen, allowing visualisation of internal ultrastructure.',
+  },
+  {
+    id: 3, type: 'mcq',
+    question: 'What is the maximum useful magnification of a light microscope?',
+    options: ['\u00d7100', '\u00d7400', '\u00d71500', '\u00d7100,000'],
+    correctIndex: 2,
+    explanation: 'Light microscopes can magnify up to about \u00d71500. Beyond this, the image becomes blurry because the resolution limit (~200 nm) has been exceeded.',
+  },
+  {
+    id: 4, type: 'mcq',
+    question: 'An organelle has an actual size of 5 \u03bcm. Under a microscope, it appears 25 mm. What is the magnification?',
+    options: ['\u00d7500', '\u00d75000', '\u00d750', '\u00d750,000'],
+    correctIndex: 1,
+    explanation: 'First convert to the same units: 25 mm = 25,000 \u03bcm. Magnification = 25,000 \u00f7 5 = \u00d75000.',
+  },
+  {
+    id: 5, type: 'mcq',
+    question: 'Which of the following can be seen with a light microscope?',
+    options: [
+      'Ribosomes',
+      'Cell membrane structure',
+      'Mitochondria',
+      'Endoplasmic reticulum detail',
+    ],
+    correctIndex: 2,
+    explanation: 'Mitochondria are typically 1\u201310 \u03bcm, large enough to be seen with a light microscope. Ribosomes (~25 nm) and membrane detail require electron microscopy.',
+  },
+  {
+    id: 6, type: 'mcq',
+    question: 'What is the purpose of staining cells before viewing under a microscope?',
+    options: [
+      'To kill the cells',
+      'To increase magnification',
+      'To increase contrast and make structures visible',
+      'To preserve the cells permanently',
+    ],
+    correctIndex: 2,
+    explanation: 'Most biological structures are transparent. Stains bind to specific structures (e.g. methylene blue to nuclei) increasing contrast so they can be distinguished.',
+  },
+  {
+    id: 7, type: 'mcq',
+    question: 'The resolution of a microscope is defined as:',
+    options: [
+      'How large it can make an image',
+      'The minimum distance between two points that can be distinguished',
+      'The maximum magnification possible',
+      'The clarity of the image',
+    ],
+    correctIndex: 1,
+    explanation: 'Resolution is the ability to distinguish between two separate points. A higher resolution means a smaller minimum distance, producing a clearer, more detailed image.',
+  },
+  {
+    id: 8, type: 'short',
+    question: 'Calculate the actual size of a cell that appears 30 mm wide under a magnification of \u00d7600. Show your working and give your answer in \u03bcm.',
+    correctAnswer: '50',
+    explanation: 'Actual size = Image size \u00f7 Magnification = 30 mm \u00f7 600 = 0.05 mm. Converting to \u03bcm: 0.05 \u00d7 1000 = 50 \u03bcm.',
+  },
+  {
+    id: 9, type: 'mcq',
+    question: 'Which stain is commonly used to view nuclei in animal cells?',
+    options: ['Iodine solution', 'Methylene blue', 'Eosin', 'Crystal violet'],
+    correctIndex: 1,
+    explanation: 'Methylene blue stains nucleic acids (DNA) in the nucleus, making it appear blue. Iodine is used for starch in plant cells.',
+  },
+  {
+    id: 10, type: 'short',
+    question: 'Explain two advantages of using an electron microscope over a light microscope.',
+    correctAnswer: 'higher resolution, higher magnification',
+    explanation: '1) Higher resolution \u2014 can distinguish objects as small as 1 nm vs 200 nm for light microscopes. 2) Higher magnification \u2014 up to \u00d7500,000 vs \u00d71500 for light microscopes. This allows visualisation of cell ultrastructure such as ribosomes and internal membrane systems.',
+  },
+]
+
+/* ────────────────────────────────────────────────────────────
+   Study AI Chat Data (Topic 1.1 — AS Biology 9700)
+   ──────────────────────────────────────────────────────────── */
+interface ChatMessage {
+  role: 'ai' | 'user'
+  text: string
+}
+
+const DEMO_AI_RESPONSE = `**Magnification Formula**
+
+The formula is:
+
+**Magnification = Image Size \u00f7 Actual Size**
+
+Or rearranged:
+- **Image Size = Magnification \u00d7 Actual Size**
+- **Actual Size = Image Size \u00f7 Magnification**
+
+**Key tips for exam questions:**
+1. Always convert units first \u2014 make sure both measurements are in the same unit (usually \u03bcm)
+2. 1 mm = 1000 \u03bcm
+3. Show your working clearly for full marks
+
+**Example:**
+A cell appears 40 mm wide under \u00d7500 magnification.
+Actual size = 40 mm \u00f7 500 = 0.08 mm = 80 \u03bcm`
+
+const AI_SUGGESTED_QUESTIONS = [
+  'Explain magnification formula',
+  'Difference between resolution and magnification',
+  'How do electron microscopes work?',
+  'What are the different types of stains?',
+]
+
+/* ────────────────────────────────────────────────────────────
+   Resources Data (Topic 1.1 — AS Biology 9700)
+   ──────────────────────────────────────────────────────────── */
+interface VideoResource {
+  title: string
+  author: string
+  duration: string
+  color: string
+}
+
+interface DocResource {
+  title: string
+  pages: number
+}
+
+interface FlashcardData {
+  front: string
+  back: string
+}
+
+const DEMO_VIDEOS: VideoResource[] = [
+  { title: 'Microscopy Techniques', author: 'Dr. Sarah Chen', duration: '3:45', color: 'from-purple-500 to-indigo-600' },
+  { title: 'Magnification Calculations Made Easy', author: 'Prof. James Wilson', duration: '5:20', color: 'from-blue-500 to-cyan-600' },
+  { title: 'Electron vs Light Microscopes', author: 'Dr. Emily Brooks', duration: '4:10', color: 'from-pink-500 to-rose-600' },
+]
+
+const DEMO_DOCS: DocResource[] = [
+  { title: 'Topic 1.1 Revision Notes', pages: 2 },
+  { title: 'Magnification Practice Worksheet', pages: 4 },
+  { title: 'Microscopy Key Terms Glossary', pages: 1 },
+]
+
+const DEMO_FLASHCARDS: FlashcardData[] = [
+  { front: 'What is magnification?', back: 'The number of times larger an image is compared to the actual object' },
+  { front: 'What is resolution?', back: 'The minimum distance between two points that can still be distinguished as separate' },
+  { front: 'Light microscope max magnification?', back: '\u00d71500' },
+  { front: 'Electron microscope max magnification?', back: 'Up to \u00d7500,000' },
+  { front: 'Name two types of electron microscope', back: 'Transmission Electron Microscope (TEM) and Scanning Electron Microscope (SEM)' },
+  { front: 'What stain is used for nuclei?', back: 'Methylene blue' },
+]
+
+/* ────────────────────────────────────────────────────────────
+   Helper — is this the demo topic (AS Bio 9700, topic 1.1)?
+   ──────────────────────────────────────────────────────────── */
+function isDemoTopic(syllabusId: string, topicId: string) {
+  return syllabusId === 'al-bio-cie' && topicId === '1.1'
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -1113,6 +1307,528 @@ function CircularProgress({ pct, size = 80 }: { pct: number; size?: number }) {
 }
 
 /* ────────────────────────────────────────────────────────────
+   Practice Panel — 10-question quiz
+   ──────────────────────────────────────────────────────────── */
+function PracticePanel({ onBack }: { onBack: () => void }) {
+  const [currentQ, setCurrentQ] = useState(0)
+  const [answers, setAnswers] = useState<Record<number, { selected: number | string; correct: boolean }>>({})
+  const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [shortAnswer, setShortAnswer] = useState('')
+  const [showResult, setShowResult] = useState(false)
+  const [quizComplete, setQuizComplete] = useState(false)
+
+  const q = DEMO_QUIZ_QUESTIONS[currentQ]
+  const answered = answers[q.id] !== undefined
+  const score = Object.values(answers).filter((a) => a.correct).length
+
+  const checkAnswer = () => {
+    if (q.type === 'mcq' && selectedOption !== null) {
+      setAnswers((prev) => ({ ...prev, [q.id]: { selected: selectedOption, correct: selectedOption === q.correctIndex } }))
+      setShowResult(true)
+    } else if (q.type === 'short' && shortAnswer.trim()) {
+      // For short answers, check if key terms are present
+      const answer = shortAnswer.toLowerCase()
+      const isCorrect = q.id === 8
+        ? answer.includes('50') && (answer.includes('\u03bcm') || answer.includes('um') || answer.includes('micro'))
+        : answer.includes('resolution') && answer.includes('magnification')
+      setAnswers((prev) => ({ ...prev, [q.id]: { selected: shortAnswer, correct: isCorrect } }))
+      setShowResult(true)
+    }
+  }
+
+  const nextQuestion = () => {
+    if (currentQ < DEMO_QUIZ_QUESTIONS.length - 1) {
+      setCurrentQ(currentQ + 1)
+      setSelectedOption(null)
+      setShortAnswer('')
+      setShowResult(false)
+    } else {
+      setQuizComplete(true)
+    }
+  }
+
+  const retryQuiz = () => {
+    setCurrentQ(0)
+    setAnswers({})
+    setSelectedOption(null)
+    setShortAnswer('')
+    setShowResult(false)
+    setQuizComplete(false)
+  }
+
+  const getGrade = (pct: number) => {
+    if (pct >= 90) return { grade: 'A*', color: 'text-emerald-600' }
+    if (pct >= 80) return { grade: 'A', color: 'text-emerald-500' }
+    if (pct >= 70) return { grade: 'B', color: 'text-blue-500' }
+    if (pct >= 60) return { grade: 'C', color: 'text-amber-500' }
+    if (pct >= 50) return { grade: 'D', color: 'text-orange-500' }
+    return { grade: 'U', color: 'text-red-500' }
+  }
+
+  if (quizComplete) {
+    const pct = Math.round((score / DEMO_QUIZ_QUESTIONS.length) * 100)
+    const { grade, color } = getGrade(pct)
+    const wrongQuestions = DEMO_QUIZ_QUESTIONS.filter((q) => !answers[q.id]?.correct)
+
+    return (
+      <div className="p-4">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#7C3AED] mb-4 transition-colors">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to topic
+        </button>
+
+        <div className="text-center mb-5">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] mb-3">
+            <span className="text-2xl font-bold text-white">{score}/{DEMO_QUIZ_QUESTIONS.length}</span>
+          </div>
+          <p className="text-lg font-bold text-slate-900 dark:text-white">{pct}%</p>
+          <p className={`text-2xl font-black ${color}`}>Grade: {grade}</p>
+        </div>
+
+        {/* Question summary */}
+        <div className="space-y-1.5 mb-4">
+          {DEMO_QUIZ_QUESTIONS.map((qq, i) => {
+            const a = answers[qq.id]
+            return (
+              <div key={qq.id} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs ${a?.correct ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                {a?.correct
+                  ? <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  : <X className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                }
+                <span className="text-slate-600 dark:text-slate-400 shrink-0">Q{i + 1}.</span>
+                <span className="text-slate-700 dark:text-slate-300 truncate">{qq.question.slice(0, 60)}...</span>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Weak areas */}
+        {wrongQuestions.length > 0 && (
+          <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30">
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1.5">Areas to review:</p>
+            <ul className="space-y-1">
+              {wrongQuestions.map((wq) => (
+                <li key={wq.id} className="text-[11px] text-amber-600 dark:text-amber-400 flex items-start gap-1.5">
+                  <span className="shrink-0 mt-0.5">&#x2022;</span>
+                  {wq.question.slice(0, 80)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <button onClick={retryQuiz} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-medium transition-colors">
+            <RotateCcw className="w-3.5 h-3.5" /> Retry
+          </button>
+          <button onClick={onBack} className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-[#232536] text-slate-600 dark:text-slate-400 text-xs font-medium hover:border-[#7C3AED]/40 transition-colors">
+            Back to Syllabus
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#7C3AED] mb-3 transition-colors">
+        <ArrowLeft className="w-3.5 h-3.5" /> Back to topic
+      </button>
+
+      {/* Header with progress */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Question {currentQ + 1}/{DEMO_QUIZ_QUESTIONS.length}</span>
+        <span className="text-xs font-semibold text-[#7C3AED]">Score: {score}/{Object.keys(answers).length || 0}</span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1.5 bg-slate-200 dark:bg-[#252839] rounded-full mb-4 overflow-hidden">
+        <div className="h-full bg-[#7C3AED] rounded-full transition-all duration-300" style={{ width: `${((currentQ + (answered ? 1 : 0)) / DEMO_QUIZ_QUESTIONS.length) * 100}%` }} />
+      </div>
+
+      {/* Question */}
+      <p className="text-sm font-medium text-slate-900 dark:text-white mb-4 leading-relaxed">{q.question}</p>
+
+      {/* Answer area */}
+      {q.type === 'mcq' ? (
+        <div className="space-y-2 mb-4">
+          {q.options!.map((opt, i) => {
+            let cls = 'border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839] hover:border-[#7C3AED]/40'
+            if (answered) {
+              if (i === q.correctIndex) cls = 'border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+              else if (i === answers[q.id]?.selected && !answers[q.id]?.correct) cls = 'border-2 border-red-500 bg-red-50 dark:bg-red-900/20'
+              else cls = 'border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839] opacity-50'
+            } else if (selectedOption === i) {
+              cls = 'border-2 border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#7C3AED]/20'
+            }
+            return (
+              <button
+                key={i}
+                disabled={answered}
+                onClick={() => setSelectedOption(i)}
+                className={`w-full text-left px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-300 transition-all flex items-center gap-2.5 ${cls}`}
+              >
+                <span className="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold shrink-0">
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <span className="flex-1">{opt}</span>
+                {answered && i === q.correctIndex && <Check className="w-4 h-4 text-emerald-500 shrink-0" />}
+                {answered && i === answers[q.id]?.selected && !answers[q.id]?.correct && <X className="w-4 h-4 text-red-500 shrink-0" />}
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="mb-4">
+          <textarea
+            value={shortAnswer}
+            onChange={(e) => setShortAnswer(e.target.value)}
+            disabled={answered}
+            placeholder="Type your answer here..."
+            className="w-full h-24 px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839] text-slate-700 dark:text-slate-300 placeholder-slate-400 resize-none focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
+          />
+        </div>
+      )}
+
+      {/* Explanation after answering */}
+      {answered && (
+        <div className={`p-3 rounded-lg mb-4 text-xs leading-relaxed ${
+          answers[q.id]?.correct
+            ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-400'
+            : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400'
+        }`}>
+          <p className="font-semibold mb-1">{answers[q.id]?.correct ? 'Correct!' : 'Incorrect'}</p>
+          <p>{q.explanation}</p>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      {!answered ? (
+        <button
+          onClick={checkAnswer}
+          disabled={q.type === 'mcq' ? selectedOption === null : !shortAnswer.trim()}
+          className="w-full py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-colors"
+        >
+          Check Answer
+        </button>
+      ) : (
+        <button onClick={nextQuestion} className="w-full py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-medium transition-colors">
+          {currentQ < DEMO_QUIZ_QUESTIONS.length - 1 ? 'Next Question' : 'See Results'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
+   Study with AI Panel — Chat interface
+   ──────────────────────────────────────────────────────────── */
+function StudyAIPanel({ onBack }: { onBack: () => void }) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const [hasClickedSuggestion, setHasClickedSuggestion] = useState(false)
+
+  const handleSuggestion = useCallback((suggestion: string) => {
+    setHasClickedSuggestion(true)
+    setMessages([{ role: 'user', text: suggestion }])
+    setIsTyping(true)
+    setTimeout(() => {
+      setIsTyping(false)
+      setMessages((prev) => [...prev, { role: 'ai', text: DEMO_AI_RESPONSE }])
+    }, 1500)
+  }, [])
+
+  const handleSend = useCallback(() => {
+    if (!input.trim()) return
+    const userMsg = input.trim()
+    setInput('')
+    setMessages((prev) => [...prev, { role: 'user', text: userMsg }])
+    setIsTyping(true)
+    setTimeout(() => {
+      setIsTyping(false)
+      setMessages((prev) => [...prev, { role: 'ai', text: 'In demo mode, AI responses are simulated. Connect to the API for real AI-powered study assistance.' }])
+    }, 1200)
+  }, [input])
+
+  // Simple markdown bold rendering
+  const renderText = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      const parts = line.split(/(\*\*[^*]+\*\*)/).map((part, j) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={j} className="font-semibold">{part.slice(2, -2)}</strong>
+        }
+        return <span key={j}>{part}</span>
+      })
+      return <p key={i} className={line === '' ? 'h-2' : ''}>{parts}</p>
+    })
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="p-4 pb-2 shrink-0">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#7C3AED] mb-3 transition-colors">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to topic
+        </button>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">AI Study Assistant</p>
+            <p className="text-[10px] text-slate-400">The microscope in cell studies</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto px-4 space-y-3" style={{ scrollbarWidth: 'thin' }}>
+        {/* System welcome */}
+        <div className="flex gap-2">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center shrink-0 mt-0.5">
+            <Bot className="w-3 h-3 text-white" />
+          </div>
+          <div className="flex-1 bg-slate-100 dark:bg-[#252839] rounded-xl rounded-tl-sm px-3 py-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+            I'm your AI study assistant for <strong className="font-semibold">The microscope in cell studies</strong>. Ask me anything about this topic, or try one of the suggested questions below.
+          </div>
+        </div>
+
+        {/* Suggestion chips */}
+        {!hasClickedSuggestion && (
+          <div className="flex flex-wrap gap-1.5 ml-8">
+            {AI_SUGGESTED_QUESTIONS.map((sq) => (
+              <button
+                key={sq}
+                onClick={() => handleSuggestion(sq)}
+                className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#7C3AED]/20 text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#DDD6FE] dark:hover:bg-[#7C3AED]/30 transition-colors"
+              >
+                {sq}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Chat messages */}
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+            {msg.role === 'ai' && (
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center shrink-0 mt-0.5">
+                <Bot className="w-3 h-3 text-white" />
+              </div>
+            )}
+            <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed ${
+              msg.role === 'user'
+                ? 'bg-[#7C3AED] text-white rounded-tr-sm'
+                : 'bg-slate-100 dark:bg-[#252839] text-slate-700 dark:text-slate-300 rounded-tl-sm'
+            }`}>
+              {msg.role === 'ai' ? renderText(msg.text) : msg.text}
+            </div>
+            {msg.role === 'user' && (
+              <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                <User className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Typing indicator */}
+        {isTyping && (
+          <div className="flex gap-2">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center shrink-0 mt-0.5">
+              <Bot className="w-3 h-3 text-white" />
+            </div>
+            <div className="bg-slate-100 dark:bg-[#252839] rounded-xl rounded-tl-sm px-3 py-2 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input bar */}
+      <div className="p-3 border-t border-slate-200 dark:border-[#232536] shrink-0">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Ask a question about this topic..."
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839] text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim()}
+            className="p-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-40 text-white transition-colors"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
+   Resources Panel — Videos, docs, flashcards
+   ──────────────────────────────────────────────────────────── */
+function ResourcesPanel({ onBack }: { onBack: () => void }) {
+  const [showFlashcards, setShowFlashcards] = useState(false)
+  const [currentCard, setCurrentCard] = useState(0)
+  const [flipped, setFlipped] = useState(false)
+
+  if (showFlashcards) {
+    const card = DEMO_FLASHCARDS[currentCard]
+    return (
+      <div className="p-4">
+        <button onClick={() => { setShowFlashcards(false); setCurrentCard(0); setFlipped(false) }} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#7C3AED] mb-3 transition-colors">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to resources
+        </button>
+
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Flashcard {currentCard + 1}/{DEMO_FLASHCARDS.length}</span>
+          <span className="text-[10px] text-slate-400">Click card to flip</span>
+        </div>
+
+        {/* Flashcard */}
+        <button
+          onClick={() => setFlipped(!flipped)}
+          className="w-full min-h-[160px] rounded-xl border-2 border-[#7C3AED]/30 bg-white dark:bg-[#252839] p-5 text-center transition-all hover:border-[#7C3AED]/60 hover:shadow-md cursor-pointer"
+          style={{ perspective: '1000px' }}
+        >
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full mb-3 inline-block ${
+            flipped ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-[#EDE9FE] dark:bg-[#7C3AED]/20 text-[#7C3AED]'
+          }`}>
+            {flipped ? 'Answer' : 'Question'}
+          </span>
+          <p className="text-sm font-medium text-slate-900 dark:text-white mt-2 leading-relaxed">
+            {flipped ? card.back : card.front}
+          </p>
+        </button>
+
+        {/* Navigation */}
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={() => { setCurrentCard(Math.max(0, currentCard - 1)); setFlipped(false) }}
+            disabled={currentCard === 0}
+            className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-[#232536] text-slate-600 dark:text-slate-400 text-xs font-medium disabled:opacity-40 hover:border-[#7C3AED]/40 transition-colors"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => { setCurrentCard(Math.min(DEMO_FLASHCARDS.length - 1, currentCard + 1)); setFlipped(false) }}
+            disabled={currentCard === DEMO_FLASHCARDS.length - 1}
+            className="flex-1 py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-40 text-white text-xs font-medium transition-colors"
+          >
+            Next
+          </button>
+        </div>
+
+        {/* Card indicators */}
+        <div className="flex justify-center gap-1.5 mt-3">
+          {DEMO_FLASHCARDS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setCurrentCard(i); setFlipped(false) }}
+              className={`w-2 h-2 rounded-full transition-colors ${i === currentCard ? 'bg-[#7C3AED]' : 'bg-slate-200 dark:bg-slate-700'}`}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#7C3AED] mb-3 transition-colors">
+        <ArrowLeft className="w-3.5 h-3.5" /> Back to topic
+      </button>
+
+      {/* Video Resources */}
+      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <Video className="w-3.5 h-3.5 text-[#7C3AED]" />
+        Video Resources
+      </h3>
+      <div className="space-y-2 mb-5">
+        {DEMO_VIDEOS.map((vid) => (
+          <div key={vid.title} className="flex items-center gap-3 p-2 rounded-lg border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839] hover:border-[#7C3AED]/40 transition-colors cursor-pointer group">
+            <div className={`w-16 h-10 rounded-md bg-gradient-to-br ${vid.color} flex items-center justify-center shrink-0`}>
+              <Play className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate group-hover:text-[#7C3AED] transition-colors">{vid.title}</p>
+              <p className="text-[10px] text-slate-400">{vid.author}</p>
+            </div>
+            <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-[#1a1d2e] px-1.5 py-0.5 rounded shrink-0">{vid.duration}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Document Resources */}
+      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <FileText className="w-3.5 h-3.5 text-[#7C3AED]" />
+        Documents
+      </h3>
+      <div className="space-y-1.5 mb-5">
+        {DEMO_DOCS.map((doc) => (
+          <div key={doc.title} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839] hover:border-[#7C3AED]/40 transition-colors cursor-pointer group">
+            <div className="w-8 h-8 rounded bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4 text-red-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate group-hover:text-[#7C3AED] transition-colors">{doc.title}</p>
+              <p className="text-[10px] text-slate-400">{doc.pages} page{doc.pages > 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Flashcards */}
+      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <RotateCcw className="w-3.5 h-3.5 text-[#7C3AED]" />
+        Flashcards
+      </h3>
+      <div className="p-3 rounded-lg border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#252839]">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{DEMO_FLASHCARDS.length} flashcards for this topic</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Click to flip, study key definitions</p>
+          </div>
+          <button
+            onClick={() => setShowFlashcards(true)}
+            className="px-3 py-1.5 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-[11px] font-medium transition-colors"
+          >
+            Start Flashcards
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
+   Demo unavailable message
+   ──────────────────────────────────────────────────────────── */
+function DemoUnavailablePanel({ panelName, onBack }: { panelName: string; onBack: () => void }) {
+  return (
+    <div className="p-4">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#7C3AED] mb-4 transition-colors">
+        <ArrowLeft className="w-3.5 h-3.5" /> Back to topic
+      </button>
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="w-14 h-14 rounded-full bg-[#EDE9FE] dark:bg-[#7C3AED]/20 flex items-center justify-center mb-3">
+          <Sparkles className="w-6 h-6 text-[#7C3AED]" />
+        </div>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{panelName} — Demo</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
+          Demo content available for topic 1.1 — The microscope in cell studies. Select that topic in CIE AS Biology (9700) to try the full experience.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
    Main Page
    ──────────────────────────────────────────────────────────── */
 export default function Curriculum() {
@@ -1128,6 +1844,7 @@ export default function Curriculum() {
   const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null)
 
   const stats = useMemo(() => getOverallStats(chapters), [chapters])
 
@@ -1138,6 +1855,7 @@ export default function Curriculum() {
     setSelectedChapterId(null)
     setSearchQuery('')
     setFilter('all')
+    setActivePanel(null)
     const newSyllabus = SYLLABI.find(s => s.id === id)!
     const first = newSyllabus.chapters.find(c => getChapterProgress(c).status === 'in_progress')
     setExpandedChapters(new Set(first ? [first.id] : []))
@@ -1155,6 +1873,7 @@ export default function Curriculum() {
   const selectTopic = (topic: Topic, chapterId: number) => {
     setSelectedTopic(topic)
     setSelectedChapterId(chapterId)
+    setActivePanel(null)
   }
 
   // Filtering
@@ -1349,9 +2068,25 @@ export default function Curriculum() {
             )}
           </div>
 
-          {/* Right: Topic detail panel */}
-          <div className="w-[40%] overflow-y-auto border border-slate-200 dark:border-[#232536] rounded-lg bg-white dark:bg-[#1a1d2e]" style={{ scrollbarWidth: 'thin' }}>
-            {selectedTopic ? (
+          {/* Right: Topic detail / interactive panel */}
+          <div className={`w-[40%] border border-slate-200 dark:border-[#232536] rounded-lg bg-white dark:bg-[#1a1d2e] flex flex-col ${activePanel === 'study-ai' ? '' : 'overflow-y-auto'}`} style={{ scrollbarWidth: 'thin' }}>
+            {/* Active panel overlay */}
+            {selectedTopic && activePanel ? (
+              isDemoTopic(selectedSyllabus, selectedTopic.id) ? (
+                activePanel === 'practice' ? (
+                  <PracticePanel onBack={() => setActivePanel(null)} />
+                ) : activePanel === 'study-ai' ? (
+                  <StudyAIPanel onBack={() => setActivePanel(null)} />
+                ) : (
+                  <ResourcesPanel onBack={() => setActivePanel(null)} />
+                )
+              ) : (
+                <DemoUnavailablePanel
+                  panelName={activePanel === 'practice' ? 'Practice Questions' : activePanel === 'study-ai' ? 'Study with AI' : 'Resources'}
+                  onBack={() => setActivePanel(null)}
+                />
+              )
+            ) : selectedTopic ? (
               <div className="p-4">
                 {/* Topic header */}
                 <div className="flex items-start gap-3 mb-4">
@@ -1407,27 +2142,27 @@ export default function Curriculum() {
 
                 {/* Action buttons */}
                 <div className="space-y-1.5">
-                  <Link
-                    to="/exam"
+                  <button
+                    onClick={() => setActivePanel('practice')}
                     className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-medium transition-colors"
                   >
                     <Beaker className="w-3.5 h-3.5" />
                     Practice
-                  </Link>
-                  <Link
-                    to="/doubts"
+                  </button>
+                  <button
+                    onClick={() => setActivePanel('study-ai')}
                     className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/10 text-xs font-medium transition-colors"
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
                     Study with AI
-                  </Link>
-                  <Link
-                    to="/reels"
+                  </button>
+                  <button
+                    onClick={() => setActivePanel('resources')}
                     className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-slate-200 dark:border-[#232536] text-slate-600 dark:text-slate-400 hover:border-[#7C3AED]/40 hover:text-[#7C3AED] text-xs font-medium transition-colors"
                   >
                     <Play className="w-3.5 h-3.5" />
                     Resources
-                  </Link>
+                  </button>
                 </div>
               </div>
             ) : (
