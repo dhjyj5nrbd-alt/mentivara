@@ -291,7 +291,19 @@ export async function handleDemoRequest(
     let isCorrect = false
 
     if (question.type === 'mcq') {
-      isCorrect = answer.trim().toLowerCase() === question.correct_answer.trim().toLowerCase()
+      const ans = answer.trim().toUpperCase()
+      const ca = question.correct_answer.trim()
+      // Support both letter answers ('A','B','C','D') and full-text answers
+      if (ca.length === 1 && 'ABCD'.includes(ca)) {
+        // correct_answer is a letter
+        isCorrect = ans === ca
+      } else if (ans.length === 1 && 'ABCD'.includes(ans) && question.options) {
+        // answer is a letter, correct_answer is full text — match by index
+        const selectedIdx = 'ABCD'.indexOf(ans)
+        isCorrect = question.options[selectedIdx]?.trim().toLowerCase() === ca.toLowerCase()
+      } else {
+        isCorrect = ans.toLowerCase() === ca.toLowerCase()
+      }
       marksAwarded = isCorrect ? question.marks : 0
     } else {
       // structured / extended — keyword matching against mark scheme
