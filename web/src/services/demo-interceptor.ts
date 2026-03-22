@@ -9,7 +9,7 @@ import {
   EXAM_QUESTIONS, EXAM_ANSWERS, DOUBTS, PAYMENTS,
   LESSON_PACKAGE, AVAILABILITY, CONVERSATIONS, MESSAGES,
   LEADERBOARD, MENTAL_DOJO_COURSES, TUTOR_REELS,
-  QUESTION_BANK,
+  QUESTION_BANK, DAILY_MISSIONS, STREAK_DATA,
 } from './demo-data'
 import type { BankQuestion } from './demo-data'
 
@@ -504,15 +504,28 @@ export async function handleDemoRequest(
   if (url === '/study-missions/today' && method === 'get') {
     return {
       data: ok({
-        id: 1,
-        user_id: 1,
-        date: new Date().toISOString().split('T')[0],
-        tasks: [
-          { type: 'flashcards', subject: 'Mathematics', count: 10, completed: false },
-          { type: 'quiz', subject: 'Biology', count: 5, completed: false },
-          { type: 'exercise', subject: 'Mental Dojo', activity: 'Box Breathing', completed: true },
-        ],
-        completed: false,
+        missions: DAILY_MISSIONS,
+        streak: STREAK_DATA,
+      }),
+      status: 200,
+    }
+  }
+  const missionCompleteMatch = url.match(/^\/study-missions\/(\d+)\/complete$/)
+  if (missionCompleteMatch && method === 'post') {
+    const missionId = Number(missionCompleteMatch[1])
+    const mission = DAILY_MISSIONS.find((m) => m.id === missionId)
+    if (mission) {
+      mission.completed = true
+      STREAK_DATA.todayXp += mission.xp
+      STREAK_DATA.totalXp += mission.xp
+    }
+    return {
+      data: ok({
+        mission_id: missionId,
+        completed: true,
+        xp_earned: mission?.xp ?? 0,
+        today_xp: STREAK_DATA.todayXp,
+        total_xp: STREAK_DATA.totalXp,
       }),
       status: 200,
     }

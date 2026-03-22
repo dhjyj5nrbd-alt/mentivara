@@ -5,7 +5,7 @@ import Layout from '../components/Layout'
 import { TUTOR_REELS } from '../services/demo-data'
 import {
   BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
-  Dumbbell, MessageSquare, Shield, Users, Trophy, Flame, Clapperboard,
+  Dumbbell, MessageSquare, Shield, Users, Trophy, Flame, Clapperboard, Target,
   Play, ChevronRight, ChevronLeft,
 } from 'lucide-react'
 
@@ -147,6 +147,13 @@ export default function Dashboard() {
 
         {user?.role === 'student' && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 [&>*]:min-w-0">
+            <DashCard
+              to="/missions" icon={Target} title="Daily Missions"
+              desc="Complete today's study tasks"
+              accent="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700"
+              iconBg="bg-amber-100 text-amber-600"
+              stat="1/6" statLabel="Done"
+            />
             <DashCard
               to="/lessons" icon={BookOpen} title="My Lessons"
               desc="View upcoming and past lessons"

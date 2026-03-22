@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
 import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
-  LayoutDashboard, MessageSquare, Users, Dumbbell, Clapperboard,
+  LayoutDashboard, MessageSquare, Users, Dumbbell, Clapperboard, Target,
   LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon,
 } from 'lucide-react'
 
@@ -26,6 +26,7 @@ export default function Layout({ children }: Props) {
 
   const studentNav = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/missions', icon: Target, label: 'Missions' },
     { to: '/lessons', icon: BookOpen, label: 'My Lessons' },
     { to: '/curriculum', icon: BookOpen, label: 'My Syllabus' },
     { to: '/tutors', icon: Search, label: 'Find Tutors' },

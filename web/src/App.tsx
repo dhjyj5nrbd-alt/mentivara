@@ -26,6 +26,7 @@ import TutorReels from './pages/TutorReels'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import PendingTutors from './pages/admin/PendingTutors'
+import StudyMissions from './pages/StudyMissions'
 import AdminPayments from './pages/admin/AdminPayments'
 
 const queryClient = new QueryClient()
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/exam" element={<ProtectedRoute roles={['student']}><ExamSimulator /></ProtectedRoute>} />
       <Route path="/knowledge-map" element={<ProtectedRoute roles={['student']}><KnowledgeMap /></ProtectedRoute>} />
       <Route path="/reels" element={<ProtectedRoute roles={['student']}><TutorReels /></ProtectedRoute>} />
+      <Route path="/missions" element={<ProtectedRoute roles={['student']}><StudyMissions /></ProtectedRoute>} />
       <Route path="/mental-dojo" element={<ProtectedRoute roles={['student']}><MentalDojo /></ProtectedRoute>} />
       <Route path="/messages/conversations" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
