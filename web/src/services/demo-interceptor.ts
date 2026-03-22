@@ -11,8 +11,9 @@ import {
   LEADERBOARD, MENTAL_DOJO_COURSES, TUTOR_REELS,
   QUESTION_BANK, DAILY_MISSIONS, STREAK_DATA,
   FORUM_CATEGORIES, FORUM_THREADS, FORUM_REPLIES,
+  STUDY_GROUPS,
 } from './demo-data'
-import type { BankQuestion, ForumThread, ForumReply } from './demo-data'
+import type { BankQuestion, ForumThread, ForumReply, StudyGroup, StudyGroupMessage } from './demo-data'
 
 // Re-export TUTOR_LIST for the interceptor since it's computed in demo-data
 // Actually we need to compute it here since demo-data doesn't export it
@@ -600,6 +601,64 @@ export async function handleDemoRequest(
     const thread = FORUM_THREADS.find((t) => t.id === threadId)
     if (thread) thread.likes++
     return { data: ok({ likes: thread?.likes }), status: 200 }
+  }
+
+  // ── Study Groups ──────────────────────────────────────────
+  if (url === '/study-groups' && method === 'get') {
+    const myGroups = STUDY_GROUPS.filter((g) => g.isMember)
+    const discover = STUDY_GROUPS.filter((g) => !g.isMember)
+    return { data: ok({ myGroups, discover }), status: 200 }
+  }
+  const studyGroupDetail = url.match(/^\/study-groups\/(\d+)$/)
+  if (studyGroupDetail && method === 'get') {
+    const group = STUDY_GROUPS.find((g) => g.id === Number(studyGroupDetail[1]))
+    return { data: ok(group ?? STUDY_GROUPS[0]), status: 200 }
+  }
+  if (url === '/study-groups' && method === 'post') {
+    const body = JSON.parse(config.data ?? '{}')
+    const newGroup: StudyGroup = {
+      id: Date.now(),
+      name: body.name ?? 'New Group',
+      emoji: body.emoji ?? '📚',
+      subject: body.subject ?? 'General',
+      description: body.description ?? '',
+      memberCount: 1,
+      isPrivate: body.isPrivate ?? false,
+      isMember: true,
+      members: [{ name: DEMO_USER.name, role: 'admin', online: true }],
+      lastMessage: { text: 'Group created!', author: 'System', time: 'Just now' },
+      unread: 0,
+      pinnedMessage: null,
+      messages: [],
+    }
+    STUDY_GROUPS.unshift(newGroup)
+    return { data: ok(newGroup), status: 201 }
+  }
+  const studyGroupMessage = url.match(/^\/study-groups\/(\d+)\/messages$/)
+  if (studyGroupMessage && method === 'post') {
+    const groupId = Number(studyGroupMessage[1])
+    const group = STUDY_GROUPS.find((g) => g.id === groupId)
+    const body = JSON.parse(config.data ?? '{}')
+    const newMsg: StudyGroupMessage = {
+      id: Date.now(),
+      author: DEMO_USER.name,
+      text: body.text ?? '',
+      time: 'Just now',
+      isMe: true,
+    }
+    if (group) group.messages.push(newMsg)
+    return { data: ok(newMsg), status: 201 }
+  }
+  const studyGroupJoin = url.match(/^\/study-groups\/(\d+)\/join$/)
+  if (studyGroupJoin && method === 'post') {
+    const groupId = Number(studyGroupJoin[1])
+    const group = STUDY_GROUPS.find((g) => g.id === groupId)
+    if (group) {
+      group.isMember = true
+      group.memberCount++
+      group.members.push({ name: DEMO_USER.name, role: 'member', online: true })
+    }
+    return { data: ok({ success: true }), status: 200 }
   }
 
   // ── Catch-all: return empty success ─────────────────────

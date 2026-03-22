@@ -1750,3 +1750,136 @@ export const FORUM_REPLIES: ForumReply[] = [
     parentReplyId: 7,
   },
 ]
+
+// ── Study Groups ───────────────────────────────────────────
+
+export interface StudyGroupMember {
+  name: string
+  role: 'admin' | 'member'
+  online: boolean
+}
+
+export interface StudyGroupMessage {
+  id: number
+  author: string
+  text: string
+  time: string
+  isMe: boolean
+}
+
+export interface StudyGroup {
+  id: number
+  name: string
+  emoji: string
+  subject: string
+  description: string
+  memberCount: number
+  isPrivate: boolean
+  isMember: boolean
+  members: StudyGroupMember[]
+  lastMessage: { text: string; author: string; time: string }
+  unread: number
+  pinnedMessage: string | null
+  messages: StudyGroupMessage[]
+}
+
+export const STUDY_GROUPS: StudyGroup[] = [
+  {
+    id: 1,
+    name: 'Biology A-Level Squad',
+    emoji: '🧬',
+    subject: 'Biology',
+    description: 'Study group for CIE A-Level Biology students. Share notes, ask questions, and revise together!',
+    memberCount: 12,
+    isPrivate: false,
+    isMember: true,
+    members: [
+      { name: 'Alex Johnson', role: 'admin', online: true },
+      { name: 'Sophie Williams', role: 'member', online: true },
+      { name: 'James Okafor', role: 'member', online: false },
+      { name: 'Amara Patel', role: 'member', online: true },
+      { name: 'Ryan Murphy', role: 'member', online: false },
+    ],
+    lastMessage: { text: 'Has anyone done the past paper from 2023?', author: 'Sophie', time: '10 min ago' },
+    unread: 3,
+    pinnedMessage: 'Exam dates: Paper 1 - May 12, Paper 2 - May 19, Paper 3 - June 2. Good luck everyone!',
+    messages: [
+      { id: 1, author: 'Sophie Williams', text: 'Hey everyone! How is revision going?', time: '9:30 AM', isMe: false },
+      { id: 2, author: 'Alex Johnson', text: 'Pretty good! Just finished the cell biology topic. Moving on to genetics now.', time: '9:32 AM', isMe: true },
+      { id: 3, author: 'James Okafor', text: 'I am stuck on protein synthesis. Can someone explain transcription vs translation?', time: '9:45 AM', isMe: false },
+      { id: 4, author: 'Amara Patel', text: 'Transcription = DNA to mRNA (in the nucleus)\nTranslation = mRNA to Protein (at the ribosome)\n\nThink of it like: first you TRANSCRIBE (copy) the message, then you TRANSLATE it into something useful!', time: '9:48 AM', isMe: false },
+      { id: 5, author: 'James Okafor', text: 'That makes so much more sense! Thanks Amara', time: '9:50 AM', isMe: false },
+      { id: 6, author: 'Sophie Williams', text: 'Has anyone done the past paper from 2023?', time: '10:15 AM', isMe: false },
+      { id: 7, author: 'Alex Johnson', text: 'Yes! Paper 2 was tough. The ecology question caught me off guard.', time: '10:18 AM', isMe: true },
+      { id: 8, author: 'Ryan Murphy', text: 'I found a great YouTube video explaining the carbon cycle if anyone needs it', time: '10:25 AM', isMe: false },
+    ],
+  },
+  {
+    id: 2,
+    name: 'GCSE Maths Help',
+    emoji: '📐',
+    subject: 'Maths',
+    description: 'Helping each other with GCSE Maths. All topics welcome!',
+    memberCount: 23,
+    isPrivate: false,
+    isMember: true,
+    members: [
+      { name: 'Alex Johnson', role: 'member', online: true },
+      { name: 'Ryan Murphy', role: 'admin', online: true },
+      { name: 'Emma Davis', role: 'member', online: false },
+    ],
+    lastMessage: { text: 'Can someone check my working for Q7?', author: 'Emma', time: '1 hour ago' },
+    unread: 0,
+    pinnedMessage: null,
+    messages: [
+      { id: 1, author: 'Ryan Murphy', text: 'Welcome to GCSE Maths Help! Feel free to ask any questions.', time: 'Yesterday', isMe: false },
+      { id: 2, author: 'Emma Davis', text: 'Can someone check my working for Q7? I got x = 3.5 but the answer says 4.', time: '1 hour ago', isMe: false },
+      { id: 3, author: 'Alex Johnson', text: 'Let me have a look... I think you might have forgotten to square both sides before solving.', time: '55 min ago', isMe: true },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Medicine Interview Prep',
+    emoji: '🏥',
+    subject: 'Medicine',
+    description: 'Practice MMI stations and discuss medical ethics scenarios',
+    memberCount: 8,
+    isPrivate: true,
+    isMember: false,
+    members: [],
+    lastMessage: { text: 'Practice session tomorrow at 4pm!', author: 'Sarah', time: '3 hours ago' },
+    unread: 0,
+    pinnedMessage: null,
+    messages: [],
+  },
+  {
+    id: 4,
+    name: 'Chemistry Revision Club',
+    emoji: '⚗️',
+    subject: 'Chemistry',
+    description: 'Organic, inorganic, and physical chemistry revision',
+    memberCount: 15,
+    isPrivate: false,
+    isMember: false,
+    members: [],
+    lastMessage: { text: 'Alkenes vs alkanes - easy way to remember?', author: 'Tom', time: '2 hours ago' },
+    unread: 0,
+    pinnedMessage: null,
+    messages: [],
+  },
+  {
+    id: 5,
+    name: 'Physics Problem Solvers',
+    emoji: '⚡',
+    subject: 'Physics',
+    description: 'Work through challenging physics problems together',
+    memberCount: 11,
+    isPrivate: false,
+    isMember: false,
+    members: [],
+    lastMessage: { text: 'That projectile motion question was insane', author: 'Liam', time: '5 hours ago' },
+    unread: 0,
+    pinnedMessage: null,
+    messages: [],
+  },
+]

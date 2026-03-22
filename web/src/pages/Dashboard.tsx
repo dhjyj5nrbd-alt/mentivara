@@ -5,7 +5,7 @@ import Layout from '../components/Layout'
 import { TUTOR_REELS } from '../services/demo-data'
 import {
   BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
-  Dumbbell, MessageSquare, Shield, Users, Trophy, Flame, Clapperboard, Target,
+  Dumbbell, MessageSquare, Shield, Users, UsersRound, Trophy, Flame, Clapperboard, Target,
   Play, ChevronRight, ChevronLeft,
 } from 'lucide-react'
 
@@ -201,6 +201,13 @@ export default function Dashboard() {
               accent="bg-white border-slate-200 hover:border-blue-300"
               iconBg="bg-blue-100 text-blue-600"
               stat="1.2k" statLabel="Threads"
+            />
+            <DashCard
+              to="/study-groups" icon={UsersRound} title="Study Groups"
+              desc="Collaborate with peers"
+              accent="bg-white border-slate-200 hover:border-cyan-300"
+              iconBg="bg-cyan-100 text-cyan-600"
+              stat="2" statLabel="Groups"
             />
             <DashCard
               to="/mental-dojo" icon={Dumbbell} title="Mental Dojo"

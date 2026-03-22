@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
 import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
-  LayoutDashboard, MessageSquare, Users, Dumbbell, Clapperboard, Target,
+  LayoutDashboard, MessageSquare, Users, UsersRound, Dumbbell, Clapperboard, Target,
   LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon,
 } from 'lucide-react'
 
@@ -35,6 +35,7 @@ export default function Layout({ children }: Props) {
     { to: '/doubts', icon: HelpCircle, label: 'AI Help' },
     { to: '/reels', icon: Clapperboard, label: 'Reels' },
     { to: '/forum', icon: Users, label: 'Forum' },
+    { to: '/study-groups', icon: UsersRound, label: 'Groups' },
     { to: '/mental-dojo', icon: Dumbbell, label: 'Mental Dojo' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
     { to: '/payments', icon: CreditCard, label: 'Payments' },
