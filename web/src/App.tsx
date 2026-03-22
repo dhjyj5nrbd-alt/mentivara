@@ -34,6 +34,12 @@ import Competitions from './pages/Competitions'
 import StudyCoach from './pages/StudyCoach'
 import StudyOptimizer from './pages/StudyOptimizer'
 import ParentDashboard from './pages/ParentDashboard'
+import TutorDashboard from './pages/TutorDashboard'
+import TutorOnboarding from './pages/TutorOnboarding'
+import TutorAvailability from './pages/TutorAvailability'
+import TutorStudents from './pages/TutorStudents'
+import TutorReelUpload from './pages/TutorReelUpload'
+import TutorEarnings from './pages/TutorEarnings'
 
 const queryClient = new QueryClient()
 
@@ -81,6 +87,12 @@ function AppRoutes() {
       <Route path="/study-optimizer" element={<ProtectedRoute roles={['student']}><StudyOptimizer /></ProtectedRoute>} />
       <Route path="/messages/conversations" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
       <Route path="/parent-dashboard" element={<ProtectedRoute roles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+      <Route path="/tutor/onboarding" element={<ProtectedRoute roles={['tutor']}><TutorOnboarding /></ProtectedRoute>} />
+      <Route path="/tutor-dashboard" element={<ProtectedRoute roles={['tutor']}><TutorDashboard /></ProtectedRoute>} />
+      <Route path="/tutor/availability" element={<ProtectedRoute roles={['tutor']}><TutorAvailability /></ProtectedRoute>} />
+      <Route path="/tutor/students" element={<ProtectedRoute roles={['tutor']}><TutorStudents /></ProtectedRoute>} />
+      <Route path="/tutor/reels" element={<ProtectedRoute roles={['tutor']}><TutorReelUpload /></ProtectedRoute>} />
+      <Route path="/tutor/earnings" element={<ProtectedRoute roles={['tutor']}><TutorEarnings /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />

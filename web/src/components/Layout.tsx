@@ -21,6 +21,7 @@ export default function Layout({ children }: Props) {
 
   const isActive = (path: string) => {
     if (path === '/dashboard') return location.pathname === '/dashboard'
+    if (path === '/tutor-dashboard') return location.pathname === '/tutor-dashboard'
     return location.pathname === path || location.pathname.startsWith(path + '/')
   }
 
@@ -44,7 +45,7 @@ export default function Layout({ children }: Props) {
   ]
 
   const tutorNav = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/tutor-dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/lessons', icon: BookOpen, label: 'My Lessons' },
     { to: '/payments', icon: CreditCard, label: 'Earnings' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },

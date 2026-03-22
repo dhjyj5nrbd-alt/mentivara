@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import Layout from '../components/Layout'
 import { TUTOR_REELS } from '../services/demo-data'
@@ -121,6 +121,11 @@ function ReelsBanner() {
 export default function Dashboard() {
   const { user } = useAuthStore()
   const firstName = user?.name?.split(' ')[0]
+
+  // Redirect tutors to their dedicated dashboard
+  if (user?.role === 'tutor') {
+    return <Navigate to="/tutor-dashboard" replace />
+  }
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
