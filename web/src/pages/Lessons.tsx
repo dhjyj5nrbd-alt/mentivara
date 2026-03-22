@@ -529,6 +529,13 @@ export default function Lessons() {
                       <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">until lesson</p>
                     </div>
                   )}
+                  <Link
+                    to={`/classroom/${nextLesson.id}`}
+                    className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-semibold transition-colors"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    Join Classroom
+                  </Link>
                 </div>
               ) : (
                 <p className="text-xs text-slate-400 dark:text-slate-500">No upcoming lessons</p>
