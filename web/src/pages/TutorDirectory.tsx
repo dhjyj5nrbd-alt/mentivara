@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { tutorService, type RefData, type TutorFilters, type TutorListItem } from '../services/tutors'
 import { Search, X, CheckCircle, Star } from 'lucide-react'
 import Layout from '../components/Layout'
+import { useCurrencyStore, formatPrice, CURRENCIES, type CurrencyCode } from '../store/currencyStore'
 
 const TUTOR_PHOTOS: Record<number, string> = {
   1: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
@@ -22,6 +23,7 @@ const TUTOR_STATS: Record<number, { rating: number; reviews: number; rate: numbe
 function TutorCard({ tutor }: { tutor: TutorListItem }) {
   const photo = TUTOR_PHOTOS[tutor.id]
   const stats = TUTOR_STATS[tutor.id] || { rating: 4.5, reviews: 0, rate: 40, experience: '3 years' }
+  const currency = useCurrencyStore((s) => s.currency)
 
   // Deduplicate subject names and level names
   const subjectNames = [...new Set(tutor.subjects.map((s) => s.name))]
@@ -56,7 +58,7 @@ function TutorCard({ tutor }: { tutor: TutorListItem }) {
             <span className="text-slate-400">({stats.reviews})</span>
           </div>
           <span className="text-slate-300 dark:text-slate-600">|</span>
-          <span className="font-bold text-[#7C3AED]">£{stats.rate}/hr</span>
+          <span className="font-bold text-[#7C3AED]">{formatPrice(stats.rate, currency)}/hr</span>
           <span className="text-slate-300 dark:text-slate-600">|</span>
           <span className="text-slate-500 dark:text-slate-400">{stats.experience}</span>
         </div>
@@ -95,6 +97,7 @@ function TutorCard({ tutor }: { tutor: TutorListItem }) {
 export default function TutorDirectory() {
   const [filters, setFilters] = useState<TutorFilters>({})
   const [searchInput, setSearchInput] = useState('')
+  const { currency, setCurrency } = useCurrencyStore()
 
   const { data: subjects } = useQuery({ queryKey: ['subjects'], queryFn: tutorService.getSubjects })
   const { data: levels } = useQuery({ queryKey: ['levels'], queryFn: tutorService.getLevels })
@@ -156,6 +159,17 @@ export default function TutorDirectory() {
             <option value="">All Levels</option>
             {levels?.map((l: RefData) => (
               <option key={l.slug} value={l.slug}>{l.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+            className="px-2 py-1.5 text-sm border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+            aria-label="Currency"
+          >
+            {Object.values(CURRENCIES).map((c) => (
+              <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
             ))}
           </select>
 
