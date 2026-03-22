@@ -99,9 +99,17 @@ function ReelsBanner() {
               {reel.subject}
             </div>
             {/* Bottom info */}
-            <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2">
+            <div className="absolute bottom-0 left-0 right-0 px-2 pb-1.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <img
+                  src={reel.tutorAvatar}
+                  alt={reel.tutorName}
+                  className="w-5 h-5 rounded-full object-cover border border-white/40 shrink-0"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+                <span className="text-white/80 text-[9px] font-medium truncate">{reel.tutorName}</span>
+              </div>
               <p className="text-white font-semibold text-[11px] leading-tight line-clamp-1">{reel.title}</p>
-              <p className="text-white/60 text-[9px] mt-0.5">{reel.tutorName} · {reel.duration}</p>
             </div>
           </button>
         ))}
