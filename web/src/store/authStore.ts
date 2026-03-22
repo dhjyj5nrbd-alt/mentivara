@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { authService, type LoginPayload, type RegisterPayload } from '../services/auth'
-import { DEMO_USER, DEMO_PARENT_USER } from '../services/demo-data'
+import { DEMO_USER, DEMO_PARENT_USER, DEMO_TUTOR_USER } from '../services/demo-data'
 import { enableDemoMode, disableDemoMode, isDemoMode, getDemoRole } from '../services/demo-interceptor'
 
 interface User {
@@ -20,6 +20,7 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>
   loginDemo: () => void
   loginDemoParent: () => void
+  loginDemoTutor: () => void
   logout: () => Promise<void>
   loadUser: () => Promise<void>
   clearError: () => void
@@ -53,6 +54,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: DEMO_PARENT_USER as User, isAuthenticated: true, isLoading: false, error: null })
   },
 
+  loginDemoTutor: () => {
+    enableDemoMode('tutor')
+    set({ user: DEMO_TUTOR_USER as User, isAuthenticated: true, isLoading: false, error: null })
+  },
+
   register: async (payload) => {
     set({ isLoading: true, error: null })
     try {
@@ -81,7 +87,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Demo mode: restore user from local mock data
     if (isDemoMode()) {
       const demoRole = getDemoRole()
-      const demoUser = demoRole === 'parent' ? DEMO_PARENT_USER as User : DEMO_USER
+      const demoUser = demoRole === 'parent' ? DEMO_PARENT_USER as User : demoRole === 'tutor' ? DEMO_TUTOR_USER as User : DEMO_USER
       set({ user: demoUser, isAuthenticated: true, isLoading: false })
       return
     }

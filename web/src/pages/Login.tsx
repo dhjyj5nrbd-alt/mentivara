@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { login, loginDemo, loginDemoParent, error, clearError, isLoading } = useAuthStore()
+  const { login, loginDemo, loginDemoParent, loginDemoTutor, error, clearError, isLoading } = useAuthStore()
   const [form, setForm] = useState({ email: '', password: '' })
 
   const handleDemo = () => {
@@ -17,6 +17,12 @@ export default function Login() {
     localStorage.setItem('demo-mode', 'true')
     loginDemoParent()
     navigate('/dashboard')
+  }
+
+  const handleDemoTutor = () => {
+    localStorage.setItem('demo-mode', 'true')
+    loginDemoTutor()
+    navigate('/tutor-dashboard')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,6 +126,17 @@ export default function Login() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             Demo as Parent
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDemoTutor}
+            className="w-full border-2 border-dashed border-emerald-400/30 hover:border-emerald-400 text-emerald-600 dark:text-emerald-400 font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Demo as Tutor
           </button>
         </form>
       </div>

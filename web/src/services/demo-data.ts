@@ -2278,6 +2278,14 @@ export const DEMO_PARENT_USER = {
   status: 'active',
 }
 
+export const DEMO_TUTOR_USER = {
+  id: 200,
+  name: 'Dr. Sarah Chen',
+  email: 'sarah.chen@demo.mentivara.com',
+  role: 'tutor' as const,
+  status: 'active',
+}
+
 export const PARENT_DASHBOARD_DATA = {
   child: {
     id: 1,
