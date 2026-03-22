@@ -210,9 +210,6 @@ export default function TutorAvailability() {
                           className={`h-7 rounded ${bg} transition-colors relative`}
                           onMouseDown={() => startDrag(day, hour)}
                           onMouseEnter={() => continueDrag(day, hour)}
-                          onClick={() => {
-                            if (!isDragging) toggleSlot(day, hour)
-                          }}
                           title={
                             slot.status === 'booked'
                               ? `${DAYS_SHORT[day]} ${formatHour(hour)} — Booked lesson`
