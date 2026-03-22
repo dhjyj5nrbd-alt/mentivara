@@ -26,8 +26,17 @@ interface Chapter {
   topics: Topic[]
 }
 
+interface Syllabus {
+  id: string
+  name: string
+  board: string
+  code: string
+  level: string
+  chapters: Chapter[]
+}
+
 /* ────────────────────────────────────────────────────────────
-   Demo Data — IGCSE Biology CIE (0610)
+   Helper
    ──────────────────────────────────────────────────────────── */
 function t(
   id: string, name: string, status: Topic['status'], mastery: number,
@@ -37,7 +46,10 @@ function t(
   return { id, name, status, mastery, keyConcepts, relatedLessons, hoursStudied }
 }
 
-const SYLLABUS_CHAPTERS: Chapter[] = [
+/* ────────────────────────────────────────────────────────────
+   Demo Data — IGCSE Biology CIE (0610)
+   ──────────────────────────────────────────────────────────── */
+const IGCSE_BIO_CHAPTERS: Chapter[] = [
   {
     id: 1, title: 'Characteristics and classification of living organisms', topics: [
       t('1.1', 'Characteristics of living organisms', 'mastered', 94,
@@ -280,22 +292,776 @@ const SYLLABUS_CHAPTERS: Chapter[] = [
 ]
 
 /* ────────────────────────────────────────────────────────────
+   Demo Data — CIE AS & A-Level Biology (9700)
+   ──────────────────────────────────────────────────────────── */
+const CIE_ALEVEL_BIO_CHAPTERS: Chapter[] = [
+  {
+    id: 1, title: 'Cell structure', topics: [
+      t('1.1', 'The microscope in cell studies', 'mastered', 92,
+        ['Light vs electron microscopes', 'Magnification and resolution', 'Calculating actual size of specimens'],
+        [{ title: 'Microscopy Techniques', date: '10 Sep 2025' }, { title: 'Cell Ultrastructure', date: '14 Sep 2025' }], 3.5),
+      t('1.2', 'Cells as the basic units of living organisms', 'mastered', 88,
+        ['Prokaryotic vs eukaryotic cells', 'Ultrastructure of animal and plant cells', 'Functions of organelles'],
+        [{ title: 'Cell Organelles', date: '17 Sep 2025' }], 3),
+    ],
+  },
+  {
+    id: 2, title: 'Biological molecules', topics: [
+      t('2.1', 'Testing for biological molecules', 'mastered', 90,
+        ['Benedict\'s test for reducing sugars', 'Iodine test for starch', 'Biuret test for proteins', 'Emulsion test for lipids'],
+        [{ title: 'Biochemistry Lab', date: '20 Sep 2025' }], 2.5),
+      t('2.2', 'Carbohydrates and lipids', 'mastered', 86,
+        ['Monosaccharides, disaccharides, polysaccharides', 'Glycosidic bonds and condensation', 'Triglycerides and phospholipids', 'Saturated vs unsaturated fatty acids'],
+        [{ title: 'Carbohydrates & Lipids', date: '24 Sep 2025' }], 3),
+      t('2.3', 'Proteins', 'mastered', 84,
+        ['Amino acid structure and peptide bonds', 'Primary to quaternary structure', 'Globular vs fibrous proteins', 'Haemoglobin and collagen examples'],
+        [{ title: 'Protein Structure', date: '28 Sep 2025' }], 3),
+      t('2.4', 'Water', 'mastered', 91,
+        ['Hydrogen bonding in water', 'Solvent properties', 'High specific heat capacity', 'Surface tension and cohesion'],
+        [{ title: 'Water & Life', date: '1 Oct 2025' }], 1.5),
+    ],
+  },
+  {
+    id: 3, title: 'Enzymes', topics: [
+      t('3.1', 'Mode of action of enzymes', 'mastered', 87,
+        ['Lock and key hypothesis', 'Induced fit model', 'Activation energy', 'Enzyme-substrate complex'],
+        [{ title: 'Enzyme Kinetics', date: '5 Oct 2025' }], 2.5),
+      t('3.2', 'Factors that affect enzyme action', 'mastered', 83,
+        ['Temperature coefficient (Q10)', 'pH and denaturation', 'Substrate concentration', 'Competitive and non-competitive inhibition'],
+        [{ title: 'Enzyme Inhibition', date: '8 Oct 2025' }, { title: 'Enzyme Practical', date: '10 Oct 2025' }], 3.5),
+    ],
+  },
+  {
+    id: 4, title: 'Cell membranes and transport', topics: [
+      t('4.1', 'Fluid mosaic membranes', 'mastered', 85,
+        ['Phospholipid bilayer structure', 'Intrinsic and extrinsic proteins', 'Cholesterol role', 'Glycoproteins and glycolipids'],
+        [{ title: 'Membrane Structure', date: '14 Oct 2025' }], 2.5),
+      t('4.2', 'Movement of substances into and out of cells', 'mastered', 80,
+        ['Simple and facilitated diffusion', 'Osmosis and water potential', 'Active transport and co-transport', 'Endocytosis and exocytosis'],
+        [{ title: 'Membrane Transport', date: '17 Oct 2025' }, { title: 'Osmosis Investigation', date: '20 Oct 2025' }], 3.5),
+    ],
+  },
+  {
+    id: 5, title: 'The mitotic cell cycle', topics: [
+      t('5.1', 'Replication and division of nuclei and cells', 'mastered', 82,
+        ['Interphase: G1, S, G2 phases', 'Stages of mitosis', 'Cytokinesis in animal and plant cells', 'Role of mitosis in growth and repair'],
+        [{ title: 'Cell Division', date: '24 Oct 2025' }], 2.5),
+      t('5.2', 'Chromosome behaviour in mitosis', 'mastered', 79,
+        ['Condensation of chromatin', 'Spindle fibre attachment', 'Centromere separation', 'Calculating mitotic index'],
+        [{ title: 'Mitosis Practical', date: '27 Oct 2025' }], 2),
+    ],
+  },
+  {
+    id: 6, title: 'Nucleic acids and protein synthesis', topics: [
+      t('6.1', 'Structure and replication of DNA', 'mastered', 81,
+        ['Nucleotide structure', 'Double helix and base pairing', 'Semi-conservative replication', 'Meselson-Stahl experiment'],
+        [{ title: 'DNA Structure', date: '1 Nov 2025' }], 3),
+      t('6.2', 'Protein synthesis', 'mastered', 77,
+        ['Transcription in the nucleus', 'mRNA processing and splicing', 'Translation at ribosomes', 'Codons and anticodons'],
+        [{ title: 'Gene Expression', date: '5 Nov 2025' }], 3),
+    ],
+  },
+  {
+    id: 7, title: 'Transport in plants', topics: [
+      t('7.1', 'Structure of transport tissues', 'in_progress', 62,
+        ['Xylem vessel elements and tracheids', 'Phloem sieve tubes and companion cells', 'Lignification and adaptations'],
+        [{ title: 'Plant Transport Tissues', date: '10 Nov 2025' }], 2),
+      t('7.2', 'Transport mechanisms', 'in_progress', 55,
+        ['Transpiration pull and cohesion-tension', 'Root pressure', 'Translocation and mass flow hypothesis', 'Evidence for phloem transport'],
+        [{ title: 'Transpiration Investigation', date: '14 Nov 2025' }], 2),
+    ],
+  },
+  {
+    id: 8, title: 'Transport in mammals', topics: [
+      t('8.1', 'The circulatory system', 'in_progress', 58,
+        ['Double circulatory system', 'Arteries, arterioles, capillaries, venules, veins', 'Structure related to function', 'Blood composition'],
+        [{ title: 'Circulatory System', date: '18 Nov 2025' }], 2),
+      t('8.2', 'The heart', 'in_progress', 50,
+        ['Heart structure and cardiac cycle', 'Myogenic stimulation and SAN', 'Electrocardiograms (ECGs)', 'Coronary heart disease'],
+        [{ title: 'Heart Dissection', date: '22 Nov 2025' }], 1.5),
+    ],
+  },
+  {
+    id: 9, title: 'Gas exchange', topics: [
+      t('9.1', 'The gas exchange system', 'in_progress', 52,
+        ['Lung structure and alveoli', 'Gas exchange surface adaptations', 'Ventilation mechanism', 'Measuring lung volumes'],
+        [{ title: 'Gas Exchange', date: '26 Nov 2025' }], 1.5),
+      t('9.2', 'Smoking', 'in_progress', 45,
+        ['Tar, nicotine, carbon monoxide effects', 'Chronic bronchitis and emphysema', 'Lung cancer risk factors', 'Epidemiological evidence'],
+        [], 1),
+    ],
+  },
+  {
+    id: 10, title: 'Infectious diseases', topics: [
+      t('10.1', 'Infectious diseases', 'in_progress', 48,
+        ['Pathogen types: bacteria, viruses, fungi', 'Transmission methods', 'Cholera, malaria, TB, HIV/AIDS', 'Global impact of infectious disease'],
+        [{ title: 'Infectious Disease', date: '1 Dec 2025' }], 1.5),
+      t('10.2', 'Antibiotics', 'in_progress', 40,
+        ['Mode of action of antibiotics', 'Antibiotic resistance and MRSA', 'Penicillin discovery and development', 'Responsible use of antibiotics'],
+        [], 1),
+    ],
+  },
+  {
+    id: 11, title: 'Immunity', topics: [
+      t('11.1', 'The immune system', 'in_progress', 42,
+        ['Phagocytosis and macrophages', 'T lymphocytes and cell-mediated immunity', 'B lymphocytes and humoral immunity', 'Memory cells and secondary response'],
+        [{ title: 'Immune Response', date: '5 Dec 2025' }], 1.5),
+      t('11.2', 'Antibodies and vaccination', 'in_progress', 35,
+        ['Antibody structure and function', 'Active and passive immunity', 'Vaccination programmes', 'Herd immunity and ethics'],
+        [], 1),
+    ],
+  },
+  {
+    id: 12, title: 'Energy and respiration', topics: [
+      t('12.1', 'Energy', 'not_started', 0,
+        ['ATP structure and role', 'Energy currency of the cell', 'Phosphorylation reactions'],
+        [], 0),
+      t('12.2', 'Respiration', 'not_started', 0,
+        ['Glycolysis in the cytoplasm', 'Link reaction and Krebs cycle', 'Oxidative phosphorylation', 'Anaerobic respiration pathways'],
+        [], 0),
+    ],
+  },
+  {
+    id: 13, title: 'Photosynthesis', topics: [
+      t('13.1', 'Photosynthesis as an energy transfer process', 'not_started', 0,
+        ['Light-dependent reactions', 'Photophosphorylation', 'Calvin cycle (light-independent)', 'Chloroplast structure and function'],
+        [], 0),
+      t('13.2', 'Investigation of limiting factors', 'not_started', 0,
+        ['Light intensity and wavelength', 'Carbon dioxide concentration', 'Temperature effects', 'Compensation point'],
+        [], 0),
+    ],
+  },
+  {
+    id: 14, title: 'Homeostasis', topics: [
+      t('14.1', 'Homeostasis in mammals', 'not_started', 0,
+        ['Negative feedback mechanisms', 'Role of receptors and effectors', 'Communication by nervous and endocrine systems'],
+        [], 0),
+      t('14.2', 'The control of body temperature', 'not_started', 0,
+        ['Thermoregulation centre in hypothalamus', 'Vasodilation and vasoconstriction', 'Sweating and shivering', 'Ectotherms vs endotherms'],
+        [], 0),
+      t('14.3', 'The control of blood glucose concentration', 'not_started', 0,
+        ['Insulin and glucagon roles', 'Glycogenesis and glycogenolysis', 'Type 1 and Type 2 diabetes'],
+        [], 0),
+      t('14.4', 'The control of water potential of blood', 'not_started', 0,
+        ['Nephron structure and function', 'Ultrafiltration and selective reabsorption', 'ADH and osmoregulation', 'Loop of Henle countercurrent'],
+        [], 0),
+    ],
+  },
+  {
+    id: 15, title: 'Control and coordination', topics: [
+      t('15.1', 'Control and coordination in mammals', 'not_started', 0,
+        ['Neurone structure and types', 'Resting and action potentials', 'Synaptic transmission', 'Effects of drugs on synapses'],
+        [], 0),
+      t('15.2', 'Control and coordination in plants', 'not_started', 0,
+        ['Auxin and phototropism', 'Gibberellins and stem elongation', 'Abscisic acid and stomatal closure', 'Commercial uses of plant hormones'],
+        [], 0),
+    ],
+  },
+  {
+    id: 16, title: 'Inherited change', topics: [
+      t('16.1', 'Passage of information from parent to offspring', 'not_started', 0,
+        ['Meiosis and genetic variation', 'Independent assortment', 'Crossing over and chiasmata', 'Random fusion of gametes'],
+        [], 0),
+      t('16.2', 'The roles of genes in determining the phenotype', 'not_started', 0,
+        ['Monohybrid and dihybrid crosses', 'Codominance and multiple alleles', 'Sex linkage', 'Chi-squared test'],
+        [], 0),
+      t('16.3', 'Gene control', 'not_started', 0,
+        ['Lac operon in E. coli', 'Epigenetics', 'Gene expression regulation'],
+        [], 0),
+    ],
+  },
+  {
+    id: 17, title: 'Selection and evolution', topics: [
+      t('17.1', 'Variation', 'not_started', 0,
+        ['Continuous and discontinuous variation', 'Genetic and environmental causes', 'Standard deviation and normal distribution'],
+        [], 0),
+      t('17.2', 'Natural and artificial selection', 'not_started', 0,
+        ['Directional and stabilising selection', 'Selective breeding in agriculture', 'Antibiotic resistance as evolution in action'],
+        [], 0),
+      t('17.3', 'Evolution', 'not_started', 0,
+        ['Speciation: allopatric and sympatric', 'Adaptive radiation', 'Evidence for evolution'],
+        [], 0),
+    ],
+  },
+  {
+    id: 18, title: 'Biodiversity, classification and conservation', topics: [
+      t('18.1', 'Biodiversity', 'not_started', 0,
+        ['Species diversity and habitat diversity', 'Simpson\'s index of diversity', 'Measuring biodiversity'],
+        [], 0),
+      t('18.2', 'Classification', 'not_started', 0,
+        ['Three-domain system', 'Phylogenetic classification', 'Molecular evidence: DNA and amino acid sequences'],
+        [], 0),
+      t('18.3', 'Conservation', 'not_started', 0,
+        ['In situ and ex situ conservation', 'International conservation agreements', 'Sustainable resource management'],
+        [], 0),
+    ],
+  },
+  {
+    id: 19, title: 'Genetic technology', topics: [
+      t('19.1', 'Principles of genetic technology', 'not_started', 0,
+        ['Restriction enzymes and ligase', 'Vectors: plasmids and bacteriophages', 'PCR and gel electrophoresis', 'DNA sequencing'],
+        [], 0),
+      t('19.2', 'Genetic technology applied to medicine', 'not_started', 0,
+        ['Gene therapy: somatic and germ line', 'Genetic screening and counselling', 'Production of human insulin'],
+        [], 0),
+      t('19.3', 'Genetically modified organisms', 'not_started', 0,
+        ['GM crops: benefits and risks', 'Golden rice and Bt crops', 'Ethical considerations', 'Regulation of GMOs'],
+        [], 0),
+    ],
+  },
+]
+
+/* ────────────────────────────────────────────────────────────
+   Demo Data — Edexcel International AS/A2 Chemistry
+   ──────────────────────────────────────────────────────────── */
+const EDEXCEL_CHEM_CHAPTERS: Chapter[] = [
+  {
+    id: 1, title: 'Formulae, Equations and Amount of Substance', topics: [
+      t('1.1', 'Formulae and equations', 'mastered', 93,
+        ['Empirical and molecular formulae', 'Balancing chemical equations', 'State symbols and ionic equations'],
+        [{ title: 'Chemical Formulae', date: '8 Sep 2025' }, { title: 'Equation Balancing', date: '11 Sep 2025' }], 3),
+      t('1.2', 'Amount of substance and the mole', 'mastered', 89,
+        ['Avogadro constant', 'Molar mass calculations', 'Moles of gases at RTP', 'Concentration of solutions'],
+        [{ title: 'The Mole Concept', date: '15 Sep 2025' }], 3.5),
+      t('1.3', 'Titrations', 'mastered', 85,
+        ['Acid-base titration technique', 'Concordant results', 'Titre calculations', 'Indicators and end points'],
+        [{ title: 'Titration Practical', date: '18 Sep 2025' }], 2.5),
+    ],
+  },
+  {
+    id: 2, title: 'Atomic Structure and the Periodic Table', topics: [
+      t('2.1', 'Atomic structure and isotopes', 'mastered', 91,
+        ['Protons, neutrons, electrons', 'Isotopes and relative atomic mass', 'Mass spectrometry', 'Atomic number and mass number'],
+        [{ title: 'Atomic Structure', date: '22 Sep 2025' }], 2.5),
+      t('2.2', 'Electronic configuration', 'mastered', 87,
+        ['s, p, d sub-shells and orbitals', 'Aufbau principle and Hund\'s rule', 'Electron configuration notation', 'Ionisation energies and trends'],
+        [{ title: 'Electron Configuration', date: '25 Sep 2025' }], 3),
+      t('2.3', 'The Periodic Table', 'mastered', 83,
+        ['Periodicity of physical properties', 'First ionisation energy trends', 'Electron affinity', 'Metallic and non-metallic character'],
+        [{ title: 'Periodic Trends', date: '29 Sep 2025' }], 2.5),
+    ],
+  },
+  {
+    id: 3, title: 'Bonding and Structure', topics: [
+      t('3.1', 'Ionic bonding', 'mastered', 88,
+        ['Electron transfer and ion formation', 'Lattice structure of NaCl', 'Properties of ionic compounds', 'Born-Haber representation'],
+        [{ title: 'Ionic Bonding', date: '2 Oct 2025' }], 2.5),
+      t('3.2', 'Covalent bonding', 'mastered', 85,
+        ['Shared pairs and dative bonds', 'Dot-and-cross diagrams', 'VSEPR theory and molecular shapes', 'Bond polarity and electronegativity'],
+        [{ title: 'Covalent Bonding', date: '6 Oct 2025' }], 3),
+      t('3.3', 'Metallic bonding and structure', 'mastered', 82,
+        ['Sea of delocalised electrons', 'Properties: conductivity, malleability', 'Giant metallic lattice', 'Alloys and their properties'],
+        [{ title: 'Metallic Bonding', date: '9 Oct 2025' }], 2),
+      t('3.4', 'Intermolecular forces', 'mastered', 80,
+        ['London dispersion forces', 'Permanent dipole-dipole', 'Hydrogen bonding', 'Effects on boiling points and solubility'],
+        [{ title: 'Intermolecular Forces', date: '13 Oct 2025' }], 2.5),
+    ],
+  },
+  {
+    id: 4, title: 'Introductory Organic Chemistry', topics: [
+      t('4.1', 'Introduction to organic chemistry', 'mastered', 84,
+        ['Homologous series', 'Functional groups and nomenclature', 'Structural and displayed formulae', 'Isomerism: structural and stereoisomerism'],
+        [{ title: 'Organic Chemistry Intro', date: '16 Oct 2025' }], 3),
+      t('4.2', 'Alkanes', 'mastered', 81,
+        ['Combustion reactions', 'Free radical substitution mechanism', 'Initiation, propagation, termination', 'Crude oil and fractional distillation'],
+        [{ title: 'Alkane Chemistry', date: '20 Oct 2025' }], 2.5),
+      t('4.3', 'Alkenes', 'mastered', 78,
+        ['Electrophilic addition reactions', 'Test for unsaturation with bromine', 'Markownikoff\'s rule', 'Addition polymerisation'],
+        [{ title: 'Alkene Reactions', date: '23 Oct 2025' }], 2.5),
+    ],
+  },
+  {
+    id: 5, title: 'Redox Chemistry and Groups 1, 2 and 7', topics: [
+      t('5.1', 'Redox', 'in_progress', 65,
+        ['Oxidation states and rules', 'Redox equations using half-equations', 'Identifying oxidising and reducing agents'],
+        [{ title: 'Redox Chemistry', date: '27 Oct 2025' }], 2),
+      t('5.2', 'Group 1 and Group 2', 'in_progress', 58,
+        ['Trends in reactivity down the groups', 'Reactions with water and oxygen', 'Flame tests and solubility trends', 'Thermal stability of carbonates and nitrates'],
+        [{ title: 'Group 1 & 2', date: '1 Nov 2025' }], 2),
+      t('5.3', 'Group 7 (Halogens)', 'in_progress', 52,
+        ['Trend in electronegativity and reactivity', 'Displacement reactions', 'Halide ion tests with silver nitrate', 'Disproportionation of chlorine'],
+        [{ title: 'Halogens', date: '5 Nov 2025' }], 1.5),
+    ],
+  },
+  {
+    id: 6, title: 'Kinetics and Equilibria', topics: [
+      t('6.1', 'Rates of reaction', 'in_progress', 60,
+        ['Collision theory', 'Maxwell-Boltzmann distribution', 'Effect of catalysts on activation energy', 'Measuring reaction rates'],
+        [{ title: 'Reaction Kinetics', date: '10 Nov 2025' }], 2),
+      t('6.2', 'Chemical equilibria', 'in_progress', 48,
+        ['Dynamic equilibrium', 'Le Chatelier\'s principle', 'Effect of temperature, pressure, concentration', 'Equilibrium constant Kc introduction'],
+        [{ title: 'Equilibria', date: '14 Nov 2025' }], 1.5),
+    ],
+  },
+  {
+    id: 7, title: 'Energetics', topics: [
+      t('7.1', 'Enthalpy changes', 'in_progress', 55,
+        ['Exothermic and endothermic reactions', 'Enthalpy profile diagrams', 'Standard enthalpy of formation and combustion', 'Calorimetry calculations'],
+        [{ title: 'Enthalpy Changes', date: '18 Nov 2025' }], 2),
+      t('7.2', 'Hess\'s law and bond enthalpies', 'in_progress', 42,
+        ['Hess\'s law and enthalpy cycles', 'Mean bond enthalpy calculations', 'Limitations of bond enthalpy data'],
+        [], 1),
+    ],
+  },
+  {
+    id: 8, title: 'Further Organic Chemistry', topics: [
+      t('8.1', 'Halogenoalkanes', 'in_progress', 50,
+        ['Nucleophilic substitution (SN1 and SN2)', 'Elimination vs substitution', 'Rate of hydrolysis of halogenoalkanes', 'CFCs and ozone depletion'],
+        [{ title: 'Halogenoalkanes', date: '22 Nov 2025' }], 1.5),
+      t('8.2', 'Alcohols', 'in_progress', 40,
+        ['Classification: primary, secondary, tertiary', 'Oxidation reactions', 'Dehydration to alkenes', 'Esterification reaction'],
+        [], 1),
+      t('8.3', 'Analytical techniques', 'in_progress', 35,
+        ['Mass spectrometry: molecular ion peak', 'Infrared spectroscopy: functional group identification', 'Interpreting simple IR spectra'],
+        [], 0.5),
+    ],
+  },
+  {
+    id: 9, title: 'Rates, Equilibria and Further Energetics', topics: [
+      t('9.1', 'Rate equations', 'not_started', 0,
+        ['Rate equation and rate constant', 'Order of reaction from experimental data', 'Rate-determining step'],
+        [], 0),
+      t('9.2', 'Equilibrium constant Kc and Kp', 'not_started', 0,
+        ['Expressions for Kc and Kp', 'Calculating equilibrium concentrations', 'Effect of temperature on K'],
+        [], 0),
+      t('9.3', 'Acids, bases and buffers', 'not_started', 0,
+        ['Bronsted-Lowry theory', 'pH calculations and Ka', 'Buffer solutions and their action', 'pH curves and indicators'],
+        [], 0),
+      t('9.4', 'Born-Haber cycles and entropy', 'not_started', 0,
+        ['Lattice enthalpy and Born-Haber cycles', 'Entropy and free energy', 'Feasibility of reactions'],
+        [], 0),
+    ],
+  },
+  {
+    id: 10, title: 'Transition Metals and Organic Nitrogen Chemistry', topics: [
+      t('10.1', 'Transition metal chemistry', 'not_started', 0,
+        ['Electronic configuration of d-block elements', 'Variable oxidation states', 'Complex ions and ligands', 'Colour of transition metal compounds'],
+        [], 0),
+      t('10.2', 'Reactions of ions in aqueous solution', 'not_started', 0,
+        ['Precipitation reactions', 'Ligand exchange reactions', 'Amphoteric hydroxides'],
+        [], 0),
+      t('10.3', 'Amines and amino acids', 'not_started', 0,
+        ['Preparation and reactions of amines', 'Amino acid structure', 'Zwitterions and isoelectric point'],
+        [], 0),
+      t('10.4', 'Polymers', 'not_started', 0,
+        ['Condensation polymers: polyesters, polyamides', 'Nylon and Terylene', 'Biodegradability and disposal'],
+        [], 0),
+    ],
+  },
+  {
+    id: 11, title: 'Further Organic Chemistry', topics: [
+      t('11.1', 'Carbonyl compounds', 'not_started', 0,
+        ['Nucleophilic addition with HCN', 'Reduction of aldehydes and ketones', 'Testing with 2,4-DNP and Tollens\' reagent'],
+        [], 0),
+      t('11.2', 'Carboxylic acids and esters', 'not_started', 0,
+        ['Reactions of carboxylic acids', 'Ester formation and hydrolysis', 'Uses of esters'],
+        [], 0),
+      t('11.3', 'Aromatic chemistry', 'not_started', 0,
+        ['Benzene structure and stability', 'Electrophilic substitution reactions', 'Nitration, halogenation, Friedel-Crafts'],
+        [], 0),
+      t('11.4', 'Organic synthesis and analysis', 'not_started', 0,
+        ['Multi-step synthesis planning', 'Reaction pathway maps', 'Combined analytical techniques'],
+        [], 0),
+    ],
+  },
+  {
+    id: 12, title: 'Spectroscopy, Electrochemistry and Further Kinetics', topics: [
+      t('12.1', 'NMR spectroscopy', 'not_started', 0,
+        ['Proton and carbon-13 NMR', 'Chemical shift and environment', 'Integration traces and splitting patterns'],
+        [], 0),
+      t('12.2', 'Chromatography', 'not_started', 0,
+        ['Thin-layer and column chromatography', 'Gas chromatography-mass spectrometry', 'Rf values and identification'],
+        [], 0),
+      t('12.3', 'Electrochemistry', 'not_started', 0,
+        ['Standard electrode potentials', 'Electrochemical cells', 'Predicting feasibility of reactions'],
+        [], 0),
+      t('12.4', 'Further kinetics', 'not_started', 0,
+        ['Arrhenius equation', 'Effect of temperature on rate constant', 'Catalysis: homogeneous and heterogeneous'],
+        [], 0),
+    ],
+  },
+]
+
+/* ────────────────────────────────────────────────────────────
+   Demo Data — Edexcel International AS/A2 Business Studies
+   ──────────────────────────────────────────────────────────── */
+const EDEXCEL_BUS_CHAPTERS: Chapter[] = [
+  {
+    id: 1, title: 'Business Enterprise', topics: [
+      t('1.1', 'Enterprise and entrepreneurs', 'mastered', 90,
+        ['Characteristics of successful entrepreneurs', 'Risk and reward in business', 'Role of enterprise in the economy'],
+        [{ title: 'Entrepreneurship Basics', date: '5 Sep 2025' }, { title: 'Case Study: Start-ups', date: '8 Sep 2025' }], 3),
+      t('1.2', 'Business plans', 'mastered', 86,
+        ['Purpose and structure of business plans', 'Financial forecasts', 'Market analysis in planning', 'Pitching to investors'],
+        [{ title: 'Writing Business Plans', date: '12 Sep 2025' }], 2.5),
+      t('1.3', 'Stakeholders', 'mastered', 84,
+        ['Internal and external stakeholders', 'Stakeholder conflict', 'Stakeholder mapping', 'Corporate social responsibility'],
+        [{ title: 'Stakeholder Analysis', date: '15 Sep 2025' }], 2),
+    ],
+  },
+  {
+    id: 2, title: 'Business Organisation', topics: [
+      t('2.1', 'Business ownership', 'mastered', 88,
+        ['Sole traders and partnerships', 'Private and public limited companies', 'Franchises and social enterprises', 'Unlimited vs limited liability'],
+        [{ title: 'Business Ownership', date: '19 Sep 2025' }], 2.5),
+      t('2.2', 'Business objectives', 'mastered', 85,
+        ['Profit maximisation vs satisficing', 'SMART objectives', 'Mission and vision statements', 'Short-term vs long-term objectives'],
+        [{ title: 'Setting Objectives', date: '22 Sep 2025' }], 2),
+      t('2.3', 'Business growth', 'mastered', 82,
+        ['Organic vs inorganic growth', 'Mergers and acquisitions', 'Economies and diseconomies of scale', 'Ansoff\'s matrix'],
+        [{ title: 'Growth Strategies', date: '26 Sep 2025' }], 2.5),
+    ],
+  },
+  {
+    id: 3, title: 'Marketing', topics: [
+      t('3.1', 'Market research', 'mastered', 87,
+        ['Primary and secondary research methods', 'Qualitative and quantitative data', 'Sampling techniques', 'Market segmentation'],
+        [{ title: 'Market Research Methods', date: '29 Sep 2025' }], 2.5),
+      t('3.2', 'Marketing mix — product', 'mastered', 83,
+        ['Product life cycle stages', 'Extension strategies', 'Boston Matrix', 'Product portfolio management'],
+        [{ title: 'Product Strategy', date: '3 Oct 2025' }], 2),
+      t('3.3', 'Marketing mix — price, place, promotion', 'mastered', 80,
+        ['Pricing strategies: penetration, skimming, competitive', 'Distribution channels', 'Promotional mix: advertising, sales promotion, PR', 'Digital marketing'],
+        [{ title: 'Marketing Mix', date: '6 Oct 2025' }], 2.5),
+      t('3.4', 'Marketing strategy', 'mastered', 78,
+        ['Mass marketing vs niche marketing', 'Market positioning', 'Unique selling proposition', 'Branding and brand loyalty'],
+        [{ title: 'Marketing Strategy', date: '10 Oct 2025' }], 2),
+    ],
+  },
+  {
+    id: 4, title: 'People in Organisations', topics: [
+      t('4.1', 'Human resource management', 'in_progress', 62,
+        ['Workforce planning', 'Recruitment and selection process', 'Training: on-the-job vs off-the-job', 'Appraisal methods'],
+        [{ title: 'HR Management', date: '14 Oct 2025' }], 2),
+      t('4.2', 'Motivation', 'in_progress', 55,
+        ['Maslow\'s hierarchy of needs', 'Herzberg\'s two-factor theory', 'Taylor\'s scientific management', 'Financial and non-financial motivators'],
+        [{ title: 'Motivation Theory', date: '17 Oct 2025' }], 1.5),
+      t('4.3', 'Leadership and management styles', 'in_progress', 48,
+        ['Autocratic, democratic, laissez-faire', 'Tannenbaum-Schmidt continuum', 'McGregor\'s Theory X and Theory Y', 'Situational leadership'],
+        [{ title: 'Leadership Styles', date: '21 Oct 2025' }], 1.5),
+    ],
+  },
+  {
+    id: 5, title: 'Operations Management', topics: [
+      t('5.1', 'Production methods', 'in_progress', 58,
+        ['Job, batch, and flow production', 'Lean production and JIT', 'Cell production', 'Kaizen continuous improvement'],
+        [{ title: 'Production Methods', date: '24 Oct 2025' }], 1.5),
+      t('5.2', 'Quality management', 'in_progress', 50,
+        ['Quality control vs quality assurance', 'Total quality management (TQM)', 'ISO standards', 'Cost of quality'],
+        [{ title: 'Quality Management', date: '28 Oct 2025' }], 1.5),
+      t('5.3', 'Supply chain management', 'in_progress', 42,
+        ['Procurement and supplier relationships', 'Stock management and buffer stock', 'Logistics and distribution', 'Outsourcing decisions'],
+        [], 1),
+    ],
+  },
+  {
+    id: 6, title: 'Finance', topics: [
+      t('6.1', 'Sources of finance', 'in_progress', 55,
+        ['Internal vs external sources', 'Short-term and long-term finance', 'Venture capital and crowdfunding', 'Retained profit'],
+        [{ title: 'Sources of Finance', date: '1 Nov 2025' }], 1.5),
+      t('6.2', 'Revenue, costs and profit', 'in_progress', 48,
+        ['Fixed and variable costs', 'Total cost and average cost', 'Revenue calculations', 'Contribution and profit'],
+        [{ title: 'Revenue & Costs', date: '5 Nov 2025' }], 1.5),
+      t('6.3', 'Break-even analysis', 'in_progress', 40,
+        ['Break-even point calculation', 'Break-even charts', 'Margin of safety', 'Limitations of break-even analysis'],
+        [], 1),
+      t('6.4', 'Cash flow management', 'in_progress', 35,
+        ['Cash flow forecasting', 'Cash flow vs profit', 'Causes and solutions for cash flow problems', 'Working capital management'],
+        [], 0.5),
+    ],
+  },
+  {
+    id: 7, title: 'Business Strategy', topics: [
+      t('7.1', 'Corporate objectives and strategy', 'not_started', 0,
+        ['Corporate vs functional strategy', 'Strategic planning process', 'Porter\'s generic strategies', 'Core competencies'],
+        [], 0),
+      t('7.2', 'SWOT and PESTLE analysis', 'not_started', 0,
+        ['Internal strengths and weaknesses', 'External opportunities and threats', 'Political, Economic, Social, Technological factors', 'Legal and Environmental considerations'],
+        [], 0),
+      t('7.3', 'Decision-making tools', 'not_started', 0,
+        ['Decision trees', 'Expected values and risk', 'Quantitative vs qualitative factors', 'Opportunity cost'],
+        [], 0),
+    ],
+  },
+  {
+    id: 8, title: 'Global Business', topics: [
+      t('8.1', 'Globalisation', 'not_started', 0,
+        ['Causes and effects of globalisation', 'Multinational corporations', 'Impact on stakeholders', 'Protectionism vs free trade'],
+        [], 0),
+      t('8.2', 'Global markets and expansion', 'not_started', 0,
+        ['Market entry strategies', 'Joint ventures and licensing', 'Foreign direct investment', 'Exchange rate effects on business'],
+        [], 0),
+      t('8.3', 'Global marketing', 'not_started', 0,
+        ['Glocalisation', 'Cultural differences in marketing', 'Standardisation vs adaptation', 'Ethical marketing globally'],
+        [], 0),
+    ],
+  },
+  {
+    id: 9, title: 'Advanced Finance', topics: [
+      t('9.1', 'Investment appraisal', 'not_started', 0,
+        ['Payback period', 'Average rate of return (ARR)', 'Net present value (NPV)', 'Internal rate of return (IRR)'],
+        [], 0),
+      t('9.2', 'Financial statements', 'not_started', 0,
+        ['Income statement structure', 'Statement of financial position', 'Cash flow statement', 'Interpreting financial data'],
+        [], 0),
+      t('9.3', 'Ratio analysis', 'not_started', 0,
+        ['Profitability ratios', 'Liquidity ratios', 'Efficiency ratios', 'Gearing and shareholder ratios'],
+        [], 0),
+      t('9.4', 'Human resource strategies', 'not_started', 0,
+        ['Hard vs soft HRM', 'Flexible working', 'Employee engagement strategies', 'Employer-employee relations'],
+        [], 0),
+    ],
+  },
+  {
+    id: 10, title: 'Change Management', topics: [
+      t('10.1', 'Causes and effects of change', 'not_started', 0,
+        ['Internal and external drivers of change', 'Resistance to change', 'Impact on stakeholders'],
+        [], 0),
+      t('10.2', 'Key influences on change', 'not_started', 0,
+        ['Kotter\'s 8-step change model', 'Lewin\'s force field analysis', 'Role of leadership in change'],
+        [], 0),
+      t('10.3', 'Managing organisational culture', 'not_started', 0,
+        ['Handy\'s cultural typology', 'Strong vs weak culture', 'Changing culture in mergers', 'National culture and business'],
+        [], 0),
+    ],
+  },
+]
+
+/* ────────────────────────────────────────────────────────────
+   Demo Data — CIE AS & A-Level Psychology (9990)
+   ──────────────────────────────────────────────────────────── */
+const CIE_PSYCH_CHAPTERS: Chapter[] = [
+  {
+    id: 1, title: 'Research Methods', topics: [
+      t('1.1', 'Experiments', 'mastered', 91,
+        ['Laboratory, field, and natural experiments', 'Independent and dependent variables', 'Controls and confounding variables', 'Experimental design: independent groups, repeated measures, matched pairs'],
+        [{ title: 'Research Methods Intro', date: '6 Sep 2025' }, { title: 'Experimental Design', date: '9 Sep 2025' }], 3.5),
+      t('1.2', 'Self-reports', 'mastered', 87,
+        ['Questionnaires: open and closed questions', 'Interviews: structured, semi-structured, unstructured', 'Reliability and validity of self-reports', 'Social desirability bias'],
+        [{ title: 'Self-report Techniques', date: '13 Sep 2025' }], 2.5),
+      t('1.3', 'Observations', 'mastered', 85,
+        ['Naturalistic and controlled observations', 'Participant and non-participant', 'Overt and covert observation', 'Inter-observer reliability'],
+        [{ title: 'Observation Methods', date: '16 Sep 2025' }], 2),
+      t('1.4', 'Correlations', 'mastered', 83,
+        ['Positive, negative, and zero correlations', 'Scatter diagrams', 'Correlation coefficients', 'Correlation vs causation'],
+        [{ title: 'Correlational Research', date: '20 Sep 2025' }], 2),
+      t('1.5', 'Research methodology and ethics', 'mastered', 80,
+        ['Sampling methods: random, opportunity, self-selected', 'Generalisability and ecological validity', 'BPS ethical guidelines', 'Informed consent and debriefing'],
+        [{ title: 'Ethics in Research', date: '23 Sep 2025' }], 2.5),
+    ],
+  },
+  {
+    id: 2, title: 'The Biological Approach', topics: [
+      t('2.1', 'Assumptions of the biological approach', 'mastered', 88,
+        ['Behaviour is influenced by genetics and biology', 'CNS and neurotransmitter function', 'Brain localisation of function', 'Evolution and behaviour'],
+        [{ title: 'Biological Approach', date: '27 Sep 2025' }], 2.5),
+      t('2.2', 'Schachter and Singer (1962)', 'mastered', 84,
+        ['Two-factor theory of emotion', 'Epinephrine injection conditions', 'Cognitive labelling of arousal', 'Evaluation of methodology'],
+        [{ title: 'Emotion Studies', date: '30 Sep 2025' }], 2),
+      t('2.3', 'Canli et al. (2000)', 'mastered', 82,
+        ['fMRI brain scanning study', 'Emotional arousal and memory encoding', 'Amygdala activation patterns', 'Individual differences in emotional memory'],
+        [{ title: 'Brain Imaging Studies', date: '4 Oct 2025' }], 2),
+      t('2.4', 'Dement and Kleitman (1957)', 'mastered', 80,
+        ['REM and NREM sleep stages', 'EEG and EOG recordings', 'Dream recall and REM sleep', 'Eye movement direction and dream content'],
+        [{ title: 'Sleep Research', date: '7 Oct 2025' }], 2),
+    ],
+  },
+  {
+    id: 3, title: 'The Cognitive Approach', topics: [
+      t('3.1', 'Assumptions of the cognitive approach', 'mastered', 86,
+        ['Internal mental processes', 'Schema theory', 'Computer analogy of the mind', 'Information processing models'],
+        [{ title: 'Cognitive Approach', date: '11 Oct 2025' }], 2.5),
+      t('3.2', 'Andrade (2010)', 'mastered', 82,
+        ['Doodling and concentration', 'Dual-task performance', 'Effect on monitoring task recall', 'Working memory implications'],
+        [{ title: 'Attention Studies', date: '14 Oct 2025' }], 2),
+      t('3.3', 'Baron-Cohen et al. (1997)', 'mastered', 80,
+        ['Eyes task and Theory of Mind', 'Autism and empathising-systemising', 'Reading emotions from eyes', 'Comparison with Tourette\'s and typical controls'],
+        [{ title: 'Theory of Mind', date: '18 Oct 2025' }], 2),
+      t('3.4', 'Laney et al. (2008)', 'mastered', 78,
+        ['False memory implantation', 'Food preferences and memory', 'Suggestion and belief change', 'Implications for eyewitness testimony'],
+        [{ title: 'Memory & Suggestibility', date: '21 Oct 2025' }], 2),
+    ],
+  },
+  {
+    id: 4, title: 'The Learning Approach', topics: [
+      t('4.1', 'Assumptions of the learning approach', 'in_progress', 62,
+        ['Behaviour is learned from environment', 'Classical and operant conditioning', 'Social learning theory', 'Tabula rasa and nurture'],
+        [{ title: 'Learning Approach', date: '25 Oct 2025' }], 2),
+      t('4.2', 'Bandura et al. (1961)', 'in_progress', 55,
+        ['Bobo doll experiment', 'Observational learning and imitation', 'Role model characteristics', 'Gender differences in aggression'],
+        [{ title: 'Social Learning Theory', date: '28 Oct 2025' }], 1.5),
+      t('4.3', 'Saavedra and Silverman (2002)', 'in_progress', 48,
+        ['Classical conditioning and phobias', 'Disgust and fear conditioning', 'Button phobia case study', 'Treatment implications'],
+        [], 1),
+      t('4.4', 'Pepperberg (1987)', 'in_progress', 42,
+        ['Alex the African Grey Parrot', 'Language acquisition in animals', 'Model/rival training technique', 'Object labelling and categorisation'],
+        [], 1),
+    ],
+  },
+  {
+    id: 5, title: 'The Social Approach', topics: [
+      t('5.1', 'Assumptions of the social approach', 'in_progress', 58,
+        ['Behaviour influenced by others', 'Social norms and roles', 'Conformity and obedience', 'Group dynamics and identity'],
+        [{ title: 'Social Approach', date: '4 Nov 2025' }], 1.5),
+      t('5.2', 'Milgram (1963)', 'in_progress', 50,
+        ['Obedience to authority experiment', 'Voltage levels and obedience rates', 'Agentic state theory', 'Ethical concerns and variations'],
+        [{ title: 'Obedience Studies', date: '8 Nov 2025' }], 1.5),
+      t('5.3', 'Bocchiaro et al. (2012)', 'in_progress', 42,
+        ['Obedience and whistle-blowing', 'Predicted vs actual behaviour', 'Situational vs dispositional factors', 'Ethical research design'],
+        [], 1),
+      t('5.4', 'Yamamoto et al. (2012)', 'in_progress', 38,
+        ['Chimpanzee prosocial behaviour', 'Targeted helping in apes', 'Understanding others\' goals', 'Empathy in non-human primates'],
+        [], 1),
+    ],
+  },
+  {
+    id: 6, title: 'Issues and Debates', topics: [
+      t('6.1', 'Nature vs nurture', 'not_started', 0,
+        ['Genetic predisposition', 'Environmental influences', 'Gene-environment interaction', 'Twin and adoption studies'],
+        [], 0),
+      t('6.2', 'Freewill vs determinism', 'not_started', 0,
+        ['Hard and soft determinism', 'Biological determinism', 'Environmental determinism', 'Free will in humanistic psychology'],
+        [], 0),
+      t('6.3', 'Reductionism vs holism', 'not_started', 0,
+        ['Biological reductionism', 'Environmental reductionism', 'Holistic approaches', 'Levels of explanation'],
+        [], 0),
+      t('6.4', 'Individual vs situational explanations', 'not_started', 0,
+        ['Dispositional attribution', 'Situational attribution', 'Fundamental attribution error', 'Interactionist approach'],
+        [], 0),
+      t('6.5', 'Use of children in psychological research', 'not_started', 0,
+        ['Ethical considerations with minors', 'Informed consent from parents', 'Competence to consent', 'Protection from harm'],
+        [], 0),
+    ],
+  },
+  {
+    id: 7, title: 'Psychology and Abnormality', topics: [
+      t('7.1', 'Definitions of abnormality', 'not_started', 0,
+        ['Statistical infrequency', 'Deviation from social norms', 'Failure to function adequately', 'Deviation from ideal mental health'],
+        [], 0),
+      t('7.2', 'Depression', 'not_started', 0,
+        ['Symptoms and diagnosis', 'Cognitive explanation: Beck\'s negative triad', 'Biological explanation', 'CBT and drug treatments'],
+        [], 0),
+      t('7.3', 'Bipolar disorder', 'not_started', 0,
+        ['Manic and depressive episodes', 'Genetic and neurochemical factors', 'Lithium treatment', 'Psychological interventions'],
+        [], 0),
+      t('7.4', 'Impulse control disorders', 'not_started', 0,
+        ['Characteristics and types', 'Biological and psychological explanations', 'Treatment approaches', 'Gambling disorder as example'],
+        [], 0),
+    ],
+  },
+  {
+    id: 8, title: 'Psychology and Consumer Behaviour', topics: [
+      t('8.1', 'The physical environment', 'not_started', 0,
+        ['Store layout and design', 'Music and lighting effects', 'Colour psychology in retail', 'Atmospherics and consumer behaviour'],
+        [], 0),
+      t('8.2', 'The psychological environment', 'not_started', 0,
+        ['Menu design and priming', 'Crowding and personal space', 'Social influence in purchasing', 'Online vs in-store environments'],
+        [], 0),
+      t('8.3', 'Consumer decision-making', 'not_started', 0,
+        ['Cognitive biases in purchasing', 'Heuristics and decision shortcuts', 'Brand loyalty and recognition', 'Impulse buying'],
+        [], 0),
+      t('8.4', 'The product', 'not_started', 0,
+        ['Packaging and labelling effects', 'Product placement', 'Celebrity endorsement', 'Ethical consumption'],
+        [], 0),
+    ],
+  },
+  {
+    id: 9, title: 'Psychology and Health', topics: [
+      t('9.1', 'The patient-practitioner relationship', 'not_started', 0,
+        ['Communication styles', 'Practitioner and patient factors', 'Non-verbal communication in healthcare', 'Cultural factors in health consultations'],
+        [], 0),
+      t('9.2', 'Adherence to medical advice', 'not_started', 0,
+        ['Measuring adherence', 'Reasons for non-adherence', 'Improving adherence strategies', 'Health belief model'],
+        [], 0),
+      t('9.3', 'Pain', 'not_started', 0,
+        ['Gate control theory', 'Biological and psychological factors', 'Measuring pain', 'Pain management strategies'],
+        [], 0),
+      t('9.4', 'Stress', 'not_started', 0,
+        ['Sources of stress', 'Physiological response to stress', 'Stress management techniques', 'Stress and illness'],
+        [], 0),
+    ],
+  },
+  {
+    id: 10, title: 'Psychology and Organisations', topics: [
+      t('10.1', 'Motivation to work', 'not_started', 0,
+        ['Need theories: Maslow, McClelland', 'Cognitive theories: equity theory', 'Job design and enrichment', 'Intrinsic and extrinsic motivation'],
+        [], 0),
+      t('10.2', 'Leadership and management', 'not_started', 0,
+        ['Trait theories of leadership', 'Contingency models: Fiedler', 'Transformational vs transactional leadership', 'Leader effectiveness'],
+        [], 0),
+      t('10.3', 'Group behaviour in organisations', 'not_started', 0,
+        ['Group formation and development', 'Group decision-making: groupthink', 'Social loafing', 'Team roles: Belbin'],
+        [], 0),
+      t('10.4', 'Organisational work conditions', 'not_started', 0,
+        ['Workplace bullying and harassment', 'Temporal conditions: shift work', 'Physical work environment', 'Health and safety psychology'],
+        [], 0),
+    ],
+  },
+]
+
+/* ────────────────────────────────────────────────────────────
+   SYLLABI array
+   ──────────────────────────────────────────────────────────── */
+const SYLLABI: Syllabus[] = [
+  {
+    id: 'igcse-bio-cie',
+    name: 'IGCSE Biology',
+    board: 'CIE',
+    code: '0610',
+    level: 'IGCSE',
+    chapters: IGCSE_BIO_CHAPTERS,
+  },
+  {
+    id: 'al-bio-cie',
+    name: 'AS & A-Level Biology',
+    board: 'CIE',
+    code: '9700',
+    level: 'AS & A-Level',
+    chapters: CIE_ALEVEL_BIO_CHAPTERS,
+  },
+  {
+    id: 'al-chem-edexcel',
+    name: 'AS/A2 Chemistry',
+    board: 'Edexcel International',
+    code: '',
+    level: 'AS/A2',
+    chapters: EDEXCEL_CHEM_CHAPTERS,
+  },
+  {
+    id: 'al-bus-edexcel',
+    name: 'AS/A2 Business Studies',
+    board: 'Edexcel International',
+    code: '',
+    level: 'AS/A2',
+    chapters: EDEXCEL_BUS_CHAPTERS,
+  },
+  {
+    id: 'al-psych-cie',
+    name: 'AS & A-Level Psychology',
+    board: 'CIE',
+    code: '9990',
+    level: 'AS & A-Level',
+    chapters: CIE_PSYCH_CHAPTERS,
+  },
+]
+
+/* ────────────────────────────────────────────────────────────
    Helpers
    ──────────────────────────────────────────────────────────── */
 type FilterType = 'all' | 'mastered' | 'in_progress' | 'not_started'
 
-function getAllTopics() {
-  return SYLLABUS_CHAPTERS.flatMap((c) => c.topics)
+function getAllTopics(chapters: Chapter[]) {
+  return chapters.flatMap((c) => c.topics)
 }
 
-function getOverallStats() {
-  const all = getAllTopics()
+function getOverallStats(chapters: Chapter[]) {
+  const all = getAllTopics(chapters)
   const total = all.length
   const mastered = all.filter((t) => t.status === 'mastered').length
   const inProgress = all.filter((t) => t.status === 'in_progress').length
   const totalHours = Math.round(all.reduce((s, t) => s + t.hoursStudied, 0))
   const pct = total > 0 ? Math.round(((mastered + inProgress * 0.4) / total) * 100) : 0
-  return { total, mastered, inProgress, totalHours, pct, chaptersCompleted: SYLLABUS_CHAPTERS.filter(c => c.topics.every(t => t.status === 'mastered')).length }
+  return { total, mastered, inProgress, totalHours, pct, chaptersCompleted: chapters.filter(c => c.topics.every(t => t.status === 'mastered')).length, totalChapters: chapters.length }
 }
 
 function getChapterProgress(chapter: Chapter) {
@@ -350,9 +1116,12 @@ function CircularProgress({ pct, size = 80 }: { pct: number; size?: number }) {
    Main Page
    ──────────────────────────────────────────────────────────── */
 export default function Curriculum() {
+  const [selectedSyllabus, setSelectedSyllabus] = useState('igcse-bio-cie')
+  const currentSyllabus = useMemo(() => SYLLABI.find(s => s.id === selectedSyllabus)!, [selectedSyllabus])
+  const chapters = currentSyllabus.chapters
+
   const [expandedChapters, setExpandedChapters] = useState<Set<number>>(() => {
-    // Auto-expand first in-progress chapter
-    const first = SYLLABUS_CHAPTERS.find(c => getChapterProgress(c).status === 'in_progress')
+    const first = chapters.find(c => getChapterProgress(c).status === 'in_progress')
     return new Set(first ? [first.id] : [])
   })
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null)
@@ -360,7 +1129,19 @@ export default function Curriculum() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
 
-  const stats = useMemo(() => getOverallStats(), [])
+  const stats = useMemo(() => getOverallStats(chapters), [chapters])
+
+  // Reset state when syllabus changes
+  const handleSyllabusChange = (id: string) => {
+    setSelectedSyllabus(id)
+    setSelectedTopic(null)
+    setSelectedChapterId(null)
+    setSearchQuery('')
+    setFilter('all')
+    const newSyllabus = SYLLABI.find(s => s.id === id)!
+    const first = newSyllabus.chapters.find(c => getChapterProgress(c).status === 'in_progress')
+    setExpandedChapters(new Set(first ? [first.id] : []))
+  }
 
   const toggleChapter = (id: number) => {
     setExpandedChapters((prev) => {
@@ -378,7 +1159,7 @@ export default function Curriculum() {
 
   // Filtering
   const filteredChapters = useMemo(() => {
-    return SYLLABUS_CHAPTERS.map((chapter) => {
+    return chapters.map((chapter) => {
       let topics = chapter.topics
       if (filter !== 'all') topics = topics.filter((t) => t.status === filter)
       if (searchQuery.trim()) {
@@ -389,23 +1170,48 @@ export default function Curriculum() {
       }
       return { ...chapter, topics }
     }).filter((c) => c.topics.length > 0)
-  }, [filter, searchQuery])
+  }, [filter, searchQuery, chapters])
 
   const selectedChapter = selectedChapterId
-    ? SYLLABUS_CHAPTERS.find((c) => c.id === selectedChapterId)
+    ? chapters.find((c) => c.id === selectedChapterId)
     : null
+
+  // Group syllabi by board for the dropdown
+  const boardGroups = useMemo(() => {
+    const groups: Record<string, Syllabus[]> = {}
+    for (const s of SYLLABI) {
+      if (!groups[s.board]) groups[s.board] = []
+      groups[s.board].push(s)
+    }
+    return groups
+  }, [])
 
   return (
     <Layout>
       <div className="px-4 sm:px-5 py-3 h-[calc(100vh-56px)] md:h-screen flex flex-col overflow-hidden">
-        {/* ── Header ── */}
+        {/* -- Header -- */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 shrink-0">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3">
               <h1 className="text-lg sm:text-xl font-bold text-[#1E1B4B] dark:text-white">My Curriculum</h1>
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EDE9FE] text-[#7C3AED] dark:bg-[#7C3AED]/20 dark:text-[#A78BFA] whitespace-nowrap">
-                IGCSE Biology — CIE 0610
-              </span>
+              <div className="relative">
+                <select
+                  value={selectedSyllabus}
+                  onChange={(e) => handleSyllabusChange(e.target.value)}
+                  className="appearance-none text-[11px] font-medium pl-2.5 pr-7 py-1 rounded-full bg-[#EDE9FE] text-[#7C3AED] dark:bg-[#7C3AED]/20 dark:text-[#A78BFA] border border-[#DDD6FE] dark:border-[#7C3AED]/30 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#7C3AED] hover:bg-[#DDD6FE] dark:hover:bg-[#7C3AED]/30 transition-colors"
+                >
+                  {Object.entries(boardGroups).map(([board, syllabi]) => (
+                    <optgroup key={board} label={board}>
+                      {syllabi.map(s => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}{s.code ? ` (${s.code})` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#7C3AED] dark:text-[#A78BFA] pointer-events-none" />
+              </div>
             </div>
           </div>
           <button
@@ -418,13 +1224,13 @@ export default function Curriculum() {
           </button>
         </div>
 
-        {/* ── Stats bar ── */}
+        {/* -- Stats bar -- */}
         <div className="flex items-center gap-3 mb-3 shrink-0">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{stats.pct}% complete</span>
               <span className="text-[11px] text-slate-400">
-                {stats.chaptersCompleted}/20 chapters completed
+                {stats.chaptersCompleted}/{stats.totalChapters} chapters completed
               </span>
               <span className="text-[11px] text-slate-300 dark:text-slate-600">|</span>
               <span className="text-[11px] text-slate-400">{stats.mastered} topics mastered</span>
@@ -440,7 +1246,7 @@ export default function Curriculum() {
           </div>
         </div>
 
-        {/* ── Search & Filters ── */}
+        {/* -- Search & Filters -- */}
         <div className="flex items-center gap-2 mb-3 shrink-0">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
@@ -469,12 +1275,12 @@ export default function Curriculum() {
           </div>
         </div>
 
-        {/* ── Two-column layout ── */}
+        {/* -- Two-column layout -- */}
         <div className="flex gap-3 flex-1 min-h-0 overflow-hidden">
           {/* Left: Chapter list */}
           <div className="w-[60%] overflow-y-auto pr-1 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
             {filteredChapters.map((chapter) => {
-              const prog = getChapterProgress(SYLLABUS_CHAPTERS.find(c => c.id === chapter.id)!)
+              const prog = getChapterProgress(chapters.find(c => c.id === chapter.id)!)
               const isExpanded = expandedChapters.has(chapter.id)
 
               return (
