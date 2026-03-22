@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { tutorService, type RefData, type TutorFilters, type TutorListItem } from '../services/tutors'
 import { Search, X, CheckCircle, Star } from 'lucide-react'
 import Layout from '../components/Layout'
+import ReviewsModal from '../components/ReviewsModal'
 import { useCurrencyStore, formatPrice, CURRENCIES, type CurrencyCode } from '../store/currencyStore'
 
 const TUTOR_PHOTOS: Record<number, string> = {
@@ -24,6 +25,7 @@ function TutorCard({ tutor }: { tutor: TutorListItem }) {
   const photo = TUTOR_PHOTOS[tutor.id]
   const stats = TUTOR_STATS[tutor.id] || { rating: 4.5, reviews: 0, rate: 40, experience: '3 years' }
   const currency = useCurrencyStore((s) => s.currency)
+  const [showReviews, setShowReviews] = useState(false)
 
   // Deduplicate subject names and level names
   const subjectNames = [...new Set(tutor.subjects.map((s) => s.name))]
@@ -52,11 +54,14 @@ function TutorCard({ tutor }: { tutor: TutorListItem }) {
 
         {/* Rating + rate + experience */}
         <div className="flex items-center gap-2 text-xs mb-1.5">
-          <div className="flex items-center gap-0.5">
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReviews(true) }}
+            className="flex items-center gap-0.5 hover:underline decoration-dotted underline-offset-2"
+          >
             <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
             <span className="font-medium text-slate-700 dark:text-slate-300">{stats.rating}</span>
-            <span className="text-slate-400">({stats.reviews})</span>
-          </div>
+            <span className="text-[#7C3AED]">({stats.reviews})</span>
+          </button>
           <span className="text-slate-300 dark:text-slate-600">|</span>
           <span className="font-bold text-[#7C3AED]">{formatPrice(stats.rate, currency)}/hr</span>
           <span className="text-slate-300 dark:text-slate-600">|</span>
@@ -90,6 +95,15 @@ function TutorCard({ tutor }: { tutor: TutorListItem }) {
           </Link>
         </div>
       </div>
+
+      {showReviews && (
+        <ReviewsModal
+          tutorId={tutor.id}
+          rating={stats.rating}
+          totalReviews={stats.reviews}
+          onClose={() => setShowReviews(false)}
+        />
+      )}
     </div>
   )
 }
