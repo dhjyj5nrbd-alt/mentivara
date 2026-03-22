@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Plus, Edit3, Trash2, X, Upload, Play, Calendar,
-  Clapperboard, Trophy,
+  Clapperboard, Trophy, Eye, Heart, Bookmark, AlertCircle, ExternalLink,
 } from 'lucide-react'
 import Layout from '../components/Layout'
 
@@ -20,6 +20,7 @@ interface Reel {
   deadline?: string
   views: number
   likes: number
+  saves: number
   createdAt: string
 }
 
@@ -40,19 +41,19 @@ const INITIAL_REELS: Reel[] = [
     subject: 'Mathematics', topic: 'Algebra',
     videoUrl: 'https://example.com/reel1.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop',
-    isCompetition: false, views: 1240, likes: 89, createdAt: '15 Mar 2026',
+    isCompetition: false, views: 1240, likes: 89, saves: 34, createdAt: '15 Mar 2026',
   },
   {
     id: 2, title: 'Newton\'s Third Law Challenge',
     description: 'Can you identify all the action-reaction pairs? Competition reel with prizes!',
     subject: 'Physics', topic: 'Mechanics',
-    videoUrl: 'https://example.com/reel2.mp4',
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     thumbnailUrl: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=400&h=300&fit=crop',
     isCompetition: true,
     challengeQuestion: 'A book rests on a table. What is the reaction force to the book\'s weight?',
     correctAnswer: 'The Earth being pulled upward by the book',
     deadline: '2026-04-01',
-    views: 2100, likes: 156, createdAt: '10 Mar 2026',
+    views: 2100, likes: 156, saves: 52, createdAt: '10 Mar 2026',
   },
   {
     id: 3, title: 'Covalent Bonding Explained',
@@ -60,7 +61,7 @@ const INITIAL_REELS: Reel[] = [
     subject: 'Chemistry', topic: 'Inorganic',
     videoUrl: 'https://example.com/reel3.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&h=300&fit=crop',
-    isCompetition: false, views: 870, likes: 62, createdAt: '5 Mar 2026',
+    isCompetition: false, views: 870, likes: 62, saves: 18, createdAt: '5 Mar 2026',
   },
   {
     id: 4, title: 'Poetry Analysis Speed Run',
@@ -72,15 +73,36 @@ const INITIAL_REELS: Reel[] = [
     challengeQuestion: 'What does the acronym SMILE stand for in poetry analysis?',
     correctAnswer: 'Structure, Meaning, Imagery, Language, Effect',
     deadline: '2026-03-30',
-    views: 1580, likes: 134, createdAt: '1 Mar 2026',
+    views: 1580, likes: 134, saves: 47, createdAt: '1 Mar 2026',
   },
 ]
+
+// ── Helpers ──────────────────────────────────────────────────
+function isValidUrl(url: string): boolean {
+  return /^https?:\/\/.+/i.test(url.trim())
+}
+
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  )
+  return match ? match[1] : null
+}
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace('www.', '')
+  } catch {
+    return ''
+  }
+}
 
 // ── Component ────────────────────────────────────────────────
 export default function TutorReelUpload() {
   const [reels, setReels] = useState<Reel[]>(INITIAL_REELS)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
 
   // Form state
   const [title, setTitle] = useState('')
@@ -88,6 +110,7 @@ export default function TutorReelUpload() {
   const [subject, setSubject] = useState(SUBJECTS[0])
   const [topic, setTopic] = useState(TOPICS[SUBJECTS[0]][0])
   const [videoUrl, setVideoUrl] = useState('')
+  const [videoUrlError, setVideoUrlError] = useState('')
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [isCompetition, setIsCompetition] = useState(false)
   const [challengeQuestion, setChallengeQuestion] = useState('')
@@ -100,6 +123,7 @@ export default function TutorReelUpload() {
     setSubject(SUBJECTS[0])
     setTopic(TOPICS[SUBJECTS[0]][0])
     setVideoUrl('')
+    setVideoUrlError('')
     setThumbnailPreview(null)
     setIsCompetition(false)
     setChallengeQuestion('')
@@ -119,6 +143,7 @@ export default function TutorReelUpload() {
     setSubject(reel.subject)
     setTopic(reel.topic)
     setVideoUrl(reel.videoUrl)
+    setVideoUrlError('')
     setThumbnailPreview(reel.thumbnailUrl)
     setIsCompetition(reel.isCompetition)
     setChallengeQuestion(reel.challengeQuestion ?? '')
@@ -130,6 +155,7 @@ export default function TutorReelUpload() {
 
   const handleDelete = (id: number) => {
     setReels((prev) => prev.filter((r) => r.id !== id))
+    setDeleteConfirmId(null)
   }
 
   const handleThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,8 +166,24 @@ export default function TutorReelUpload() {
     }
   }
 
+  const handleVideoUrlChange = (value: string) => {
+    setVideoUrl(value)
+    if (value.trim() && !isValidUrl(value)) {
+      setVideoUrlError('URL must start with http:// or https://')
+    } else {
+      setVideoUrlError('')
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate URL before saving
+    if (!isValidUrl(videoUrl)) {
+      setVideoUrlError('URL must start with http:// or https://')
+      return
+    }
+
     const reel: Reel = {
       id: editingId ?? Date.now(),
       title,
@@ -156,6 +198,7 @@ export default function TutorReelUpload() {
       deadline: isCompetition ? deadline : undefined,
       views: editingId ? (reels.find((r) => r.id === editingId)?.views ?? 0) : 0,
       likes: editingId ? (reels.find((r) => r.id === editingId)?.likes ?? 0) : 0,
+      saves: editingId ? (reels.find((r) => r.id === editingId)?.saves ?? 0) : 0,
       createdAt: editingId ? (reels.find((r) => r.id === editingId)?.createdAt ?? 'Today') : 'Today',
     }
 
@@ -168,6 +211,16 @@ export default function TutorReelUpload() {
     resetForm()
     setShowForm(false)
   }
+
+  // Video preview helper
+  const videoPreview = useMemo(() => {
+    if (!videoUrl.trim() || !isValidUrl(videoUrl)) return null
+    const ytId = extractYouTubeId(videoUrl)
+    if (ytId) {
+      return { type: 'youtube' as const, id: ytId, thumbnail: `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` }
+    }
+    return { type: 'link' as const, domain: getDomain(videoUrl) }
+  }, [videoUrl])
 
   return (
     <Layout>
@@ -188,6 +241,37 @@ export default function TutorReelUpload() {
             Create New Reel
           </button>
         </div>
+
+        {/* Delete confirmation modal */}
+        {deleteConfirmId !== null && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-[#161822] rounded-xl border border-slate-200 dark:border-[#232536] w-full max-w-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white">Delete Reel</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure? This cannot be undone.</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="px-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-[#232536] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1a1d2e] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteConfirmId)}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form modal */}
         {showForm && (
@@ -264,13 +348,52 @@ export default function TutorReelUpload() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Video URL</label>
                   <input
-                    type="url"
+                    type="text"
                     value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
+                    onChange={(e) => handleVideoUrlChange(e.target.value)}
                     required
                     placeholder="https://..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30 focus:border-[#7C3AED]"
+                    className={`w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#1a1d2e] border text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30 focus:border-[#7C3AED] ${
+                      videoUrlError
+                        ? 'border-red-400 dark:border-red-500'
+                        : 'border-slate-200 dark:border-[#232536]'
+                    }`}
                   />
+                  {videoUrlError && (
+                    <div className="flex items-center gap-1.5 mt-1.5 text-red-500 text-xs">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {videoUrlError}
+                    </div>
+                  )}
+
+                  {/* Video preview */}
+                  {videoPreview && (
+                    <div className="mt-2 rounded-lg border border-slate-200 dark:border-[#232536] overflow-hidden">
+                      {videoPreview.type === 'youtube' ? (
+                        <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-[#1a1d2e]">
+                          <img
+                            src={videoPreview.thumbnail}
+                            alt="YouTube thumbnail"
+                            className="w-24 h-16 rounded object-cover"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">YouTube Video</p>
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">ID: {videoPreview.id}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-[#1a1d2e]">
+                          <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                            <ExternalLink className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{videoPreview.domain}</p>
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{videoUrl}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Thumbnail */}
@@ -392,14 +515,28 @@ export default function TutorReelUpload() {
               <div className="p-3">
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">{reel.title}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{reel.description}</p>
-                <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-400 dark:text-slate-500">
+
+                {/* Analytics row */}
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                    <Eye className="w-3 h-3" />
+                    <span>{reel.views.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                    <Heart className="w-3 h-3" />
+                    <span>{reel.likes}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                    <Bookmark className="w-3 h-3" />
+                    <span>{reel.saves}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                   <span>{reel.subject}</span>
                   <span>&middot;</span>
-                  <span>{reel.views.toLocaleString()} views</span>
-                  <span>&middot;</span>
-                  <span>{reel.likes} likes</span>
+                  <span>{reel.createdAt}</span>
                 </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{reel.createdAt}</p>
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-3">
@@ -410,7 +547,7 @@ export default function TutorReelUpload() {
                     <Edit3 className="w-3 h-3" /> Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(reel.id)}
+                    onClick={() => setDeleteConfirmId(reel.id)}
                     className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                   >
                     <Trash2 className="w-3 h-3" /> Delete

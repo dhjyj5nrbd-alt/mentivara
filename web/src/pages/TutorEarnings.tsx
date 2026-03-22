@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
   DollarSign, TrendingUp, Clock, Filter, CreditCard, Info,
+  Download, Calendar,
 } from 'lucide-react'
 import Layout from '../components/Layout'
 
@@ -74,7 +75,7 @@ function statusBadge(status: string) {
 // ── Component ────────────────────────────────────────────────
 export default function TutorEarnings() {
   const [filterMonth, setFilterMonth] = useState('all')
-  const [showTooltip, setShowTooltip] = useState(false)
+  const [hoveredBar, setHoveredBar] = useState<string | null>(null)
 
   const totalEarnings = DEMO_TRANSACTIONS.reduce((a, t) => a + t.amount, 0)
   const thisMonthEarnings = DEMO_TRANSACTIONS
@@ -83,6 +84,13 @@ export default function TutorEarnings() {
   const pendingPayout = DEMO_TRANSACTIONS
     .filter((t) => t.status === 'pending' || t.status === 'processing')
     .reduce((a, t) => a + t.amount, 0)
+
+  // Year-to-date total (Jan-Mar 2026)
+  const ytdTotal = useMemo(() => {
+    return DEMO_TRANSACTIONS
+      .filter((t) => t.month.startsWith('2026-'))
+      .reduce((a, t) => a + t.amount, 0)
+  }, [])
 
   // Chart data
   const chartData = useMemo(() => {
@@ -102,6 +110,34 @@ export default function TutorEarnings() {
     ? DEMO_TRANSACTIONS
     : DEMO_TRANSACTIONS.filter((t) => t.month === filterMonth)
 
+  // CSV export
+  const handleExportCSV = useCallback(() => {
+    const headers = ['Date', 'Student', 'Subject', 'Duration (min)', 'Amount (GBP)', 'Status']
+    const rows = filteredTransactions.map((t) => [
+      t.date,
+      t.studentName,
+      t.subject,
+      t.durationMinutes.toString(),
+      t.amount.toFixed(2),
+      t.status,
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    const filterLabel = filterMonth === 'all' ? 'all-months' : filterMonth
+    link.download = `mentivara-earnings-${filterLabel}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, [filteredTransactions, filterMonth])
+
   return (
     <Layout>
       <div className="p-4 md:p-8 max-w-7xl mx-auto">
@@ -112,7 +148,7 @@ export default function TutorEarnings() {
         </div>
 
         {/* Stat cards */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white dark:bg-[#161822] rounded-xl border border-slate-200 dark:border-[#232536] p-5">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -133,12 +169,22 @@ export default function TutorEarnings() {
           </div>
           <div className="bg-white dark:bg-[#161822] rounded-xl border border-slate-200 dark:border-[#232536] p-5">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </div>
-              <span className="text-sm text-slate-500 dark:text-slate-400">Pending Payout</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">Year to Date (2026)</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white">&pound;{ytdTotal.toFixed(2)}</p>
+          </div>
+          <div className="bg-white dark:bg-[#161822] rounded-xl border border-slate-200 dark:border-[#232536] p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <CreditCard className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <span className="text-sm text-slate-500 dark:text-slate-400">Available for Payout</span>
             </div>
             <p className="text-2xl font-bold text-slate-900 dark:text-white">&pound;{pendingPayout.toFixed(2)}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Payouts are processed weekly on Fridays</p>
           </div>
         </div>
 
@@ -147,13 +193,28 @@ export default function TutorEarnings() {
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Last 6 Months</h2>
           <div className="flex items-end gap-3 h-48">
             {chartData.map((d) => (
-              <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                key={d.month}
+                className="flex-1 flex flex-col items-center gap-1 relative"
+                onMouseEnter={() => setHoveredBar(d.month)}
+                onMouseLeave={() => setHoveredBar(null)}
+              >
+                {/* Hover tooltip */}
+                {hoveredBar === d.month && (
+                  <div className="absolute bottom-full mb-1 px-3 py-1.5 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-lg whitespace-nowrap shadow-lg z-10 pointer-events-none">
+                    {d.label}: &pound;{d.total.toFixed(2)}
+                  </div>
+                )}
                 <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
                   &pound;{d.total.toFixed(0)}
                 </span>
                 <div className="w-full flex justify-center">
                   <div
-                    className="w-full max-w-[48px] rounded-t-lg bg-[#7C3AED] transition-all"
+                    className={`w-full max-w-[48px] rounded-t-lg transition-all cursor-pointer ${
+                      hoveredBar === d.month
+                        ? 'bg-[#6D28D9] scale-105'
+                        : 'bg-[#7C3AED]'
+                    }`}
                     style={{ height: `${Math.max((d.total / maxChart) * 160, 4)}px` }}
                   />
                 </div>
@@ -181,24 +242,14 @@ export default function TutorEarnings() {
               </select>
             </div>
 
-            {/* Payout button */}
-            <div className="relative">
-              <button
-                disabled
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
-              >
-                <CreditCard className="w-3.5 h-3.5" />
-                Request Payout
-              </button>
-              {showTooltip && (
-                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-lg whitespace-nowrap shadow-lg">
-                  <Info className="w-3 h-3 inline mr-1" />
-                  Payouts are disabled in demo mode
-                </div>
-              )}
-            </div>
+            {/* Export CSV button */}
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#232536] transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
+            </button>
           </div>
         </div>
 

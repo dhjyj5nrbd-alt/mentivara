@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   Plus, Edit3, Trash2, X, Upload, Search, ChevronDown, ChevronUp,
-  HelpCircle, Star, Filter, FileText,
+  HelpCircle, Star, Filter, FileText, Copy,
 } from 'lucide-react'
 import Layout from '../components/Layout'
 import { QUESTION_BANK, type BankQuestion } from '../services/demo-data'
@@ -75,6 +75,13 @@ export default function TutorQuestionBank() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showImportToast, setShowImportToast] = useState(false)
   const [visibleCount, setVisibleCount] = useState(10)
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [bulkSubject, setBulkSubject] = useState('')
+  const [bulkDifficulty, setBulkDifficulty] = useState(0)
+  const [showBulkSubject, setShowBulkSubject] = useState(false)
+  const [showBulkDifficulty, setShowBulkDifficulty] = useState(false)
 
   // Form state
   const [formSubject, setFormSubject] = useState('Biology')
@@ -172,9 +179,26 @@ export default function TutorQuestionBank() {
     setShowForm(true)
   }
 
+  const handleDuplicate = (q: BankQuestion) => {
+    const duplicated: BankQuestion = {
+      ...q,
+      id: Date.now(),
+      content: q.content + ' (Copy)',
+      options: q.options ? [...q.options] : undefined,
+      mark_scheme: [...q.mark_scheme],
+    }
+    setQuestions((prev) => [duplicated, ...prev])
+    openEdit(duplicated)
+  }
+
   const handleDelete = (id: number) => {
     setQuestions((prev) => prev.filter((q) => q.id !== id))
     if (expandedId === id) setExpandedId(null)
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -229,6 +253,59 @@ export default function TutorQuestionBank() {
   }
 
   const hasActiveFilters = filterSubject !== 'All' || filterTopic !== 'All' || filterType !== 'All' || filterDifficulty > 0 || searchQuery.trim() !== ''
+
+  // ── Bulk actions ────────────────────────────────────────────
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === displayedQuestions.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(displayedQuestions.map((q) => q.id)))
+    }
+  }
+
+  const bulkDelete = () => {
+    setQuestions((prev) => prev.filter((q) => !selectedIds.has(q.id)))
+    if (expandedId !== null && selectedIds.has(expandedId)) setExpandedId(null)
+    setSelectedIds(new Set())
+  }
+
+  const bulkChangeSubject = (newSubject: string) => {
+    const syllabusMap: Record<string, string> = {
+      Biology: 'cie-alevel-bio-9700',
+      Mathematics: 'cie-alevel-math-9709',
+      Physics: 'cie-alevel-phys-9702',
+      Chemistry: 'cie-alevel-chem-9701',
+      English: 'cie-alevel-eng-9093',
+    }
+    setQuestions((prev) =>
+      prev.map((q) =>
+        selectedIds.has(q.id) ? { ...q, syllabus_id: syllabusMap[newSubject] || q.syllabus_id } : q
+      )
+    )
+    setShowBulkSubject(false)
+    setBulkSubject('')
+    setSelectedIds(new Set())
+  }
+
+  const bulkChangeDifficulty = (newDifficulty: number) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        selectedIds.has(q.id) ? { ...q, difficulty: newDifficulty } : q
+      )
+    )
+    setShowBulkDifficulty(false)
+    setBulkDifficulty(0)
+    setSelectedIds(new Set())
+  }
 
   return (
     <Layout>
@@ -364,12 +441,98 @@ export default function TutorQuestionBank() {
           </div>
         </div>
 
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <div className="flex flex-wrap items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-[#7C3AED]/10 border border-[#7C3AED]/20">
+            <span className="text-sm font-medium text-[#7C3AED]">{selectedIds.size} selected</span>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+            <button
+              onClick={bulkDelete}
+              className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+            >
+              Delete All
+            </button>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+
+            {/* Change Subject */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowBulkSubject(!showBulkSubject); setShowBulkDifficulty(false) }}
+                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-[#7C3AED] transition-colors"
+              >
+                Change Subject
+              </button>
+              {showBulkSubject && (
+                <div className="absolute top-8 left-0 z-40 bg-white dark:bg-[#161822] border border-slate-200 dark:border-[#232536] rounded-lg shadow-lg py-1 min-w-[140px]">
+                  {SUBJECTS.filter((s) => s !== 'All').map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => bulkChangeSubject(s)}
+                      className="block w-full text-left px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1a1d2e] transition-colors"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+
+            {/* Change Difficulty */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowBulkDifficulty(!showBulkDifficulty); setShowBulkSubject(false) }}
+                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-[#7C3AED] transition-colors"
+              >
+                Change Difficulty
+              </button>
+              {showBulkDifficulty && (
+                <div className="absolute top-8 left-0 z-40 bg-white dark:bg-[#161822] border border-slate-200 dark:border-[#232536] rounded-lg shadow-lg p-3">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => bulkChangeDifficulty(star)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        <Star className="w-5 h-5 text-slate-300 dark:text-slate-600 hover:text-amber-400 hover:fill-amber-400" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="ml-auto text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            >
+              Clear selection
+            </button>
+          </div>
+        )}
+
         {/* Results count */}
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Showing {displayedQuestions.length} of {filtered.length} questions
-            {hasActiveFilters && ' (filtered)'}
-          </p>
+          <div className="flex items-center gap-3">
+            {displayedQuestions.length > 0 && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === displayedQuestions.length && displayedQuestions.length > 0}
+                  onChange={toggleSelectAll}
+                  className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-[#7C3AED] focus:ring-[#7C3AED] accent-[#7C3AED]"
+                />
+                <span className="text-xs text-slate-500 dark:text-slate-400">Select all</span>
+              </label>
+            )}
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Showing {displayedQuestions.length} of {filtered.length} questions
+              {hasActiveFilters && ' (filtered)'}
+            </p>
+          </div>
           {hasActiveFilters && (
             <div className="flex items-center gap-1 text-xs text-[#7C3AED]">
               <Filter className="w-3 h-3" />
@@ -382,48 +545,62 @@ export default function TutorQuestionBank() {
         <div className="space-y-2">
           {displayedQuestions.map((q) => {
             const isExpanded = expandedId === q.id
+            const isSelected = selectedIds.has(q.id)
             return (
               <div
                 key={q.id}
-                className="bg-white dark:bg-[#161822] border border-slate-200 dark:border-[#232536] rounded-xl overflow-hidden"
+                className={`bg-white dark:bg-[#161822] border rounded-xl overflow-hidden ${
+                  isSelected ? 'border-[#7C3AED] ring-1 ring-[#7C3AED]/20' : 'border-slate-200 dark:border-[#232536]'
+                }`}
               >
                 {/* Row — clickable to expand */}
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(isExpanded ? null : q.id)}
-                  className="w-full text-left px-4 py-3 flex items-start md:items-center gap-3 hover:bg-slate-50 dark:hover:bg-[#1a1d2e] transition-colors"
-                >
-                  {/* Type badge */}
-                  <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${TYPE_COLORS[q.type]}`}>
-                    {TYPE_LABELS[q.type]}
-                  </span>
+                <div className="flex items-start md:items-center">
+                  {/* Checkbox */}
+                  <div className="flex items-center pl-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(q.id)}
+                      className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-[#7C3AED] focus:ring-[#7C3AED] accent-[#7C3AED]"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : q.id)}
+                    className="flex-1 text-left px-3 py-3 flex items-start md:items-center gap-3 hover:bg-slate-50 dark:hover:bg-[#1a1d2e] transition-colors"
+                  >
+                    {/* Type badge */}
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${TYPE_COLORS[q.type]}`}>
+                      {TYPE_LABELS[q.type]}
+                    </span>
 
-                  {/* Question text */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-900 dark:text-white line-clamp-1">{q.content}</p>
-                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                      <span>{getSubject(q)}</span>
-                      <span className="hidden sm:inline">&middot;</span>
-                      <span className="hidden sm:inline">{q.subtopic}</span>
-                      <span>&middot;</span>
-                      <span>{q.marks} mark{q.marks > 1 ? 's' : ''}</span>
-                      <span>&middot;</span>
-                      <span>{q.exam_board}</span>
-                      <span>&middot;</span>
-                      <span>{q.year}</span>
+                    {/* Question text */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-900 dark:text-white line-clamp-1">{q.content}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                        <span>{getSubject(q)}</span>
+                        <span className="hidden sm:inline">&middot;</span>
+                        <span className="hidden sm:inline">{q.subtopic}</span>
+                        <span>&middot;</span>
+                        <span>{q.marks} mark{q.marks > 1 ? 's' : ''}</span>
+                        <span>&middot;</span>
+                        <span>{q.exam_board}</span>
+                        <span>&middot;</span>
+                        <span>{q.year}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Difficulty */}
-                  <div className="hidden sm:block shrink-0">
-                    <StarRating value={q.difficulty} readonly />
-                  </div>
+                    {/* Difficulty */}
+                    <div className="hidden sm:block shrink-0">
+                      <StarRating value={q.difficulty} readonly />
+                    </div>
 
-                  {/* Expand icon */}
-                  <div className="shrink-0 text-slate-400 dark:text-slate-500">
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </div>
-                </button>
+                    {/* Expand icon */}
+                    <div className="shrink-0 text-slate-400 dark:text-slate-500">
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                  </button>
+                </div>
 
                 {/* Expanded detail */}
                 {isExpanded && (
@@ -506,6 +683,12 @@ export default function TutorQuestionBank() {
                           <Edit3 className="w-3 h-3" /> Edit
                         </button>
                         <button
+                          onClick={(e) => { e.stopPropagation(); handleDuplicate(q) }}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-slate-100 dark:bg-[#1a1d2e] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[#252839] transition-colors"
+                        >
+                          <Copy className="w-3 h-3" /> Duplicate
+                        </button>
+                        <button
                           onClick={(e) => { e.stopPropagation(); handleDelete(q.id) }}
                           className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                         >
@@ -547,8 +730,8 @@ export default function TutorQuestionBank() {
 
         {/* Create / Edit modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#161822] rounded-xl border border-slate-200 dark:border-[#232536] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4">
+            <div className="bg-white dark:bg-[#161822] sm:rounded-xl border border-slate-200 dark:border-[#232536] w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#232536]">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                   {editingId ? 'Edit Question' : 'Create New Question'}

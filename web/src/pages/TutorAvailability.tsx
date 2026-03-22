@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Save, Copy, Trash2, Check } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Save, Copy, Trash2, Check, Globe } from 'lucide-react'
 import Layout from '../components/Layout'
 
 // ── Types ────────────────────────────────────────────────────
@@ -20,6 +20,21 @@ function formatHour(h: number): string {
   if (h === 0 || h === 24) return '12am'
   if (h === 12) return '12pm'
   return h < 12 ? `${h}am` : `${h - 12}pm`
+}
+
+function getTimezoneLabel(): string {
+  try {
+    const offset = new Date().getTimezoneOffset()
+    const absOffset = Math.abs(offset)
+    const hours = Math.floor(absOffset / 60)
+    const minutes = absOffset % 60
+    const sign = offset <= 0 ? '+' : '-'
+    const label = `GMT${sign}${hours}${minutes > 0 ? `:${String(minutes).padStart(2, '0')}` : ''}`
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    return `${tz} (${label})`
+  } catch {
+    return 'GMT+0'
+  }
 }
 
 // ── Demo data ────────────────────────────────────────────────
@@ -56,6 +71,15 @@ export default function TutorAvailability() {
   const [saved, setSaved] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [dragTarget, setDragTarget] = useState<SlotStatus | null>(null)
+  const [showSaveBanner, setShowSaveBanner] = useState(false)
+  const [isRecurring, setIsRecurring] = useState(false)
+
+  // Auto-hide save banner after 3 seconds
+  useEffect(() => {
+    if (!showSaveBanner) return
+    const timer = setTimeout(() => setShowSaveBanner(false), 3000)
+    return () => clearTimeout(timer)
+  }, [showSaveBanner])
 
   const getSlot = (day: number, hour: number) =>
     slots.find((s) => s.day === day && s.hour === hour)!
@@ -121,6 +145,7 @@ export default function TutorAvailability() {
 
   const handleSave = () => {
     setSaved(true)
+    setShowSaveBanner(true)
     setTimeout(() => setSaved(false), 3000)
   }
 
@@ -134,12 +159,30 @@ export default function TutorAvailability() {
   return (
     <Layout>
       <div className="p-4 md:p-8 max-w-7xl mx-auto" onMouseUp={stopDrag} onMouseLeave={stopDrag}>
+        {/* Save success banner */}
+        {showSaveBanner && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+            <div className="flex items-center gap-2 px-5 py-3 rounded-lg bg-green-500 text-white shadow-lg text-sm font-medium transition-opacity duration-300">
+              <Check className="w-4 h-4" />
+              Availability saved successfully!
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Weekly Availability</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Click or drag to set your available hours. Booked lessons are shown in green.
           </p>
+        </div>
+
+        {/* Timezone display */}
+        <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-slate-50 dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] w-fit">
+          <Globe className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+          <span className="text-sm text-slate-600 dark:text-slate-400">
+            Times shown in {getTimezoneLabel()}
+          </span>
         </div>
 
         {/* Stats row */}
@@ -231,19 +274,54 @@ export default function TutorAvailability() {
           </table>
         </div>
 
-        {/* Save button */}
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={handleSave}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              saved
-                ? 'bg-green-500 text-white'
-                : 'bg-[#7C3AED] text-white hover:bg-[#6D28D9]'
-            }`}
-          >
-            {saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-            {saved ? 'Saved!' : 'Save Availability'}
-          </button>
+        {/* Color legend */}
+        <div className="flex flex-wrap items-center gap-4 mt-4 px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536]">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Legend:</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded bg-purple-400 dark:bg-purple-600" />
+            <span className="text-xs text-slate-600 dark:text-slate-400">Available</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700" />
+            <span className="text-xs text-slate-600 dark:text-slate-400">Unavailable</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded bg-green-400 dark:bg-green-600" />
+            <span className="text-xs text-slate-600 dark:text-slate-400">Booked lesson</span>
+          </div>
+        </div>
+
+        {/* Save button row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6">
+          {/* Recurring checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#7C3AED] focus:ring-[#7C3AED] accent-[#7C3AED]"
+            />
+            <span className="text-sm text-slate-700 dark:text-slate-300">Set as recurring</span>
+          </label>
+
+          <div className="flex items-center gap-4">
+            {isRecurring && (
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+                This availability will repeat every week.
+              </span>
+            )}
+            <button
+              onClick={handleSave}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                saved
+                  ? 'bg-green-500 text-white'
+                  : 'bg-[#7C3AED] text-white hover:bg-[#6D28D9]'
+              }`}
+            >
+              {saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+              {saved ? 'Saved!' : 'Save Availability'}
+            </button>
+          </div>
         </div>
       </div>
     </Layout>

@@ -5,7 +5,7 @@ import { useThemeStore } from '../store/themeStore'
 import {
   ChevronRight, ChevronLeft, Upload, Plus, Trash2, Check,
   Video, MessageSquare, Monitor, PenTool, Camera, Mic, MonitorUp,
-  Sun, Moon, GraduationCap, Clock, Globe,
+  Sun, Moon, GraduationCap, Clock, Globe, Save, BookOpen,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ interface TeachingData {
 
 interface AvailabilitySlot {
   day: string
-  period: string
+  hour: number
 }
 
 interface AvailabilityData {
@@ -63,13 +63,22 @@ const STEPS = [
   'Complete',
 ]
 
+const STEP_ENCOURAGEMENTS = [
+  "Let's set up your tutor profile",
+  'Tell students about yourself',
+  'What and how you teach',
+  'When are you available?',
+  'Get familiar with the classroom',
+  "You're all set!",
+]
+
 const SUBJECTS = ['Maths', 'English', 'Biology', 'Chemistry', 'Physics', 'Business', 'Psychology']
 const LEVELS = ['GCSE', 'IGCSE', 'AS', 'A-Level']
 const EXAM_BOARDS = ['CIE', 'Edexcel', 'AQA', 'OCR']
 const CURRENCIES = ['GBP', 'USD', 'EUR', 'AED']
 const DURATIONS = [30, 45, 60]
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const PERIODS = ['Morning', 'Afternoon', 'Evening']
+const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8–20
 
 const TIMEZONES = [
   'Europe/London',
@@ -90,6 +99,12 @@ function createId() {
   return Math.random().toString(36).slice(2, 9)
 }
 
+function formatHour(h: number): string {
+  if (h === 0 || h === 24) return '12am'
+  if (h === 12) return '12pm'
+  return h < 12 ? `${h}am` : `${h - 12}pm`
+}
+
 const inputClass =
   'w-full px-4 py-2.5 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent text-sm'
 
@@ -106,6 +121,7 @@ export default function TutorOnboarding() {
   const [direction, setDirection] = useState<'forward' | 'back'>('forward')
   const [animating, setAnimating] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
+  const [toastVisible, setToastVisible] = useState(false)
 
   // Step 2 — Profile
   const [profile, setProfile] = useState<ProfileData>({
@@ -232,20 +248,39 @@ export default function TutorOnboarding() {
   const toggleItem = <T extends string | number>(list: T[], item: T): T[] =>
     list.includes(item) ? list.filter((i) => i !== item) : [...list, item]
 
-  const toggleSlot = (day: string, period: string) => {
+  const toggleSlot = (day: string, hour: number) => {
     setAvailability((a) => {
-      const exists = a.slots.some((s) => s.day === day && s.period === period)
+      const exists = a.slots.some((s) => s.day === day && s.hour === hour)
       return {
         ...a,
         slots: exists
-          ? a.slots.filter((s) => !(s.day === day && s.period === period))
-          : [...a.slots, { day, period }],
+          ? a.slots.filter((s) => !(s.day === day && s.hour === hour))
+          : [...a.slots, { day, hour }],
       }
     })
   }
 
-  const isSlotActive = (day: string, period: string) =>
-    availability.slots.some((s) => s.day === day && s.period === period)
+  const isSlotActive = (day: string, hour: number) =>
+    availability.slots.some((s) => s.day === day && s.hour === hour)
+
+  // ─── Save progress (demo) ──────────────────────────────────────────────────
+
+  const handleSaveProgress = () => {
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), 2500)
+  }
+
+  // ─── Skip demo classroom ──────────────────────────────────────────────────
+
+  const skipDemoClassroom = () => {
+    setErrors([])
+    setDirection('forward')
+    setAnimating(true)
+    setTimeout(() => {
+      setCurrentStep(5)
+      setAnimating(false)
+    }, 200)
+  }
 
   // ─── Validation ───────────────────────────────────────────────────────────
 
@@ -253,7 +288,7 @@ export default function TutorOnboarding() {
     const errs: string[] = []
     if (currentStep === 1) {
       if (!profile.fullName.trim()) errs.push('Full name is required.')
-      if (profile.bio.length < 200) errs.push(`Bio must be at least 200 characters (currently ${profile.bio.length}).`)
+      if (profile.bio.length < 100) errs.push(`Bio must be at least 100 characters (currently ${profile.bio.length}).`)
       if (!profile.headline.trim()) errs.push('Headline is required.')
       const hasValidQual = profile.qualifications.some((q) => q.degree.trim() && q.institution.trim() && q.year.trim())
       if (!hasValidQual) errs.push('At least one complete qualification is required.')
@@ -297,6 +332,10 @@ export default function TutorOnboarding() {
       setAnimating(false)
     }, 200)
   }
+
+  // ─── Progress ──────────────────────────────────────────────────────────────
+
+  const progressPercent = Math.round((currentStep / (STEPS.length - 1)) * 100)
 
   // ─── Render Steps ─────────────────────────────────────────────────────────
 
@@ -360,6 +399,14 @@ export default function TutorOnboarding() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1117] transition-colors">
+      {/* Toast notification */}
+      {toastVisible && (
+        <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-2 bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium">
+          <Check className="w-4 h-4" />
+          Progress saved
+        </div>
+      )}
+
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white dark:bg-[#161822] border-b border-slate-200 dark:border-[#232536]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -378,6 +425,15 @@ export default function TutorOnboarding() {
       {/* Progress bar */}
       <div className="fixed top-14 left-0 right-0 z-10 bg-white dark:bg-[#161822] border-b border-slate-200 dark:border-[#232536] py-4">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          {/* Step indicator with progress percentage */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Step {currentStep + 1} of {STEPS.length} &bull; {progressPercent}% complete
+            </span>
+            <span className="text-xs font-medium text-[#7C3AED] italic">
+              {STEP_ENCOURAGEMENTS[currentStep]}
+            </span>
+          </div>
           <div className="flex items-center justify-between">
             {STEPS.map((label, idx) => (
               <div key={label} className="flex items-center flex-1 last:flex-none">
@@ -415,7 +471,7 @@ export default function TutorOnboarding() {
       </div>
 
       {/* Main content */}
-      <div className="pt-32 sm:pt-36 pb-28 px-4 sm:px-6">
+      <div className="pt-40 sm:pt-44 pb-28 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           {/* Errors */}
           {errors.length > 0 && (
@@ -446,7 +502,7 @@ export default function TutorOnboarding() {
       {/* Bottom navigation */}
       {currentStep < STEPS.length - 1 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#161822] border-t border-slate-200 dark:border-[#232536] py-4 z-10">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 flex justify-between">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 flex items-center justify-between">
             <button
               onClick={goBack}
               disabled={currentStep === 0}
@@ -455,13 +511,37 @@ export default function TutorOnboarding() {
               <ChevronLeft className="w-4 h-4" />
               Back
             </button>
-            <button
-              onClick={goNext}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-colors"
-            >
-              {currentStep === STEPS.length - 2 ? 'Finish' : 'Next'}
-              <ChevronRight className="w-4 h-4" />
-            </button>
+
+            <div className="flex items-center gap-3">
+              {/* Save progress button */}
+              {currentStep > 0 && currentStep < STEPS.length - 1 && (
+                <button
+                  onClick={handleSaveProgress}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-[#2d3048] hover:bg-slate-100 dark:hover:bg-[#252839] transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  Save progress
+                </button>
+              )}
+
+              {/* Skip for now — demo classroom step only */}
+              {currentStep === 4 && (
+                <button
+                  onClick={skipDemoClassroom}
+                  className="text-sm text-slate-400 hover:text-[#7C3AED] underline underline-offset-2 transition-colors"
+                >
+                  Skip for now
+                </button>
+              )}
+
+              <button
+                onClick={goNext}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-colors"
+              >
+                {currentStep === STEPS.length - 2 ? 'Finish' : 'Next'}
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -564,8 +644,8 @@ function StepProfile({
           className={`${inputClass} min-h-[120px] resize-y`}
           placeholder="Tell students about yourself, your teaching style, and experience..."
         />
-        <p className={`text-xs mt-1 ${profile.bio.length >= 200 ? 'text-green-600' : 'text-slate-400'}`}>
-          {profile.bio.length}/200 characters minimum
+        <p className={`text-xs mt-1 ${profile.bio.length >= 100 ? 'text-green-600' : 'text-slate-400'}`}>
+          {profile.bio.length}/100 characters minimum
         </p>
       </div>
 
@@ -732,7 +812,7 @@ function StepTeaching({
   )
 }
 
-// ─── Step 4: Availability ─────────────────────────────────────────────────────
+// ─── Step 4: Availability (hourly grid 8am-8pm) ──────────────────────────────
 
 function StepAvailability({
   availability,
@@ -742,48 +822,50 @@ function StepAvailability({
 }: {
   availability: AvailabilityData
   setAvailability: React.Dispatch<React.SetStateAction<AvailabilityData>>
-  toggleSlot: (day: string, period: string) => void
-  isSlotActive: (day: string, period: string) => boolean
+  toggleSlot: (day: string, hour: number) => void
+  isSlotActive: (day: string, hour: number) => boolean
 }) {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-[#1E1B4B] dark:text-white">Availability</h2>
       <p className="text-sm text-slate-600 dark:text-slate-400">
-        Click on the time slots when you are available to teach.
+        Click on the hourly time slots when you are available to teach. Each slot represents one hour.
       </p>
 
-      {/* Weekly grid */}
+      {/* Hourly weekly grid */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="p-2 text-xs font-medium text-slate-500 dark:text-slate-400 text-left w-24">
+              <th className="p-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 text-left w-16">
                 <Clock className="w-4 h-4 inline mr-1" />
               </th>
               {DAYS.map((d) => (
-                <th key={d} className="p-2 text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">
+                <th key={d} className="p-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">
                   {d}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PERIODS.map((period) => (
-              <tr key={period}>
-                <td className="p-2 text-xs font-medium text-slate-500 dark:text-slate-400">{period}</td>
+            {HOURS.map((hour) => (
+              <tr key={hour}>
+                <td className="p-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  {formatHour(hour)}
+                </td>
                 {DAYS.map((day) => (
-                  <td key={`${day}-${period}`} className="p-1 text-center">
+                  <td key={`${day}-${hour}`} className="p-0.5 text-center">
                     <button
                       type="button"
-                      onClick={() => toggleSlot(day, period)}
-                      className={`w-full py-3 rounded-lg text-xs font-medium transition-all ${
-                        isSlotActive(day, period)
+                      onClick={() => toggleSlot(day, hour)}
+                      className={`w-full py-2 rounded text-[10px] font-medium transition-all ${
+                        isSlotActive(day, hour)
                           ? 'bg-[#7C3AED] text-white shadow-sm'
                           : 'bg-slate-100 dark:bg-[#252839] text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-[#2d3048]'
                       }`}
-                      aria-label={`${day} ${period} ${isSlotActive(day, period) ? 'available' : 'unavailable'}`}
+                      aria-label={`${day} ${formatHour(hour)} ${isSlotActive(day, hour) ? 'available' : 'unavailable'}`}
                     >
-                      {isSlotActive(day, period) ? <Check className="w-3 h-3 mx-auto" /> : ''}
+                      {isSlotActive(day, hour) ? <Check className="w-3 h-3 mx-auto" /> : ''}
                     </button>
                   </td>
                 ))}
@@ -832,6 +914,78 @@ function StepDemo({
   endDraw: () => void
   clearCanvas: () => void
 }) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  const [cameraError, setCameraError] = useState('')
+  const [micStream, setMicStream] = useState<MediaStream | null>(null)
+  const [micError, setMicError] = useState('')
+  const [micLevel, setMicLevel] = useState(0)
+  const animFrameRef = useRef<number>(0)
+
+  // Clean up streams on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) cameraStream.getTracks().forEach((t) => t.stop())
+      if (micStream) micStream.getTracks().forEach((t) => t.stop())
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+    }
+  }, [cameraStream, micStream])
+
+  const testCamera = async () => {
+    setCameraError('')
+    try {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((t) => t.stop())
+        setCameraStream(null)
+        setDemoChecks((d) => ({ ...d, camera: false }))
+        return
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      setCameraStream(stream)
+      setDemoChecks((d) => ({ ...d, camera: true }))
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+    } catch {
+      setCameraError('Could not access camera. Please allow camera permissions.')
+    }
+  }
+
+  const testMicrophone = async () => {
+    setMicError('')
+    try {
+      if (micStream) {
+        micStream.getTracks().forEach((t) => t.stop())
+        setMicStream(null)
+        setMicLevel(0)
+        setDemoChecks((d) => ({ ...d, microphone: false }))
+        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+        return
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      setMicStream(stream)
+      setDemoChecks((d) => ({ ...d, microphone: true }))
+
+      // Set up volume meter
+      const audioCtx = new AudioContext()
+      const source = audioCtx.createMediaStreamSource(stream)
+      const analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 256
+      source.connect(analyser)
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
+
+      const updateLevel = () => {
+        analyser.getByteFrequencyData(dataArray)
+        const avg = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length
+        setMicLevel(Math.min(100, Math.round((avg / 128) * 100)))
+        animFrameRef.current = requestAnimationFrame(updateLevel)
+      }
+      updateLevel()
+    } catch {
+      setMicError('Could not access microphone. Please allow microphone permissions.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-[#1E1B4B] dark:text-white">Demo Classroom</h2>
@@ -853,6 +1007,62 @@ function StepDemo({
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{f.desc}</p>
           </div>
         ))}
+      </div>
+
+      {/* Camera test */}
+      <div>
+        <label className={labelClass}>Test Your Camera</label>
+        <button
+          type="button"
+          onClick={testCamera}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+            cameraStream
+              ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 text-green-700 dark:text-green-400'
+              : 'bg-white dark:bg-[#252839] border-slate-300 dark:border-[#2d3048] text-slate-600 dark:text-slate-400 hover:border-[#7C3AED]'
+          }`}
+        >
+          <Camera className="w-4 h-4" />
+          {cameraStream ? 'Stop Camera' : 'Test Camera'}
+        </button>
+        {cameraError && <p className="text-xs text-red-500 mt-1">{cameraError}</p>}
+        {cameraStream && (
+          <div className="mt-3 rounded-xl overflow-hidden border border-slate-200 dark:border-[#232536] bg-black max-w-sm">
+            <video ref={videoRef} autoPlay muted playsInline className="w-full h-auto" />
+          </div>
+        )}
+      </div>
+
+      {/* Microphone test */}
+      <div>
+        <label className={labelClass}>Test Your Microphone</label>
+        <button
+          type="button"
+          onClick={testMicrophone}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+            micStream
+              ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 text-green-700 dark:text-green-400'
+              : 'bg-white dark:bg-[#252839] border-slate-300 dark:border-[#2d3048] text-slate-600 dark:text-slate-400 hover:border-[#7C3AED]'
+          }`}
+        >
+          <Mic className="w-4 h-4" />
+          {micStream ? 'Stop Microphone' : 'Test Microphone'}
+        </button>
+        {micError && <p className="text-xs text-red-500 mt-1">{micError}</p>}
+        {micStream && (
+          <div className="mt-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500 dark:text-slate-400 w-16">Volume:</span>
+              <div className="flex-1 h-4 bg-slate-200 dark:bg-[#252839] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full transition-all duration-75"
+                  style={{ width: `${micLevel}%` }}
+                />
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 w-10 text-right">{micLevel}%</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Speak to see the volume meter respond.</p>
+          </div>
+        )}
       </div>
 
       {/* Mini whiteboard */}
@@ -950,33 +1160,100 @@ function StepComplete({
         </p>
       </div>
 
-      {/* Summary */}
-      <div className="bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] rounded-xl divide-y divide-slate-100 dark:divide-[#232536]">
-        <SummaryRow label="Name" value={profile.fullName} />
-        <SummaryRow label="Headline" value={profile.headline} />
-        <SummaryRow label="Bio" value={profile.bio.length > 100 ? profile.bio.slice(0, 100) + '...' : profile.bio} />
-        <SummaryRow
-          label="Qualifications"
-          value={profile.qualifications
-            .filter((q) => q.degree)
-            .map((q) => `${q.degree} — ${q.institution} (${q.year})`)
-            .join(', ')}
-        />
-        <SummaryRow label="Subjects" value={teaching.subjects.join(', ')} />
-        <SummaryRow label="Levels" value={teaching.levels.join(', ')} />
-        <SummaryRow label="Exam Boards" value={teaching.examBoards.join(', ')} />
-        <SummaryRow label="Rate" value={`${teaching.currency} ${teaching.hourlyRate}/hr`} />
-        <SummaryRow label="Durations" value={teaching.lessonDurations.map((d) => `${d} min`).join(', ')} />
-        <SummaryRow label="Availability" value={`${availability.slots.length} slots across the week`} />
-        <SummaryRow label="Timezone" value={availability.timezone.replace(/_/g, ' ')} />
+      {/* Visual summary card */}
+      <div className="bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] rounded-xl overflow-hidden">
+        {/* Header with photo, name, headline */}
+        <div className="flex items-center gap-4 p-5 border-b border-slate-100 dark:border-[#232536]">
+          <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-100 dark:bg-[#252839] shrink-0 flex items-center justify-center">
+            {profile.photoPreview ? (
+              <img src={profile.photoPreview} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <GraduationCap className="w-7 h-7 text-slate-400" />
+            )}
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-slate-800 dark:text-white">{profile.fullName || 'Your Name'}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{profile.headline || 'Your headline'}</p>
+          </div>
+        </div>
+
+        {/* Subjects and levels as tags */}
+        <div className="p-5 border-b border-slate-100 dark:border-[#232536] space-y-3">
+          {teaching.subjects.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Subjects</p>
+              <div className="flex flex-wrap gap-1.5">
+                {teaching.subjects.map((s) => (
+                  <span key={s} className="px-2.5 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#7C3AED]/20 text-[#7C3AED] text-xs font-medium">
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {teaching.levels.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Levels</p>
+              <div className="flex flex-wrap gap-1.5">
+                {teaching.levels.map((l) => (
+                  <span key={l} className="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-[#232536]">
+          <div className="p-4 text-center">
+            <p className="text-2xl font-bold text-[#7C3AED]">{teaching.subjects.length}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Subjects</p>
+          </div>
+          <div className="p-4 text-center">
+            <p className="text-2xl font-bold text-[#7C3AED]">{availability.slots.length}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Time Slots</p>
+          </div>
+          <div className="p-4 text-center">
+            <p className="text-2xl font-bold text-[#7C3AED]">
+              {teaching.hourlyRate ? `${teaching.currency} ${teaching.hourlyRate}` : '--'}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Per Hour</p>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="divide-y divide-slate-100 dark:divide-[#232536]">
+          <SummaryRow label="Exam Boards" value={teaching.examBoards.join(', ')} />
+          <SummaryRow label="Durations" value={teaching.lessonDurations.map((d) => `${d} min`).join(', ')} />
+          <SummaryRow label="Timezone" value={availability.timezone.replace(/_/g, ' ')} />
+          <SummaryRow
+            label="Qualifications"
+            value={profile.qualifications
+              .filter((q) => q.degree)
+              .map((q) => `${q.degree} — ${q.institution} (${q.year})`)
+              .join(', ')}
+          />
+        </div>
       </div>
 
-      <div className="text-center">
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <button
           onClick={onDashboard}
-          className="px-8 py-3 rounded-lg text-sm font-semibold bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-colors"
+          className="px-8 py-3 rounded-lg text-sm font-semibold bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-colors w-full sm:w-auto"
         >
           Go to Dashboard
+        </button>
+        <button
+          onClick={() => {
+            // Demo-only: in production this would navigate to a tutorial
+          }}
+          className="px-8 py-3 rounded-lg text-sm font-semibold border border-[#7C3AED] text-[#7C3AED] hover:bg-[#EDE9FE] dark:hover:bg-[#7C3AED]/10 transition-colors flex items-center gap-2 justify-center w-full sm:w-auto"
+        >
+          <BookOpen className="w-4 h-4" />
+          Complete Onboarding Tutorial
         </button>
       </div>
     </div>
