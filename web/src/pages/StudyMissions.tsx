@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { DAILY_MISSIONS, STREAK_DATA } from '../services/demo-data'
 import {
   Flame, Lock, Check, Clock, Zap, Target,
   BookOpen, Brain, Play, Dumbbell, HelpCircle,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight,
+  RotateCcw,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────
@@ -26,6 +28,52 @@ interface Mission {
   estimatedMinutes: number
   completed: boolean
   questions?: QuizQuestion[]
+}
+
+// ── Flashcard data ─────────────────────────────────────────
+
+interface Flashcard {
+  front: string
+  back: string
+}
+
+const DEMO_FLASHCARDS: Flashcard[] = [
+  { front: 'What is the function of mitochondria?', back: 'Site of aerobic respiration; produces ATP' },
+  { front: 'What is the role of the rough endoplasmic reticulum?', back: 'Protein synthesis and transport; has ribosomes attached' },
+  { front: 'What is the function of the Golgi apparatus?', back: 'Modifies, packages, and distributes proteins and lipids' },
+  { front: 'What is the difference between prokaryotic and eukaryotic cells?', back: 'Prokaryotes lack a membrane-bound nucleus and organelles; eukaryotes have both' },
+  { front: 'What is the role of lysosomes?', back: 'Contain digestive enzymes to break down waste materials and cellular debris' },
+]
+
+// ── Practice question data ─────────────────────────────────
+
+const PRACTICE_QUESTION = {
+  question: 'Explain why electron microscopes have better resolution than light microscopes. [3 marks]',
+  markScheme: [
+    'Electrons have a shorter wavelength than light ;',
+    'Resolution is the ability to distinguish between two points close together ;',
+    'Shorter wavelength means higher resolution / can distinguish between two points that are closer together ;',
+  ],
+  totalMarks: 3,
+}
+
+// ── Score structured answer (same logic as demo-interceptor) ──
+
+function scoreStructured(answer: string, markScheme: string[]): number {
+  const normalised = answer.toLowerCase()
+  let hits = 0
+  const stopWords = new Set(['the', 'and', 'that', 'with', 'for', 'are', 'from', 'this', 'into', 'each', 'been', 'have', 'has', 'does', 'not', 'can', 'will', 'they', 'then', 'than', 'when', 'which', 'there', 'their', 'what', 'about', 'would', 'make', 'been', 'more', 'some', 'could', 'them', 'other', 'number'])
+  for (const point of markScheme) {
+    const cleaned = point.replace(/;$/, '').toLowerCase()
+    const words = cleaned.split(/[\s\/,]+/).filter((w) => w.length > 3 && !stopWords.has(w))
+    if (words.length === 0) continue
+    const matched = words.filter((w) => normalised.includes(w)).length
+    const threshold = Math.max(1, Math.ceil(words.length * 0.4))
+    if (matched >= threshold) {
+      hits++
+    }
+  }
+  return hits
 }
 
 // ── Level system ───────────────────────────────────────────
@@ -228,16 +276,239 @@ function QuickQuiz({ questions, onComplete }: { questions: QuizQuestion[]; onCom
   )
 }
 
+// ── Flashcard Review component ─────────────────────────────
+
+function FlashcardReview({ onComplete }: { onComplete: (knewCount: number) => void }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [flipped, setFlipped] = useState(false)
+  const [results, setResults] = useState<Record<number, boolean>>({})
+  const [finished, setFinished] = useState(false)
+
+  const card = DEMO_FLASHCARDS[currentIndex]
+  const total = DEMO_FLASHCARDS.length
+  const knewCount = Object.values(results).filter(Boolean).length
+
+  const recordResult = (knew: boolean) => {
+    const newResults = { ...results, [currentIndex]: knew }
+    setResults(newResults)
+    setFlipped(false)
+
+    if (currentIndex < total - 1) {
+      setTimeout(() => setCurrentIndex(currentIndex + 1), 200)
+    } else {
+      const finalKnew = Object.values(newResults).filter(Boolean).length
+      setFinished(true)
+      setTimeout(() => onComplete(finalKnew), 1500)
+    }
+  }
+
+  if (finished) {
+    return (
+      <div className="mt-3 text-center py-6">
+        <div className="text-4xl mb-2">{knewCount === total ? '🎉' : knewCount >= 3 ? '👏' : '💪'}</div>
+        <p className="text-lg font-bold text-slate-800 dark:text-white">
+          You knew {knewCount}/{total} cards!
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          {knewCount === total ? 'Perfect recall!' : knewCount >= 3 ? 'Great memory!' : 'Keep reviewing!'}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-3 space-y-3">
+      {/* Card counter */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+          Card {currentIndex + 1} of {total}
+        </span>
+        <div className="flex gap-1">
+          {DEMO_FLASHCARDS.map((_, i) => (
+            <div key={i} className={`w-2 h-2 rounded-full transition-all ${
+              i === currentIndex ? 'bg-[#7C3AED] scale-125'
+              : results[i] === true ? 'bg-emerald-400'
+              : results[i] === false ? 'bg-red-400'
+              : 'bg-slate-200 dark:bg-slate-700'
+            }`} />
+          ))}
+        </div>
+      </div>
+
+      {/* Flashcard with flip */}
+      <button
+        onClick={() => setFlipped(!flipped)}
+        className="w-full min-h-[140px] rounded-xl border-2 border-dashed border-slate-200 dark:border-[#232536] bg-slate-50 dark:bg-[#0f1117] p-5 text-center transition-all hover:border-[#7C3AED]/40 hover:shadow-sm relative"
+        style={{ perspective: '1000px' }}
+      >
+        <div className="absolute top-2 right-2">
+          <RotateCcw className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+        </div>
+        {!flipped ? (
+          <div>
+            <span className="text-[10px] font-medium text-[#7C3AED] dark:text-[#A78BFA] uppercase tracking-wider mb-2 block">Question</span>
+            <p className="text-sm font-medium text-slate-800 dark:text-white">{card.front}</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-3">Click to reveal answer</p>
+          </div>
+        ) : (
+          <div>
+            <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 block">Answer</span>
+            <p className="text-sm font-medium text-slate-800 dark:text-white">{card.back}</p>
+          </div>
+        )}
+      </button>
+
+      {/* Navigation + response buttons */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => { setFlipped(false); setCurrentIndex(Math.max(0, currentIndex - 1)) }}
+          disabled={currentIndex === 0}
+          className="p-2 rounded-lg border border-slate-200 dark:border-[#232536] text-slate-500 dark:text-slate-400 disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-[#232536] transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        {flipped ? (
+          <>
+            <button
+              onClick={() => recordResult(false)}
+              className="flex-1 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
+            >
+              Need to review
+            </button>
+            <button
+              onClick={() => recordResult(true)}
+              className="flex-1 py-2 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50 transition-colors"
+            >
+              I knew this
+            </button>
+          </>
+        ) : (
+          <div className="flex-1 text-center text-xs text-slate-400 dark:text-slate-500">
+            Flip the card to respond
+          </div>
+        )}
+
+        <button
+          onClick={() => { setFlipped(false); setCurrentIndex(Math.min(total - 1, currentIndex + 1)) }}
+          disabled={currentIndex === total - 1 || results[currentIndex] === undefined}
+          className="p-2 rounded-lg border border-slate-200 dark:border-[#232536] text-slate-500 dark:text-slate-400 disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-[#232536] transition-colors"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Practice Question component ────────────────────────────
+
+function PracticeQuestion({ totalXp, onComplete }: { totalXp: number; onComplete: (earnedXp: number) => void }) {
+  const [answer, setAnswer] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [marksAwarded, setMarksAwarded] = useState(0)
+  const [pointHits, setPointHits] = useState<boolean[]>([])
+
+  const submit = () => {
+    const marks = scoreStructured(answer, PRACTICE_QUESTION.markScheme)
+    const capped = Math.min(marks, PRACTICE_QUESTION.totalMarks)
+    setMarksAwarded(capped)
+
+    // Determine which individual mark-scheme points were hit
+    const normalised = answer.toLowerCase()
+    const stopWords = new Set(['the', 'and', 'that', 'with', 'for', 'are', 'from', 'this', 'into', 'each', 'been', 'have', 'has', 'does', 'not', 'can', 'will', 'they', 'then', 'than', 'when', 'which', 'there', 'their', 'what', 'about', 'would', 'make', 'been', 'more', 'some', 'could', 'them', 'other', 'number'])
+    const hits = PRACTICE_QUESTION.markScheme.map((point) => {
+      const cleaned = point.replace(/;$/, '').toLowerCase()
+      const words = cleaned.split(/[\s\/,]+/).filter((w) => w.length > 3 && !stopWords.has(w))
+      if (words.length === 0) return false
+      const matched = words.filter((w) => normalised.includes(w)).length
+      const threshold = Math.max(1, Math.ceil(words.length * 0.4))
+      return matched >= threshold
+    })
+    setPointHits(hits)
+    setSubmitted(true)
+
+    const earnedXp = Math.round((capped / PRACTICE_QUESTION.totalMarks) * totalXp)
+    setTimeout(() => onComplete(earnedXp), 1500)
+  }
+
+  return (
+    <div className="mt-3 space-y-3">
+      {/* Question */}
+      <div className="bg-slate-50 dark:bg-[#0f1117] rounded-lg p-4">
+        <p className="text-sm font-medium text-slate-800 dark:text-white">
+          {PRACTICE_QUESTION.question}
+        </p>
+      </div>
+
+      {/* Answer textarea */}
+      <textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        disabled={submitted}
+        placeholder="Type your answer here..."
+        rows={4}
+        className="w-full rounded-lg border border-slate-200 dark:border-[#232536] bg-white dark:bg-[#1a1d2e] px-3 py-2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30 focus:border-[#7C3AED] disabled:opacity-60 resize-none transition-all"
+      />
+
+      {!submitted && (
+        <button
+          onClick={submit}
+          disabled={answer.trim().length < 10}
+          className="w-full py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
+        >
+          Check Answer
+        </button>
+      )}
+
+      {/* Mark scheme feedback */}
+      {submitted && (
+        <div className="space-y-2">
+          <div className="text-center mb-3">
+            <p className="text-lg font-bold text-slate-800 dark:text-white">
+              {marksAwarded}/{PRACTICE_QUESTION.totalMarks} marks
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {marksAwarded === PRACTICE_QUESTION.totalMarks ? 'Full marks! Excellent!' : marksAwarded >= 2 ? 'Good answer!' : 'Review the mark scheme below.'}
+            </p>
+          </div>
+          <div className="bg-slate-50 dark:bg-[#0f1117] rounded-lg p-3 space-y-2">
+            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Mark Scheme</p>
+            {PRACTICE_QUESTION.markScheme.map((point, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                  pointHits[i]
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                    : 'bg-red-100 dark:bg-red-900/30'
+                }`}>
+                  {pointHits[i]
+                    ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    : <X className="w-3 h-3 text-red-500 dark:text-red-400" />
+                  }
+                </div>
+                <p className={`text-xs ${pointHits[i] ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400'}`}>
+                  {point}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────
 
 export default function StudyMissions() {
+  const navigate = useNavigate()
   const [missions, setMissions] = useState<Mission[]>(
     () => DAILY_MISSIONS.map((m) => ({ ...m })) as Mission[]
   )
   const [streak] = useState(() => ({ ...STREAK_DATA }))
   const [todayXp, setTodayXp] = useState(STREAK_DATA.todayXp)
   const [totalXp, setTotalXp] = useState(STREAK_DATA.totalXp)
-  const [expandedQuiz, setExpandedQuiz] = useState<number | null>(null)
+  const [expandedMission, setExpandedMission] = useState<number | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
   const [flyXp, setFlyXp] = useState<{ amount: number; show: boolean }>({ amount: 0, show: false })
   const [xpHistoryOpen, setXpHistoryOpen] = useState(false)
@@ -262,24 +533,57 @@ export default function StudyMissions() {
     setTimeout(() => setFlyXp((f) => ({ ...f, show: false })), 1300)
   }, [])
 
+  const triggerCelebration = useCallback(() => {
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 2500)
+  }, [])
+
   const handleMissionClick = (mission: Mission, index: number) => {
     if (mission.completed || !isUnlocked(index)) return
-    if (mission.type === 'quiz' && mission.questions) {
-      setExpandedQuiz(expandedQuiz === mission.id ? null : mission.id)
+
+    // Missions that expand inline
+    if (mission.type === 'flashcard' || mission.type === 'quiz' || mission.type === 'practice') {
+      setExpandedMission(expandedMission === mission.id ? null : mission.id)
       return
     }
-    // For non-quiz missions, mark complete on click (demo behaviour)
-    completeMission(mission.id, mission.xp)
+
+    // Navigate-away missions
+    if (mission.type === 'reel') {
+      navigate('/reels')
+      completeMission(mission.id, mission.xp)
+      return
+    }
+    if (mission.type === 'focus') {
+      navigate('/mental-dojo')
+      completeMission(mission.id, mission.xp)
+      return
+    }
+    if (mission.type === 'doubt') {
+      navigate('/doubts')
+      completeMission(mission.id, mission.xp)
+      return
+    }
   }
 
   const handleQuizComplete = (missionId: number, score: number) => {
     const mission = missions.find((m) => m.id === missionId)
     if (!mission) return
-    // XP scaled by score
     const earnedXp = Math.round((score / (mission.questions?.length ?? 5)) * mission.xp)
     completeMission(missionId, earnedXp)
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 2500)
+    triggerCelebration()
+  }
+
+  const handleFlashcardComplete = (missionId: number, knewCount: number) => {
+    const mission = missions.find((m) => m.id === missionId)
+    if (!mission) return
+    const earnedXp = Math.round((knewCount / DEMO_FLASHCARDS.length) * mission.xp)
+    completeMission(missionId, earnedXp)
+    triggerCelebration()
+  }
+
+  const handlePracticeComplete = (missionId: number, earnedXp: number) => {
+    completeMission(missionId, earnedXp)
+    triggerCelebration()
   }
 
   // Check for all-complete celebration
@@ -356,64 +660,99 @@ export default function StudyMissions() {
             const unlocked = isUnlocked(idx)
             const Icon = MISSION_ICONS[mission.type]
             const color = MISSION_COLORS[mission.type]
-            const isQuizExpanded = expandedQuiz === mission.id && mission.type === 'quiz'
+            const isExpanded = expandedMission === mission.id && !mission.completed
+            const expandable = mission.type === 'flashcard' || mission.type === 'quiz' || mission.type === 'practice'
 
             return (
               <div key={mission.id}
-                className={`rounded-xl border transition-all duration-200 ${
+                className={`rounded-xl border transition-all duration-300 ${
                   mission.completed
                     ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-900/20 dark:to-green-900/20 dark:border-emerald-800'
                     : !unlocked
                     ? 'bg-slate-50 border-slate-200 opacity-50 dark:bg-[#161822] dark:border-[#232536]'
                     : `bg-white border-slate-200 hover:shadow-md hover:-translate-y-0.5 dark:bg-[#1a1d2e] dark:border-[#232536] dark:hover:border-[#7C3AED]/30`
-                } ${isQuizExpanded ? 'sm:col-span-2 lg:col-span-3' : ''}`}
+                } ${isExpanded ? 'sm:col-span-2 lg:col-span-3' : ''}`}
               >
-                <button
-                  onClick={() => handleMissionClick(mission, idx)}
-                  disabled={mission.completed || !unlocked}
-                  className="w-full text-left p-3"
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Icon */}
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color.bg} ${color.text}`}>
-                      {mission.completed ? <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                        : !unlocked ? <Lock className="w-4 h-4 text-slate-400" />
-                        : <Icon className="w-5 h-5" />}
-                    </div>
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className={`text-sm font-semibold truncate ${
-                          mission.completed ? 'text-emerald-700 dark:text-emerald-400 line-through' : 'text-slate-800 dark:text-white'
-                        }`}>
-                          {mission.title}
-                        </h3>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${color.bg} ${color.text}`}>
-                          {mission.subject}
-                        </span>
+                <div className="relative">
+                  <button
+                    onClick={() => handleMissionClick(mission, idx)}
+                    disabled={mission.completed || !unlocked}
+                    className="w-full text-left p-3"
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Icon */}
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color.bg} ${color.text}`}>
+                        {mission.completed ? <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                          : !unlocked ? <Lock className="w-4 h-4 text-slate-400" />
+                          : <Icon className="w-5 h-5" />}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{mission.description}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                          <Zap className="w-3 h-3" />{mission.xp} XP
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
-                          <Clock className="w-3 h-3" />~{mission.estimatedMinutes} min
-                        </span>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className={`text-sm font-semibold truncate ${
+                            mission.completed ? 'text-emerald-700 dark:text-emerald-400 line-through' : 'text-slate-800 dark:text-white'
+                          }`}>
+                            {mission.title}
+                          </h3>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${color.bg} ${color.text}`}>
+                            {mission.subject}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{mission.description}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                            <Zap className="w-3 h-3" />{mission.xp} XP
+                          </span>
+                          <span className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
+                            <Clock className="w-3 h-3" />~{mission.estimatedMinutes} min
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
 
-                {/* Inline quiz */}
-                {isQuizExpanded && mission.questions && (
-                  <div className="px-3 pb-3 border-t border-slate-100 dark:border-[#232536]">
-                    <QuickQuiz
-                      questions={mission.questions}
-                      onComplete={(score) => handleQuizComplete(mission.id, score)}
-                    />
-                  </div>
-                )}
+                  {/* Close button for expanded missions */}
+                  {isExpanded && expandable && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExpandedMission(null) }}
+                      className="absolute top-2 right-2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-[#232536] transition-colors z-10"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Expanded content area with smooth animation */}
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                }`}>
+                  {isExpanded && (
+                    <div className="px-3 pb-3 border-t border-slate-100 dark:border-[#232536]">
+                      {/* Flashcard mission */}
+                      {mission.type === 'flashcard' && (
+                        <FlashcardReview
+                          onComplete={(knewCount) => handleFlashcardComplete(mission.id, knewCount)}
+                        />
+                      )}
+
+                      {/* Quiz mission */}
+                      {mission.type === 'quiz' && mission.questions && (
+                        <QuickQuiz
+                          questions={mission.questions}
+                          onComplete={(score) => handleQuizComplete(mission.id, score)}
+                        />
+                      )}
+
+                      {/* Practice question mission */}
+                      {mission.type === 'practice' && (
+                        <PracticeQuestion
+                          totalXp={mission.xp}
+                          onComplete={(earnedXp) => handlePracticeComplete(mission.id, earnedXp)}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })}
