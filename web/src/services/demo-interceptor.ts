@@ -281,7 +281,6 @@ export async function handleDemoRequest(
     const session = examSessions[examId]
     const body = JSON.parse(config.data ?? '{}')
     const { question_id, answer } = body as { question_id: number; answer: string }
-
     const question = (session?.questions ?? QUESTION_BANK).find((q) => q.id === question_id)
     if (!question) {
       return { data: { is_correct: false, marks_awarded: 0, marks_available: 1, mark_scheme: [], explanation: 'Question not found.' }, status: 200 }
