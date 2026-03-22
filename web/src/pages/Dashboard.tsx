@@ -6,7 +6,7 @@ import { TUTOR_REELS } from '../services/demo-data'
 import {
   BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
   Dumbbell, MessageSquare, Shield, Users, UsersRound, Trophy, Flame, Clapperboard, Target,
-  Play, ChevronRight, ChevronLeft,
+  Play, ChevronRight, ChevronLeft, Sparkles,
 } from 'lucide-react'
 
 interface CardProps {
@@ -194,6 +194,13 @@ export default function Dashboard() {
               desc="Get instant help with any question"
               accent="bg-white border-slate-200 hover:border-amber-300"
               iconBg="bg-amber-100 text-amber-600"
+            />
+            <DashCard
+              to="/study-coach" icon={Sparkles} title="AI Study Coach"
+              desc="Personalised learning recommendations"
+              accent="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:border-purple-300 dark:from-purple-900/20 dark:to-violet-900/20 dark:border-purple-700"
+              iconBg="bg-purple-100 text-[#7C3AED]"
+              stat="72%" statLabel="Score"
             />
             <DashCard
               to="/forum" icon={Users} title="Student Forum"

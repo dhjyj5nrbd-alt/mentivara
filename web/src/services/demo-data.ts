@@ -2027,3 +2027,131 @@ export const COMPETITION_LEADERBOARD: CompetitionLeaderboardEntry[] = [
   { rank: 7, name: 'Tom Richards', avatar: null, won: 2, xp: 155 },
   { rank: 8, name: 'Lily Chen', avatar: null, won: 1, xp: 120 },
 ]
+
+// ── Study Coach ─────────────────────────────────────────────
+
+export interface StudyCoachSubject {
+  name: string
+  icon: string
+  mastery: number
+  strongest: { topic: string; score: number }
+  weakest: { topic: string; score: number }
+  focusTopics: string[]
+  weeklyTrend: number[]
+}
+
+export interface StudyCoachGoal {
+  id: number
+  text: string
+  completed: boolean
+}
+
+export interface StudyCoachRecommendation {
+  id: number
+  priority: 'high' | 'medium' | 'low'
+  title: string
+  explanation: string
+  impact: string
+  linkTo: string
+  linkLabel: string
+}
+
+export interface StudyCoachData {
+  overallScore: number
+  predictedGrade: string
+  monthlyImprovement: number
+  studyHabits: {
+    avgDailyMinutes: number
+    mostProductiveTime: string
+    learningStyle: { practiceQuestions: number; flashcards: number; videos: number }
+    consistencyScore: number
+  }
+  subjects: StudyCoachSubject[]
+  weeklyGoals: StudyCoachGoal[]
+  recommendations: StudyCoachRecommendation[]
+}
+
+export const STUDY_COACH_DATA: StudyCoachData = {
+  overallScore: 72,
+  predictedGrade: 'B',
+  monthlyImprovement: 8,
+  studyHabits: {
+    avgDailyMinutes: 45,
+    mostProductiveTime: '4pm - 6pm',
+    learningStyle: { practiceQuestions: 65, flashcards: 20, videos: 15 },
+    consistencyScore: 78,
+  },
+  subjects: [
+    {
+      name: 'Biology',
+      icon: '\uD83E\uDDEC',
+      mastery: 72,
+      strongest: { topic: 'Cell Structure', score: 89 },
+      weakest: { topic: 'Microscopy', score: 42 },
+      focusTopics: ['Microscopy calculations', 'Membrane transport', 'Enzyme kinetics'],
+      weeklyTrend: [58, 64, 68, 72],
+    },
+  ],
+  weeklyGoals: [
+    { id: 1, text: 'Complete 3 microscopy practice exams', completed: false },
+    { id: 2, text: 'Watch 2 tutor reels on weak topics', completed: true },
+    { id: 3, text: 'Maintain 5-day study streak', completed: false },
+    { id: 4, text: 'Review lesson package from Tuesday session', completed: true },
+  ],
+  recommendations: [
+    {
+      id: 1,
+      priority: 'high',
+      title: 'Focus on Microscopy Calculations',
+      explanation: 'Your exam results show 40% accuracy on magnification questions. Practice 10 more questions this week.',
+      impact: '+5% predicted grade improvement',
+      linkTo: '/exam',
+      linkLabel: 'Open Exam Simulator',
+    },
+    {
+      id: 2,
+      priority: 'high',
+      title: 'Review Cell Membrane Transport',
+      explanation: "You haven't covered osmosis and active transport in any lesson or exam. This is a key exam topic.",
+      impact: '+4% predicted grade improvement',
+      linkTo: '/curriculum',
+      linkLabel: 'View Curriculum',
+    },
+    {
+      id: 3,
+      priority: 'medium',
+      title: 'Increase Practice Frequency',
+      explanation: 'You study an average of 3 days per week. Students who study 5+ days score 15% higher.',
+      impact: '+3% predicted grade improvement',
+      linkTo: '/missions',
+      linkLabel: 'View Missions',
+    },
+    {
+      id: 4,
+      priority: 'medium',
+      title: 'Watch Tutor Reels on Genetics',
+      explanation: 'Dr. Chen posted 3 new reels covering DNA replication which aligns with your weak areas.',
+      impact: '+2% predicted grade improvement',
+      linkTo: '/reels',
+      linkLabel: 'Watch Reels',
+    },
+    {
+      id: 5,
+      priority: 'low',
+      title: 'Join a Study Group',
+      explanation: 'Students in study groups perform 12% better. Consider joining the Biology A-Level Squad.',
+      impact: '+2% predicted grade improvement',
+      linkTo: '/study-groups',
+      linkLabel: 'Browse Groups',
+    },
+    {
+      id: 6,
+      priority: 'low',
+      title: 'Try the Mental Dojo',
+      explanation: 'Your recent exam scores dip in the last 20 minutes. Focus training may help sustain concentration.',
+      impact: '+1% predicted grade improvement',
+      linkTo: '/mental-dojo',
+      linkLabel: 'Start Training',
+    },
+  ],
+}

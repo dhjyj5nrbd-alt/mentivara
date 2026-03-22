@@ -13,6 +13,7 @@ import {
   FORUM_CATEGORIES, FORUM_THREADS, FORUM_REPLIES,
   STUDY_GROUPS,
   COMPETITIONS, COMPETITION_LEADERBOARD,
+  STUDY_COACH_DATA,
 } from './demo-data'
 import type { BankQuestion, ForumThread, ForumReply, StudyGroup, StudyGroupMessage, Competition } from './demo-data'
 
@@ -693,6 +694,11 @@ export async function handleDemoRequest(
       }),
       status: 200,
     }
+  }
+
+  // ── Study Coach ──────────────────────────────────────────
+  if (url === '/study-coach' && method === 'get') {
+    return { data: ok(STUDY_COACH_DATA), status: 200 }
   }
 
   // ── Catch-all: return empty success ─────────────────────
