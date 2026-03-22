@@ -2,6 +2,8 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import {
   Pen, Highlighter, Minus, MoveRight, Square, Circle, Type,
   Eraser, Undo2, Redo2, Trash2, Grid3X3, Download, Maximize2, X,
+  Plus, ChevronLeft, ChevronRight, StickyNote,
+  ZoomIn, ZoomOut,
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -14,7 +16,7 @@ export interface WhiteboardProps {
   onCollapse?: () => void
 }
 
-type Tool = 'pen' | 'highlighter' | 'line' | 'arrow' | 'rectangle' | 'circle' | 'text' | 'eraser'
+type Tool = 'pen' | 'highlighter' | 'line' | 'arrow' | 'rectangle' | 'circle' | 'text' | 'eraser' | 'laser'
 
 interface Point { x: number; y: number }
 
@@ -28,7 +30,15 @@ const WIDTHS = [
   { label: 'Thick', value: 5, size: 12 },
 ]
 
+const NOTE_COLORS = [
+  { label: 'Yellow', bg: '#FEF9C3', header: '#FACC15' },
+  { label: 'Pink', bg: '#FCE7F3', header: '#F472B6' },
+  { label: 'Green', bg: '#DCFCE7', header: '#4ADE80' },
+  { label: 'Blue', bg: '#DBEAFE', header: '#60A5FA' },
+]
+
 const MAX_HISTORY = 50
+const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -44,6 +54,28 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
   const [lineWidth, setLineWidth] = useState(3)
   const [showGrid, setShowGrid] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
+
+  // Cursor overlay
+  const [mousePos, setMousePos] = useState<Point | null>(null)
+
+  // Laser pointer fade
+  const laserTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [laserVisible, setLaserVisible] = useState(true)
+  const lastLaserPos = useRef<Point | null>(null)
+
+  // Sticky note state
+  const [showNoteModal, setShowNoteModal] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const [noteColor, setNoteColor] = useState(NOTE_COLORS[0])
+  const [notePosition, setNotePosition] = useState<Point>({ x: 100, y: 100 })
+  const noteInputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Page navigation
+  const [pages, setPages] = useState<(ImageData | null)[]>([null]) // null = current canvas state
+  const [currentPage, setCurrentPage] = useState(0)
+
+  // Zoom
+  const [zoom, setZoom] = useState(1)
 
   // Drawing state
   const isDrawing = useRef(false)
@@ -102,6 +134,81 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     if (withGrid ?? showGrid) drawGrid(ctx, canvas.width, canvas.height)
   }, [getCtx, showGrid, drawGrid])
 
+  /* ---- page management ------------------------------------------- */
+
+  const saveCurrentPageState = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = getCtx()
+    if (!canvas || !ctx) return
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    setPages(prev => {
+      const updated = [...prev]
+      updated[currentPage] = imgData
+      return updated
+    })
+  }, [getCtx, currentPage])
+
+  const loadPage = useCallback((pageIndex: number) => {
+    const canvas = canvasRef.current
+    const ctx = getCtx()
+    if (!canvas || !ctx) return
+    const pageData = pages[pageIndex]
+    if (pageData) {
+      ctx.putImageData(pageData, 0, 0)
+    } else {
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      if (showGrid) drawGrid(ctx, canvas.width, canvas.height)
+    }
+  }, [getCtx, pages, showGrid, drawGrid])
+
+  const goToPage = useCallback((pageIndex: number) => {
+    if (pageIndex < 0 || pageIndex >= pages.length || pageIndex === currentPage) return
+    saveCurrentPageState()
+    setCurrentPage(pageIndex)
+    // Load after state update
+    setTimeout(() => {
+      loadPage(pageIndex)
+    }, 0)
+  }, [currentPage, pages.length, saveCurrentPageState, loadPage])
+
+  const addPage = useCallback(() => {
+    saveCurrentPageState()
+    const newIndex = pages.length
+    setPages(prev => [...prev, null])
+    setCurrentPage(newIndex)
+    // Clear history for fresh page
+    historyStack.current = []
+    redoStack.current = []
+    setCanUndo(false)
+    setCanRedo(false)
+    setTimeout(() => {
+      clearCanvas()
+    }, 0)
+  }, [pages.length, saveCurrentPageState, clearCanvas])
+
+  /* ---- zoom ------------------------------------------------------ */
+
+  const zoomIn = useCallback(() => {
+    setZoom(prev => {
+      const idx = ZOOM_LEVELS.indexOf(prev)
+      if (idx >= 0 && idx < ZOOM_LEVELS.length - 1) return ZOOM_LEVELS[idx + 1]
+      const next = ZOOM_LEVELS.find(z => z > prev)
+      return next ?? prev
+    })
+  }, [])
+
+  const zoomOut = useCallback(() => {
+    setZoom(prev => {
+      const idx = ZOOM_LEVELS.indexOf(prev)
+      if (idx > 0) return ZOOM_LEVELS[idx - 1]
+      const candidates = ZOOM_LEVELS.filter(z => z < prev)
+      return candidates.length ? candidates[candidates.length - 1] : prev
+    })
+  }, [])
+
+  const resetZoom = useCallback(() => setZoom(1), [])
+
   /* ---- resize ---------------------------------------------------- */
 
   useEffect(() => {
@@ -153,12 +260,21 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     if (textInput && textRef.current) textRef.current.focus()
   }, [textInput])
 
+  /* ---- note modal focus ------------------------------------------ */
+
+  useEffect(() => {
+    if (showNoteModal && noteInputRef.current) noteInputRef.current.focus()
+  }, [showNoteModal])
+
   /* ---- keyboard: Escape for fullscreen & text -------------------- */
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (textInput) {
+        if (showNoteModal) {
+          setShowNoteModal(false)
+          setNoteText('')
+        } else if (textInput) {
           commitText()
         } else if (isExpanded && onCollapse) {
           onCollapse()
@@ -171,7 +287,23 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExpanded, onCollapse, textInput])
+  }, [isExpanded, onCollapse, textInput, showNoteModal])
+
+  /* ---- ctrl+wheel zoom ------------------------------------------- */
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const handler = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        if (e.deltaY < 0) zoomIn()
+        else zoomOut()
+      }
+    }
+    container.addEventListener('wheel', handler, { passive: false })
+    return () => container.removeEventListener('wheel', handler)
+  }, [zoomIn, zoomOut])
 
   /* ---- coordinate helper ----------------------------------------- */
 
@@ -179,9 +311,43 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     const rect = canvasRef.current!.getBoundingClientRect()
     if ('touches' in e) {
       const touch = e.touches[0] || (e as React.TouchEvent).changedTouches[0]
-      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top }
+      return {
+        x: (touch.clientX - rect.left) / zoom,
+        y: (touch.clientY - rect.top) / zoom,
+      }
     }
-    return { x: (e as React.MouseEvent).clientX - rect.left, y: (e as React.MouseEvent).clientY - rect.top }
+    return {
+      x: ((e as React.MouseEvent).clientX - rect.left) / zoom,
+      y: ((e as React.MouseEvent).clientY - rect.top) / zoom,
+    }
+  }
+
+  /* ---- cursor tracking ------------------------------------------- */
+
+  const handleCursorMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const pos = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    setMousePos(pos)
+
+    // Laser pointer fade logic
+    if (tool === 'laser') {
+      setLaserVisible(true)
+      if (laserTimeout.current) clearTimeout(laserTimeout.current)
+      const prevPos = lastLaserPos.current
+      const moved = !prevPos || Math.abs(pos.x - prevPos.x) > 2 || Math.abs(pos.y - prevPos.y) > 2
+      lastLaserPos.current = pos
+      if (!moved) {
+        laserTimeout.current = setTimeout(() => setLaserVisible(false), 2000)
+      } else {
+        laserTimeout.current = setTimeout(() => setLaserVisible(false), 2000)
+      }
+    }
+  }
+
+  const handleCursorLeave = () => {
+    setMousePos(null)
+    if (isDrawing.current) handleUp({} as React.MouseEvent)
   }
 
   /* ---- drawing helpers ------------------------------------------- */
@@ -240,6 +406,9 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
   const snapshotBeforeDraw = useRef<ImageData | null>(null)
 
   const handleDown = (e: React.MouseEvent | React.TouchEvent) => {
+    // Laser pointer does not draw
+    if (tool === 'laser') return
+
     if (tool === 'text') {
       const pos = getPos(e)
       if (textInput) commitText()
@@ -256,12 +425,17 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     startPoint.current = pos
     currentPoints.current = [pos]
 
+    // Record click position for sticky notes
+    setNotePosition(pos)
+
     // Save snapshot for shape preview & undo
     snapshotBeforeDraw.current = ctx.getImageData(0, 0, canvas.width, canvas.height)
   }
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing.current) return
+    if (tool === 'laser') return
+
     const ctx = getCtx()
     if (!ctx) return
     const pos = getPos(e)
@@ -319,7 +493,7 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     if (!ctx || !canvas) return
 
     const start = startPoint.current!
-    const pos = getPos(e)
+    const pos = 'clientX' in e || 'touches' in e ? getPos(e) : start
 
     // Push undo snapshot (taken before drawing started)
     if (snapshotBeforeDraw.current) {
@@ -390,6 +564,94 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     setTextInput(null)
   }
 
+  /* ---- sticky note ----------------------------------------------- */
+
+  const placeNote = () => {
+    if (!noteText.trim()) { setShowNoteModal(false); setNoteText(''); return }
+    const ctx = getCtx()
+    const canvas = canvasRef.current
+    if (!ctx || !canvas) return
+
+    saveSnapshot()
+
+    const noteW = 160
+    const headerH = 24
+    const padding = 8
+    const fontSize = 13
+    const maxLineWidth = noteW - padding * 2
+    const x = notePosition.x
+    const y = notePosition.y
+
+    // Word wrap
+    ctx.save()
+    ctx.font = `${fontSize}px sans-serif`
+    const words = noteText.split(' ')
+    const lines: string[] = []
+    let currentLine = ''
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word
+      if (ctx.measureText(testLine).width > maxLineWidth && currentLine) {
+        lines.push(currentLine)
+        currentLine = word
+      } else {
+        currentLine = testLine
+      }
+    }
+    if (currentLine) lines.push(currentLine)
+
+    const textH = lines.length * (fontSize + 4)
+    const noteH = headerH + textH + padding * 2
+
+    // Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.15)'
+    ctx.shadowBlur = 6
+    ctx.shadowOffsetX = 2
+    ctx.shadowOffsetY = 2
+
+    // Body
+    const radius = 6
+    ctx.fillStyle = noteColor.bg
+    ctx.beginPath()
+    ctx.moveTo(x + radius, y)
+    ctx.lineTo(x + noteW - radius, y)
+    ctx.quadraticCurveTo(x + noteW, y, x + noteW, y + radius)
+    ctx.lineTo(x + noteW, y + noteH - radius)
+    ctx.quadraticCurveTo(x + noteW, y + noteH, x + noteW - radius, y + noteH)
+    ctx.lineTo(x + radius, y + noteH)
+    ctx.quadraticCurveTo(x, y + noteH, x, y + noteH - radius)
+    ctx.lineTo(x, y + radius)
+    ctx.quadraticCurveTo(x, y, x + radius, y)
+    ctx.closePath()
+    ctx.fill()
+
+    // Reset shadow for header
+    ctx.shadowColor = 'transparent'
+
+    // Header bar
+    ctx.fillStyle = noteColor.header
+    ctx.beginPath()
+    ctx.moveTo(x + radius, y)
+    ctx.lineTo(x + noteW - radius, y)
+    ctx.quadraticCurveTo(x + noteW, y, x + noteW, y + radius)
+    ctx.lineTo(x + noteW, y + headerH)
+    ctx.lineTo(x, y + headerH)
+    ctx.lineTo(x, y + radius)
+    ctx.quadraticCurveTo(x, y, x + radius, y)
+    ctx.closePath()
+    ctx.fill()
+
+    // Text
+    ctx.fillStyle = '#1E293B'
+    ctx.textBaseline = 'top'
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x + padding, y + headerH + padding + i * (fontSize + 4))
+    })
+
+    ctx.restore()
+    setShowNoteModal(false)
+    setNoteText('')
+  }
+
   /* ---- undo / redo ----------------------------------------------- */
 
   const undo = () => {
@@ -437,22 +699,110 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     const canvas = canvasRef.current
     if (!canvas) return
     const link = document.createElement('a')
-    link.download = 'whiteboard.png'
+    link.download = `whiteboard-page${currentPage + 1}.png`
     link.href = canvas.toDataURL('image/png')
     link.click()
   }
 
-  /* ---- cursor ---------------------------------------------------- */
+  /* ---- cursor overlay rendering ---------------------------------- */
 
-  const cursorClass: Record<Tool, string> = {
-    pen: 'cursor-crosshair',
-    highlighter: 'cursor-crosshair',
-    line: 'cursor-crosshair',
-    arrow: 'cursor-crosshair',
-    rectangle: 'cursor-crosshair',
-    circle: 'cursor-crosshair',
-    text: 'cursor-text',
-    eraser: 'cursor-cell',
+  const renderCursorOverlay = () => {
+    if (!mousePos) return null
+
+    const size = (() => {
+      switch (tool) {
+        case 'pen':
+        case 'line':
+        case 'arrow':
+        case 'rectangle':
+        case 'circle':
+          return Math.max(4, lineWidth * 2)
+        case 'highlighter':
+          return lineWidth * 6
+        case 'eraser':
+          return 20
+        case 'laser':
+          return 15
+        case 'text':
+          return 0 // Use CSS cursor
+        default:
+          return 4
+      }
+    })()
+
+    if (tool === 'text') return null
+
+    if (tool === 'laser') {
+      return (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: mousePos.x - size / 2,
+            top: mousePos.y - size / 2,
+            width: size,
+            height: size,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+            boxShadow: '0 0 12px 4px rgba(239, 68, 68, 0.5), 0 0 24px 8px rgba(239, 68, 68, 0.25)',
+            opacity: laserVisible ? 1 : 0,
+            transition: 'opacity 0.5s ease-out',
+          }}
+        />
+      )
+    }
+
+    if (tool === 'eraser') {
+      return (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: mousePos.x - size / 2,
+            top: mousePos.y - size / 2,
+            width: size,
+            height: size,
+            borderRadius: '50%',
+            border: '2px solid #94A3B8',
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        />
+      )
+    }
+
+    if (tool === 'highlighter') {
+      return (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: mousePos.x - size / 2,
+            top: mousePos.y - size / 2,
+            width: size,
+            height: size,
+            borderRadius: '50%',
+            backgroundColor: color,
+            opacity: 0.2,
+          }}
+        />
+      )
+    }
+
+    // Pen and shape tools: filled circle with crosshair
+    return (
+      <svg
+        className="pointer-events-none absolute z-10"
+        style={{
+          left: mousePos.x - Math.max(size, 12),
+          top: mousePos.y - Math.max(size, 12),
+          width: Math.max(size, 12) * 2,
+          height: Math.max(size, 12) * 2,
+        }}
+      >
+        {/* Crosshair */}
+        <line x1="0" y1={Math.max(size, 12)} x2={Math.max(size, 12) * 2} y2={Math.max(size, 12)} stroke="#999" strokeWidth="0.5" />
+        <line x1={Math.max(size, 12)} y1="0" x2={Math.max(size, 12)} y2={Math.max(size, 12) * 2} stroke="#999" strokeWidth="0.5" />
+        {/* Brush dot */}
+        <circle cx={Math.max(size, 12)} cy={Math.max(size, 12)} r={size / 2} fill={color} opacity="0.8" />
+      </svg>
+    )
   }
 
   /* ---- tool button helper ---------------------------------------- */
@@ -460,7 +810,7 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
   const ToolBtn = ({ t, icon, label }: { t: Tool; icon: React.ReactNode; label: string }) => (
     <button
       onClick={() => { setTool(t); setShowClearConfirm(false) }}
-      className={`p-1.5 rounded transition-colors ${tool === t ? 'bg-[#EDE9FE] text-[#7C3AED]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+      className={`p-1 rounded transition-colors ${tool === t ? 'bg-[#EDE9FE] text-[#7C3AED]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
       title={label}
     >
       {icon}
@@ -473,29 +823,38 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`p-1.5 rounded transition-colors ${danger ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'} ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+      className={`p-1 rounded transition-colors ${danger ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'} ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
       title={label}
     >
       {icon}
     </button>
   )
 
-  const Divider = () => <div className="w-px h-6 bg-slate-200 dark:bg-slate-600 mx-1 shrink-0" />
+  const Divider = () => <div className="w-px h-5 bg-slate-200 dark:bg-slate-600 mx-0.5 shrink-0" />
 
   /* ---- render ---------------------------------------------------- */
 
   return (
     <div className="flex flex-col h-full w-full select-none">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 px-2 py-1.5 bg-white dark:bg-[#1a1d2e] border-b border-slate-200 dark:border-slate-700 flex-wrap">
-        {/* Drawing tools */}
-        <ToolBtn t="pen" icon={<Pen className="w-4 h-4" />} label="Pen" />
-        <ToolBtn t="highlighter" icon={<Highlighter className="w-4 h-4" />} label="Highlighter" />
-        <ToolBtn t="line" icon={<Minus className="w-4 h-4" />} label="Straight Line" />
-        <ToolBtn t="arrow" icon={<MoveRight className="w-4 h-4" />} label="Arrow" />
-        <ToolBtn t="rectangle" icon={<Square className="w-4 h-4" />} label="Rectangle" />
-        <ToolBtn t="circle" icon={<Circle className="w-4 h-4" />} label="Circle / Ellipse" />
-        <ToolBtn t="text" icon={<Type className="w-4 h-4" />} label="Text" />
+      <div className="flex items-center gap-0.5 px-1.5 py-1 bg-white dark:bg-[#1a1d2e] border-b border-slate-200 dark:border-slate-700 flex-wrap">
+        {/* Draw tools */}
+        <ToolBtn t="pen" icon={<Pen className="w-3.5 h-3.5" />} label="Pen" />
+        <ToolBtn t="highlighter" icon={<Highlighter className="w-3.5 h-3.5" />} label="Highlighter" />
+        <ToolBtn t="line" icon={<Minus className="w-3.5 h-3.5" />} label="Straight Line" />
+        <ToolBtn t="arrow" icon={<MoveRight className="w-3.5 h-3.5" />} label="Arrow" />
+        <ToolBtn t="rectangle" icon={<Square className="w-3.5 h-3.5" />} label="Rectangle" />
+        <ToolBtn t="circle" icon={<Circle className="w-3.5 h-3.5" />} label="Circle / Ellipse" />
+        <ToolBtn t="text" icon={<Type className="w-3.5 h-3.5" />} label="Text" />
+        <ToolBtn t="laser" icon={
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" fill="currentColor" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="22" y2="12" />
+          </svg>
+        } label="Laser Pointer" />
 
         <Divider />
 
@@ -503,8 +862,8 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
         {COLORS.map((c) => (
           <button
             key={c}
-            onClick={() => { setColor(c); if (tool === 'eraser') setTool('pen') }}
-            className={`w-5 h-5 rounded-full border-2 transition-all shrink-0 ${color === c ? 'ring-2 ring-[#7C3AED] ring-offset-1 border-[#7C3AED]' : 'border-slate-300 dark:border-slate-500 hover:scale-110'}`}
+            onClick={() => { setColor(c); if (tool === 'eraser' || tool === 'laser') setTool('pen') }}
+            className={`w-4 h-4 rounded-full border-2 transition-all shrink-0 ${color === c ? 'ring-2 ring-[#7C3AED] ring-offset-1 border-[#7C3AED]' : 'border-slate-300 dark:border-slate-500 hover:scale-110'}`}
             style={{ backgroundColor: c }}
             title={c}
           />
@@ -517,7 +876,7 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
           <button
             key={w.value}
             onClick={() => setLineWidth(w.value)}
-            className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${lineWidth === w.value ? 'bg-[#EDE9FE]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+            className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${lineWidth === w.value ? 'bg-[#EDE9FE]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}
             title={w.label}
           >
             <span
@@ -529,22 +888,25 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
 
         <Divider />
 
-        {/* Actions */}
-        <ToolBtn t="eraser" icon={<Eraser className="w-4 h-4" />} label="Eraser" />
-        <ActionBtn onClick={undo} icon={<Undo2 className="w-4 h-4" />} label="Undo (Ctrl+Z)" disabled={!canUndo} />
-        <ActionBtn onClick={redo} icon={<Redo2 className="w-4 h-4" />} label="Redo (Ctrl+Y)" disabled={!canRedo} />
+        {/* Eraser, Undo, Redo */}
+        <ToolBtn t="eraser" icon={<Eraser className="w-3.5 h-3.5" />} label="Eraser" />
+        <ActionBtn onClick={undo} icon={<Undo2 className="w-3.5 h-3.5" />} label="Undo (Ctrl+Z)" disabled={!canUndo} />
+        <ActionBtn onClick={redo} icon={<Redo2 className="w-3.5 h-3.5" />} label="Redo (Ctrl+Y)" disabled={!canRedo} />
 
         {showClearConfirm ? (
           <button
             onClick={handleClear}
-            className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            className="text-xs px-1.5 py-0.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
           >
-            Confirm clear
+            Confirm
           </button>
         ) : (
-          <ActionBtn onClick={handleClear} icon={<Trash2 className="w-4 h-4" />} label="Clear all" danger />
+          <ActionBtn onClick={handleClear} icon={<Trash2 className="w-3.5 h-3.5" />} label="Clear all" danger />
         )}
 
+        <Divider />
+
+        {/* Grid & Notes */}
         <ActionBtn
           onClick={() => {
             const canvas = canvasRef.current
@@ -553,34 +915,97 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
             saveSnapshot()
             setShowGrid(!showGrid)
           }}
-          icon={<Grid3X3 className={`w-4 h-4 ${showGrid ? 'text-[#7C3AED]' : ''}`} />}
+          icon={<Grid3X3 className={`w-3.5 h-3.5 ${showGrid ? 'text-[#7C3AED]' : ''}`} />}
           label="Toggle grid"
         />
-        <ActionBtn onClick={downloadPng} icon={<Download className="w-4 h-4" />} label="Download as PNG" />
+        <ActionBtn
+          onClick={() => setShowNoteModal(true)}
+          icon={<StickyNote className="w-3.5 h-3.5" />}
+          label="Add sticky note"
+        />
+
+        <Divider />
+
+        {/* Zoom */}
+        <ActionBtn onClick={zoomOut} icon={<ZoomOut className="w-3.5 h-3.5" />} label="Zoom out" disabled={zoom <= ZOOM_LEVELS[0]} />
+        <button
+          onClick={resetZoom}
+          className="text-xs px-1 py-0.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded min-w-[36px] text-center"
+          title="Reset zoom"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <ActionBtn onClick={zoomIn} icon={<ZoomIn className="w-3.5 h-3.5" />} label="Zoom in" disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]} />
+
+        <Divider />
+
+        {/* Pages */}
+        <ActionBtn
+          onClick={() => goToPage(currentPage - 1)}
+          icon={<ChevronLeft className="w-3.5 h-3.5" />}
+          label="Previous page"
+          disabled={currentPage === 0}
+        />
+        <span className="text-xs text-slate-600 dark:text-slate-300 px-0.5 whitespace-nowrap">
+          {currentPage + 1}/{pages.length}
+        </span>
+        <ActionBtn
+          onClick={() => goToPage(currentPage + 1)}
+          icon={<ChevronRight className="w-3.5 h-3.5" />}
+          label="Next page"
+          disabled={currentPage === pages.length - 1}
+        />
+        <ActionBtn
+          onClick={addPage}
+          icon={<Plus className="w-3.5 h-3.5" />}
+          label="Add new page"
+        />
+
+        <Divider />
+
+        {/* Download & Expand */}
+        <ActionBtn onClick={downloadPng} icon={<Download className="w-3.5 h-3.5" />} label="Download as PNG" />
 
         <div className="flex-1" />
 
         {/* Expand / Collapse */}
         {isExpanded ? (
-          <ActionBtn onClick={() => onCollapse?.()} icon={<X className="w-4 h-4" />} label="Exit fullscreen (Esc)" />
+          <ActionBtn onClick={() => onCollapse?.()} icon={<X className="w-3.5 h-3.5" />} label="Exit fullscreen (Esc)" />
         ) : (
-          <ActionBtn onClick={() => onExpand?.()} icon={<Maximize2 className="w-4 h-4" />} label="Fullscreen" />
+          <ActionBtn onClick={() => onExpand?.()} icon={<Maximize2 className="w-3.5 h-3.5" />} label="Fullscreen" />
         )}
       </div>
 
       {/* Canvas area */}
-      <div ref={containerRef} className={`flex-1 relative bg-white ${cursorClass[tool]}`}>
-        <canvas
-          ref={canvasRef}
-          onMouseDown={handleDown}
-          onMouseMove={handleMove}
-          onMouseUp={handleUp}
-          onMouseLeave={() => { if (isDrawing.current) handleUp({} as React.MouseEvent) }}
-          onTouchStart={(e) => { e.preventDefault(); handleDown(e) }}
-          onTouchMove={(e) => { e.preventDefault(); handleMove(e) }}
-          onTouchEnd={(e) => { e.preventDefault(); handleUp(e) }}
-          className="absolute inset-0"
-        />
+      <div
+        ref={containerRef}
+        className="flex-1 relative bg-white overflow-hidden"
+        style={{ cursor: tool === 'text' ? 'text' : 'none' }}
+        onMouseMove={handleCursorMove}
+        onMouseLeave={handleCursorLeave}
+      >
+        <div
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top left',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            onMouseDown={handleDown}
+            onMouseMove={(e) => { handleMove(e) }}
+            onMouseUp={handleUp}
+            onTouchStart={(e) => { e.preventDefault(); handleDown(e) }}
+            onTouchMove={(e) => { e.preventDefault(); handleMove(e) }}
+            onTouchEnd={(e) => { e.preventDefault(); handleUp(e) }}
+            className="absolute inset-0"
+          />
+        </div>
+
+        {/* Cursor overlay */}
+        {renderCursorOverlay()}
 
         {/* Text input overlay */}
         {textInput && (
@@ -592,8 +1017,8 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
             onBlur={commitText}
             className="absolute bg-transparent border-b-2 border-[#7C3AED] outline-none text-black"
             style={{
-              left: textInput.x,
-              top: textInput.y,
+              left: textInput.x * zoom,
+              top: textInput.y * zoom,
               fontSize: `${Math.max(16, lineWidth * 6)}px`,
               color,
               minWidth: 60,
@@ -601,6 +1026,64 @@ export default function Whiteboard({ onExpand, isExpanded, onCollapse }: Whitebo
           />
         )}
       </div>
+
+      {/* Sticky note modal */}
+      {showNoteModal && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="bg-white dark:bg-[#1a1d2e] rounded-lg shadow-xl p-4 w-72 border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Add Sticky Note</h3>
+              <button
+                onClick={() => { setShowNoteModal(false); setNoteText('') }}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Note colour picker */}
+            <div className="flex gap-2 mb-3">
+              {NOTE_COLORS.map((nc) => (
+                <button
+                  key={nc.label}
+                  onClick={() => setNoteColor(nc)}
+                  className={`w-8 h-8 rounded border-2 transition-all ${noteColor.label === nc.label ? 'ring-2 ring-[#7C3AED] ring-offset-1 border-[#7C3AED]' : 'border-slate-300 hover:scale-110'}`}
+                  style={{ backgroundColor: nc.bg }}
+                  title={nc.label}
+                />
+              ))}
+            </div>
+
+            <textarea
+              ref={noteInputRef}
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) placeNote() }}
+              placeholder="Type your note..."
+              className="w-full h-20 text-sm border border-slate-200 dark:border-slate-600 rounded p-2 resize-none outline-none focus:ring-2 focus:ring-[#7C3AED] dark:bg-slate-800 dark:text-slate-200"
+            />
+
+            <div className="flex justify-between items-center mt-3">
+              <span className="text-xs text-slate-400">Ctrl+Enter to place</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowNoteModal(false); setNoteText('') }}
+                  className="text-xs px-3 py-1.5 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={placeNote}
+                  disabled={!noteText.trim()}
+                  className="text-xs px-3 py-1.5 bg-[#7C3AED] text-white rounded hover:bg-[#6D28D9] disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Place Note
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
