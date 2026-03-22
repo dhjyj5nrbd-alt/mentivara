@@ -65,15 +65,18 @@ function shuffle<T>(arr: T[]): T[] {
 function scoreStructured(answer: string, markScheme: string[]): number {
   const normalised = answer.toLowerCase()
   let hits = 0
+  // Stop words to ignore when matching
+  const stopWords = new Set(['the', 'and', 'that', 'with', 'for', 'are', 'from', 'this', 'into', 'each', 'been', 'have', 'has', 'does', 'not', 'can', 'will', 'they', 'then', 'than', 'when', 'which', 'there', 'their', 'what', 'about', 'would', 'make', 'been', 'more', 'some', 'could', 'them', 'other', 'number'])
   for (const point of markScheme) {
-    // Extract key phrases (words between the semicolon-terminated point)
-    const keywords = point
-      .replace(/;$/, '')
-      .toLowerCase()
-      .split(/\s*[\/,]\s*/)
-      .map((k) => k.trim())
-      .filter((k) => k.length > 3)
-    if (keywords.some((kw) => normalised.includes(kw))) {
+    const cleaned = point.replace(/;$/, '').toLowerCase()
+    // Extract meaningful words (length > 3, not stop words)
+    const words = cleaned.split(/[\s\/,]+/).filter((w) => w.length > 3 && !stopWords.has(w))
+    if (words.length === 0) continue
+    // Count how many key words appear in the answer
+    const matched = words.filter((w) => normalised.includes(w)).length
+    // Award the mark if at least 40% of key words match
+    const threshold = Math.max(1, Math.ceil(words.length * 0.4))
+    if (matched >= threshold) {
       hits++
     }
   }
