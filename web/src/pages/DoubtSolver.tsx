@@ -2,8 +2,12 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { aiService, type DoubtItem } from '../services/ai'
 import { tutorService, type RefData } from '../services/tutors'
-import { Send, MessageCircle } from 'lucide-react'
+import { Send, MessageCircle, AlertCircle, Loader2 } from 'lucide-react'
 import Layout from '../components/Layout'
+
+function capitalizeFirst(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
 
 export default function DoubtSolver() {
   const [question, setQuestion] = useState('')
@@ -11,7 +15,7 @@ export default function DoubtSolver() {
   const queryClient = useQueryClient()
 
   const { data: subjects } = useQuery({ queryKey: ['subjects'], queryFn: tutorService.getSubjects })
-  const { data: doubtsData, isLoading } = useQuery({ queryKey: ['doubts'], queryFn: aiService.listDoubts })
+  const { data: doubtsData, isLoading, isError, refetch } = useQuery({ queryKey: ['doubts'], queryFn: aiService.listDoubts })
 
   const askMutation = useMutation({
     mutationFn: () => aiService.askDoubt(question, subjectId),
@@ -26,7 +30,8 @@ export default function DoubtSolver() {
         {/* Ask form */}
         <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536] p-6 mb-6">
           <div className="flex gap-3 mb-3">
-            <select value={subjectId ?? ''} onChange={(e) => setSubjectId(e.target.value ? Number(e.target.value) : undefined)}
+            <label htmlFor="doubt-subject-select" className="sr-only">Subject</label>
+            <select id="doubt-subject-select" value={subjectId ?? ''} onChange={(e) => setSubjectId(e.target.value ? Number(e.target.value) : undefined)}
               className="px-3 py-2 border border-slate-300 dark:border-[#2d3048] rounded-lg text-sm bg-white dark:bg-[#252839] dark:text-white">
               <option value="">Any Subject</option>
               {subjects?.map((s: RefData) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -35,21 +40,41 @@ export default function DoubtSolver() {
           <div className="flex gap-2">
             <label htmlFor="doubt-question-input" className="sr-only">Your question</label>
             <input id="doubt-question-input" value={question} onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && question.trim() && askMutation.mutate()}
+              onKeyDown={(e) => e.key === 'Enter' && question.trim() && !askMutation.isPending && askMutation.mutate()}
               placeholder="Ask any question..." className="flex-1 px-4 py-2.5 border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]" />
             <button onClick={() => askMutation.mutate()} disabled={!question.trim() || askMutation.isPending}
-              aria-label="Send question"
-              className="px-4 py-2.5 bg-[#7C3AED] text-white rounded-lg disabled:opacity-50">
-              <Send className="w-5 h-5" />
+              aria-label={askMutation.isPending ? 'Sending question' : 'Send question'}
+              className="px-4 py-2.5 bg-[#7C3AED] text-white rounded-lg disabled:opacity-50 flex items-center gap-2">
+              {askMutation.isPending
+                ? <><Loader2 className="w-5 h-5 animate-spin" /><span className="text-sm">Sending...</span></>
+                : <Send className="w-5 h-5" />}
             </button>
           </div>
           {askMutation.isPending && <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">AI is thinking...</p>}
-          {askMutation.isError && <p className="text-sm text-red-600 mt-2">Failed to submit your question. Please try again.</p>}
+          {askMutation.isError && (
+            <div className="flex items-start gap-3 p-3 mt-2 bg-rose-50 dark:bg-rose-900/20 rounded-lg border border-rose-200 dark:border-rose-800">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <p className="text-rose-700 dark:text-rose-300 text-sm">Failed to send your question. Please try again.</p>
+            </div>
+          )}
         </div>
 
         {/* Doubts list */}
         {isLoading ? (
           <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
+        ) : isError ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center p-8 bg-rose-50 dark:bg-rose-900/20 rounded-2xl max-w-md">
+              <div className="w-12 h-12 bg-rose-100 dark:bg-rose-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-6 h-6 text-rose-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">Something went wrong</h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-4">Failed to load your questions. Please try again.</p>
+              <button onClick={() => refetch()} className="px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-colors">
+                Try again
+              </button>
+            </div>
+          </div>
         ) : !doubtsData?.data?.length ? (
           <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536]">
             <MessageCircle className="w-8 h-8 text-slate-300 mx-auto mb-3" />
@@ -81,7 +106,7 @@ export default function DoubtSolver() {
                     doubt.status === 'tutor_answered' ? 'bg-emerald-50 text-emerald-600' :
                     doubt.status === 'escalated' ? 'bg-amber-50 text-amber-600' :
                     'bg-slate-100 text-slate-500'
-                  }`}>{doubt.status.replace(/_/g, ' ')}</span>
+                  }`}>{capitalizeFirst(doubt.status.replace(/_/g, ' '))}</span>
                   <span className="text-xs text-slate-400">{new Date(doubt.created_at).toLocaleDateString('en-GB')}</span>
                 </div>
               </div>

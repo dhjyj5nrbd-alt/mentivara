@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import Layout from '../components/Layout'
 
+const LOCALE = navigator.language || LOCALE
+
 // ── Tutor photos (same pattern as TutorDirectory) ──────────
 const TUTOR_PHOTOS: Record<number, string> = {
   1: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
@@ -114,9 +116,12 @@ export default function Lessons() {
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
   const [listTab, setListTab] = useState<'upcoming' | 'past'>('upcoming')
   const [selectedLesson, setSelectedLesson] = useState<DemoLesson | null>(null)
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
   const now = useMemo(() => new Date(), [])
   const [weekStart, setWeekStart] = useState(() => getMonday(now))
   const [currentTime, setCurrentTime] = useState(new Date())
+
+  useEffect(() => setConfirmingCancel(false), [selectedLesson])
 
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000)
@@ -130,7 +135,7 @@ export default function Lessons() {
     [weekStart]
   )
 
-  const weekLabel = `${weekStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} — ${addDays(weekStart, 6).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+  const weekLabel = `${weekStart.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' })} — ${addDays(weekStart, 6).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' })}`
 
   const weekLessons = useMemo(() =>
     lessons.filter((l) => {
@@ -338,9 +343,11 @@ export default function Lessons() {
               /* ── List View ──────────────────────── */
               <div className="bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] rounded-xl overflow-hidden h-full flex flex-col">
                 {/* Tabs */}
-                <div className="flex gap-1 p-2 border-b border-slate-100 dark:border-[#232536] shrink-0">
+                <div className="flex gap-1 p-2 border-b border-slate-100 dark:border-[#232536] shrink-0" role="tablist">
                   <button
                     onClick={() => setListTab('upcoming')}
+                    role="tab"
+                    aria-selected={listTab === 'upcoming'}
                     className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-colors ${
                       listTab === 'upcoming'
                         ? 'bg-[#7C3AED] text-white'
@@ -351,6 +358,8 @@ export default function Lessons() {
                   </button>
                   <button
                     onClick={() => setListTab('past')}
+                    role="tab"
+                    aria-selected={listTab === 'past'}
                     className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-colors ${
                       listTab === 'past'
                         ? 'bg-[#7C3AED] text-white'
@@ -365,7 +374,7 @@ export default function Lessons() {
                 <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
                   {(listTab === 'upcoming' ? upcomingLessons : pastLessons).map((lesson) => {
                     const color = getSubjectColor(lesson.subject)
-                    const dateStr = lesson.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+                    const dateStr = lesson.date.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })
                     const timeStr = formatTime(lesson.date.getHours(), lesson.date.getMinutes())
                     const isSelected = selectedLesson?.id === lesson.id
 
@@ -452,7 +461,7 @@ export default function Lessons() {
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 space-y-1 mb-3 bg-slate-50 dark:bg-[#14161f] rounded-lg p-2">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3 h-3 text-[#7C3AED]" />
-                    {selectedLesson.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}
+                    {selectedLesson.date.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' })}
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-[#7C3AED]" />
@@ -484,17 +493,31 @@ export default function Lessons() {
                           Opens 15 min before lesson
                         </div>
                       )}
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Are you sure you want to cancel this lesson?')) {
-                            setSelectedLesson(null)
-                          }
-                        }}
-                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-[11px] font-medium border border-red-200 dark:border-red-800/30 transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                        Cancel Lesson
-                      </button>
+                      {confirmingCancel ? (
+                        <div className="w-full flex items-center justify-center gap-1.5">
+                          <span className="text-[11px] text-slate-600 dark:text-slate-300">Are you sure?</span>
+                          <button
+                            onClick={() => { setConfirmingCancel(false); setSelectedLesson(null) }}
+                            className="px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800/30 transition-colors"
+                          >
+                            Yes, cancel
+                          </button>
+                          <button
+                            onClick={() => setConfirmingCancel(false)}
+                            className="px-2 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#252839] rounded-md border border-slate-200 dark:border-[#232536] transition-colors"
+                          >
+                            No, keep it
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmingCancel(true)}
+                          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-[11px] font-medium border border-red-200 dark:border-red-800/30 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                          Cancel Lesson
+                        </button>
+                      )}
                     </>
                   )}
                   {selectedLesson.status === 'completed' && (
@@ -534,7 +557,7 @@ export default function Lessons() {
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {nextLesson.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        {nextLesson.date.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })}
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />

@@ -33,7 +33,6 @@ interface Course {
   bgColor: string
   borderColor: string
   modules: Module[]
-  progress: number
 }
 
 // ── Course Data ────────────────────────────────────────────
@@ -47,7 +46,6 @@ const COURSES: Course[] = [
     color: 'text-sky-600',
     bgColor: 'bg-sky-50',
     borderColor: 'border-sky-200',
-    progress: 33,
     modules: [
       {
         id: 'box-breathing',
@@ -86,7 +84,6 @@ const COURSES: Course[] = [
     color: 'text-violet-600',
     bgColor: 'bg-violet-50',
     borderColor: 'border-violet-200',
-    progress: 0,
     modules: [
       {
         id: 'focus-timer',
@@ -125,7 +122,6 @@ const COURSES: Course[] = [
     color: 'text-amber-600',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
-    progress: 0,
     modules: [
       {
         id: 'confidence-affirmations',
@@ -164,7 +160,6 @@ const COURSES: Course[] = [
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-200',
-    progress: 0,
     modules: [
       {
         id: 'resilience-breathing',

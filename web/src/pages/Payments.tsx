@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { paymentService, type PaymentItem } from '../services/payments'
 import { useAuthStore } from '../store/authStore'
-import { CreditCard } from 'lucide-react'
+import { CreditCard, AlertCircle } from 'lucide-react'
 import Layout from '../components/Layout'
 
 export default function Payments() {
   const { user } = useAuthStore()
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['payments'],
     queryFn: paymentService.history,
   })
@@ -39,10 +39,18 @@ export default function Payments() {
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
           </div>
-        ) : error ? (
-          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-red-200">
-            <p className="text-red-600 mb-4">Failed to load payment history.</p>
-            <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
+        ) : isError ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center p-8 bg-rose-50 dark:bg-rose-900/20 rounded-2xl max-w-md">
+              <div className="w-12 h-12 bg-rose-100 dark:bg-rose-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-6 h-6 text-rose-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">Something went wrong</h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-4">Failed to load payment history. Please try again.</p>
+              <button onClick={() => refetch()} className="px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-colors">
+                Try again
+              </button>
+            </div>
           </div>
         ) : !data?.data?.length ? (
           <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536]">

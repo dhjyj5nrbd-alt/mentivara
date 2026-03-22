@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { aiService, type KnowledgeEntry } from '../services/ai'
+import { AlertCircle } from 'lucide-react'
 import Layout from '../components/Layout'
 
 const MASTERY_HIGH = 80
 const MASTERY_MID = 50
 
-function MasteryBar({ pct }: { pct: number }) {
+function MasteryBar({ pct, topicName }: { pct: number; topicName?: string }) {
   const color = pct >= MASTERY_HIGH ? 'bg-emerald-500' : pct >= MASTERY_MID ? 'bg-amber-500' : 'bg-red-500'
   return (
     <div className="flex items-center gap-3 w-full">
@@ -18,6 +19,7 @@ function MasteryBar({ pct }: { pct: number }) {
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-label={topicName ? `${topicName}: ${pct}% mastery` : `${pct}% mastery`}
         />
       </div>
       <span className={`text-sm font-semibold w-12 text-right ${pct >= MASTERY_HIGH ? 'text-emerald-600' : pct >= MASTERY_MID ? 'text-amber-600' : 'text-red-600'}`}>
@@ -28,7 +30,7 @@ function MasteryBar({ pct }: { pct: number }) {
 }
 
 export default function KnowledgeMap() {
-  const { data: knowledgeMap, isLoading, error } = useQuery({
+  const { data: knowledgeMap, isLoading, isError, refetch } = useQuery({
     queryKey: ['knowledge-map'],
     queryFn: aiService.getKnowledgeMap,
   })
@@ -41,10 +43,18 @@ export default function KnowledgeMap() {
 
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" /></div>
-        ) : error ? (
-          <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-red-200">
-            <p className="text-red-600 mb-4">Failed to load your knowledge map.</p>
-            <button onClick={() => window.location.reload()} className="text-[#7C3AED] hover:underline font-medium">Retry</button>
+        ) : isError ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center p-8 bg-rose-50 dark:bg-rose-900/20 rounded-2xl max-w-md">
+              <div className="w-12 h-12 bg-rose-100 dark:bg-rose-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-6 h-6 text-rose-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">Something went wrong</h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-4">Failed to load your knowledge map. Please try again.</p>
+              <button onClick={() => refetch()} className="px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-colors">
+                Try again
+              </button>
+            </div>
           </div>
         ) : !knowledgeMap || Object.keys(knowledgeMap).length === 0 ? (
           <div className="text-center py-12 bg-white dark:bg-[#1a1d2e] rounded-xl border border-slate-200 dark:border-[#232536]">
@@ -63,7 +73,7 @@ export default function KnowledgeMap() {
                         <span className="text-sm text-slate-700 dark:text-slate-300 truncate max-w-[200px]" title={entry.topic_name}>{entry.topic_name}</span>
                         <span className="text-xs text-slate-400">{entry.questions_correct}/{entry.questions_attempted} correct</span>
                       </div>
-                      <MasteryBar pct={entry.mastery_pct} />
+                      <MasteryBar pct={entry.mastery_pct} topicName={entry.topic_name} />
                     </div>
                   ))}
                 </div>

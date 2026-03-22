@@ -39,7 +39,7 @@ function TutorCard({ tutor }: { tutor: TutorListItem }) {
           <img src={photo} alt={tutor.name} className="w-16 h-16 rounded-xl object-cover" />
         ) : (
           <div className="w-16 h-16 rounded-xl bg-[#EDE9FE] dark:bg-[#7C3AED]/20 flex items-center justify-center text-[#7C3AED] font-semibold text-xl">
-            {tutor.name.charAt(0)}
+            {tutor.name?.charAt(0) || '?'}
           </div>
         )}
       </div>
@@ -140,8 +140,10 @@ export default function TutorDirectory() {
         {/* Filter row */}
         <form onSubmit={handleSearch} className="flex items-center gap-2 mb-4 flex-wrap">
           <div className="relative flex-1 min-w-[180px] max-w-xs">
+            <label htmlFor="tutor-search" className="sr-only">Search tutors by name</label>
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
+              id="tutor-search"
               type="text"
               placeholder="Search by name..."
               value={searchInput}
@@ -154,7 +156,9 @@ export default function TutorDirectory() {
             />
           </div>
 
+          <label htmlFor="tutor-subject-filter" className="sr-only">Filter by subject</label>
           <select
+            id="tutor-subject-filter"
             value={filters.subject || ''}
             onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value || undefined }))}
             className="px-3 py-1.5 text-sm border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
@@ -165,7 +169,9 @@ export default function TutorDirectory() {
             ))}
           </select>
 
+          <label htmlFor="tutor-level-filter" className="sr-only">Filter by level</label>
           <select
+            id="tutor-level-filter"
             value={filters.level || ''}
             onChange={(e) => setFilters((f) => ({ ...f, level: e.target.value || undefined }))}
             className="px-3 py-1.5 text-sm border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"

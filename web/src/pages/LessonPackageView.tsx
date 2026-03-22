@@ -5,39 +5,61 @@ import { aiService } from '../services/ai'
 import { BookOpen, Brain, HelpCircle, FileText } from 'lucide-react'
 import Layout from '../components/Layout'
 
-function Flashcard({ front, back }: { front: string; back: string }) {
+function FlipCard({ front, back }: { front: string; back: string }) {
   const [flipped, setFlipped] = useState(false)
   return (
-    <button
-      type="button"
-      onClick={() => setFlipped((f) => !f)}
-      aria-label={flipped ? 'Click to see question' : 'Click to reveal answer'}
-      className="w-full text-left cursor-pointer"
-      style={{ perspective: '800px' }}
-    >
+    <div className="max-w-lg mx-auto">
       <div
-        className="relative transition-transform duration-500 border border-slate-200 rounded-lg hover:border-[#7C3AED]"
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        }}
+        className="cursor-pointer"
+        onClick={() => setFlipped((f) => !f)}
+        style={{ perspective: '1000px' }}
       >
-        {/* Front face */}
-        <div className="p-4" style={{ backfaceVisibility: 'hidden' }}>
-          <p className="font-medium text-slate-900">{front}</p>
-          <p className="text-xs text-slate-400 mt-2">Click to reveal answer</p>
-        </div>
-        {/* Back face */}
         <div
-          className="absolute inset-0 p-4 rounded-lg bg-white"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          className="relative w-full min-h-[200px] transition-transform duration-500"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
         >
-          <p className="text-xs text-[#7C3AED] font-medium mb-1">Answer</p>
-          <p className="text-slate-600 text-sm">{back}</p>
-          <p className="text-xs text-slate-400 mt-2">Click to see question</p>
+          {/* Front face */}
+          <div
+            className="absolute inset-0 p-6 rounded-xl border-2 border-[#7C3AED]/30 bg-white shadow-sm flex flex-col justify-center"
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <p className="text-xs text-[#7C3AED] font-medium mb-2 uppercase tracking-wide">Question</p>
+            <p className="font-medium text-slate-900 text-lg">{front}</p>
+            <p className="text-xs text-slate-400 mt-4">Click to reveal answer</p>
+          </div>
+          {/* Back face */}
+          <div
+            className="absolute inset-0 p-6 rounded-xl border-2 border-emerald-300 bg-emerald-50 shadow-sm flex flex-col justify-center"
+            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          >
+            <p className="text-xs text-emerald-700 font-medium mb-2 uppercase tracking-wide">Answer</p>
+            <p className="text-slate-700 text-lg">{back}</p>
+            <p className="text-xs text-slate-400 mt-4">Click to see question</p>
+          </div>
         </div>
       </div>
-    </button>
+      <div className="flex justify-center mt-4">
+        <button
+          type="button"
+          onClick={() => setFlipped((f) => !f)}
+          className="px-4 py-2 text-sm font-medium rounded-lg border border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-colors"
+        >
+          Flip
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function GridFlashcard({ front, back }: { front: string; back: string }) {
+  return (
+    <div className="border border-slate-200 rounded-lg p-4">
+      <p className="font-medium text-slate-900">{front}</p>
+      <p className="text-slate-600 text-sm mt-2">{back}</p>
+    </div>
   )
 }
 
@@ -45,6 +67,8 @@ export default function LessonPackageView() {
   const { lessonId } = useParams<{ lessonId: string }>()
   const id = Number(lessonId)
   const queryClient = useQueryClient()
+  const [currentCard, setCurrentCard] = useState(0)
+  const [showAllCards, setShowAllCards] = useState(false)
 
   const { data: pkg, isLoading, error } = useQuery({
     queryKey: ['lesson-package', id],
@@ -91,6 +115,7 @@ export default function LessonPackageView() {
             <button
               onClick={() => generateMutation.mutate()}
               disabled={generateMutation.isPending}
+              aria-label="Generate lesson package for this lesson"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-semibold disabled:opacity-70"
             >
               {generateMutation.isPending && (
@@ -121,15 +146,49 @@ export default function LessonPackageView() {
         {pkg.key_notes && (
           <section className="bg-white rounded-xl border border-slate-200 p-6">
             <div className="flex items-center gap-2 mb-3"><BookOpen className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Key Notes</h2></div>
-            <ol className="space-y-2 list-none">{pkg.key_notes.map((note, i) => <li key={i} className="text-slate-700 flex gap-2"><span className="text-[#7C3AED] font-bold">{i+1}.</span>{note}</li>)}</ol>
+            <ol className="space-y-2 list-decimal list-inside marker:text-[#7C3AED] marker:font-bold">{pkg.key_notes.map((note, i) => <li key={i} className="text-slate-700">{note}</li>)}</ol>
           </section>
         )}
         {pkg.flashcards && (
           <section className="bg-white rounded-xl border border-slate-200 p-6">
-            <div className="flex items-center gap-2 mb-3"><Brain className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Flashcards</h2></div>
-            <div className="grid gap-3">{pkg.flashcards.map((fc, i) => (
-              <Flashcard key={i} front={fc.front} back={fc.back} />
-            ))}</div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2"><Brain className="w-5 h-5 text-[#7C3AED]" /><h2 className="font-semibold text-slate-900">Flashcards</h2></div>
+              <button
+                type="button"
+                onClick={() => setShowAllCards((v) => !v)}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                {showAllCards ? 'Single Card' : 'Show All'}
+              </button>
+            </div>
+            {showAllCards ? (
+              <div className="grid gap-3">{pkg.flashcards.map((fc, i) => (
+                <GridFlashcard key={i} front={fc.front} back={fc.back} />
+              ))}</div>
+            ) : (
+              <div>
+                <p className="text-center text-sm text-slate-500 mb-4">Card {currentCard + 1} of {pkg.flashcards.length}</p>
+                <FlipCard front={pkg.flashcards[currentCard].front} back={pkg.flashcards[currentCard].back} />
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentCard((i) => Math.max(0, i - 1))}
+                    disabled={currentCard === 0}
+                    className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentCard((i) => Math.min(pkg.flashcards.length - 1, i + 1))}
+                    disabled={currentCard === pkg.flashcards.length - 1}
+                    className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
         )}
         {pkg.practice_questions && (
