@@ -5,6 +5,7 @@ import {
   Play, X, BookOpen,
 } from 'lucide-react'
 import Layout from '../components/Layout'
+import { useAuthStore } from '../store/authStore'
 
 const LOCALE = navigator.language || LOCALE
 
@@ -113,6 +114,8 @@ function formatTime(hour: number, minute: number): string {
 
 // ── Component ──────────────────────────────────────────────
 export default function Lessons() {
+  const { user } = useAuthStore()
+  const isParent = user?.role === 'parent'
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
   const [listTab, setListTab] = useState<'upcoming' | 'past'>('upcoming')
   const [selectedLesson, setSelectedLesson] = useState<DemoLesson | null>(null)
@@ -478,7 +481,7 @@ export default function Lessons() {
 
                 {/* Actions */}
                 <div className="space-y-1.5">
-                  {selectedLesson.status === 'scheduled' && (
+                  {selectedLesson.status === 'scheduled' && !isParent && (
                     <>
                       {canJoinLesson(selectedLesson) ? (
                         <Link
@@ -570,7 +573,7 @@ export default function Lessons() {
                         <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">until lesson</p>
                       </div>
                     )}
-                    {canJoinLesson(nextLesson) ? (
+                    {!isParent && (canJoinLesson(nextLesson) ? (
                       <Link
                         to={`/classroom/${nextLesson.id}`}
                         className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-semibold transition-colors"
@@ -582,7 +585,7 @@ export default function Lessons() {
                       <div className="mt-2 w-full text-center px-3 py-2 bg-slate-100 dark:bg-[#252839] text-slate-400 dark:text-slate-500 rounded-lg text-[11px]">
                         Opens 15 min before
                       </div>
-                    )}
+                    ))}
                   </div>
                 ) : (
                   <p className="text-xs text-slate-400 dark:text-slate-500">No upcoming lessons</p>
