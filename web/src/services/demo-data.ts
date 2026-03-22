@@ -313,20 +313,90 @@ export const AVAILABILITY = [
 
 // ── Messages / conversations ────────────────────────────────
 
-export const CONVERSATIONS = [
+export interface DemoMessage {
+  id: number
+  senderId: number // 1 = student (Alex), other = tutor
+  text?: string
+  imageUrl?: string
+  fileName?: string
+  fileSize?: string
+  timestamp: string
+  status: 'sent' | 'delivered' | 'seen'
+}
+
+export interface DemoConversation {
+  id: number
+  tutorName: string
+  tutorAvatar: string
+  subject: string
+  lastSeen: string
+  unread: number
+  messages: DemoMessage[]
+}
+
+export const DEMO_CONVERSATIONS: DemoConversation[] = [
   {
-    user: { id: 10, name: 'Dr Sarah Mitchell', avatar: null, role: 'tutor' },
-    last_message: 'See you tomorrow for our lesson!',
-    last_message_at: new Date(Date.now() - 3600000).toISOString(),
-    unread_count: 1,
+    id: 1,
+    tutorName: 'Dr. Sarah Chen',
+    tutorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face',
+    subject: 'Maths',
+    lastSeen: 'Online',
+    unread: 2,
+    messages: [
+      { id: 1, senderId: 10, text: 'Hi Alex! How did you find today\'s lesson on quadratics?', timestamp: 'Today, 1:15 PM', status: 'seen' },
+      { id: 2, senderId: 1, text: 'It was really helpful! I finally understand the discriminant method \ud83d\ude0a', timestamp: 'Today, 1:22 PM', status: 'seen' },
+      { id: 3, senderId: 10, text: 'That\'s great to hear! I\'ve uploaded some extra practice questions for you', timestamp: 'Today, 1:30 PM', status: 'seen' },
+      { id: 4, senderId: 10, fileName: 'Quadratic-Practice-Set.pdf', fileSize: '245 KB', timestamp: 'Today, 1:31 PM', status: 'seen' },
+      { id: 5, senderId: 1, text: 'Thanks! I\'ll work through them tonight', timestamp: 'Today, 1:45 PM', status: 'seen' },
+      { id: 6, senderId: 10, text: 'Perfect. Also, here\'s a diagram that might help visualise the parabola transformations', timestamp: 'Today, 2:00 PM', status: 'seen' },
+      { id: 7, senderId: 10, imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop', timestamp: 'Today, 2:01 PM', status: 'seen' },
+      { id: 8, senderId: 1, text: 'This is really clear, thank you!', timestamp: 'Today, 2:10 PM', status: 'seen' },
+      { id: 9, senderId: 10, text: 'You\'re welcome! Don\'t hesitate to ask if you get stuck on any questions', timestamp: 'Today, 2:30 PM', status: 'delivered' },
+      { id: 10, senderId: 10, text: 'Also remember our next lesson is Thursday at 4pm \ud83d\udc4b', timestamp: 'Today, 2:31 PM', status: 'delivered' },
+    ],
   },
   {
-    user: { id: 11, name: 'James Chen', avatar: null, role: 'tutor' },
-    last_message: 'Great work on the cell biology quiz!',
-    last_message_at: new Date(Date.now() - 86400000).toISOString(),
-    unread_count: 0,
+    id: 2,
+    tutorName: 'Prof. James Wilson',
+    tutorAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face',
+    subject: 'English',
+    lastSeen: 'Last seen 2h ago',
+    unread: 0,
+    messages: [
+      { id: 11, senderId: 1, text: 'Hi Professor Wilson, I\'ve finished my essay draft on Macbeth', timestamp: 'Yesterday, 3:00 PM', status: 'seen' },
+      { id: 12, senderId: 20, text: 'Excellent! Can you send it over? I\'ll review it before our next session', timestamp: 'Yesterday, 3:15 PM', status: 'seen' },
+      { id: 13, senderId: 1, fileName: 'Macbeth-Essay-Draft.docx', fileSize: '52 KB', timestamp: 'Yesterday, 3:20 PM', status: 'seen' },
+      { id: 14, senderId: 20, text: 'Got it! I\'ll have feedback ready by Wednesday', timestamp: 'Yesterday, 3:30 PM', status: 'seen' },
+      { id: 15, senderId: 1, text: 'Thank you! I focused on the PEEL structure you taught us', timestamp: 'Yesterday, 3:35 PM', status: 'seen' },
+      { id: 16, senderId: 20, text: 'Good approach. I\'ll pay special attention to your evidence analysis', timestamp: 'Yesterday, 3:45 PM', status: 'seen' },
+    ],
+  },
+  {
+    id: 3,
+    tutorName: 'Dr. Emily Brooks',
+    tutorAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face',
+    subject: 'Biology',
+    lastSeen: 'Online',
+    unread: 1,
+    messages: [
+      { id: 17, senderId: 30, text: 'Hi Alex, just a reminder about the photosynthesis diagram homework', timestamp: 'Today, 10:00 AM', status: 'seen' },
+      { id: 18, senderId: 1, text: 'Yes, I\'m working on it! Quick question - should I include the Calvin cycle?', timestamp: 'Today, 10:15 AM', status: 'seen' },
+      { id: 19, senderId: 30, text: 'Yes, include both the light-dependent and light-independent reactions', timestamp: 'Today, 10:20 AM', status: 'seen' },
+      { id: 20, senderId: 1, text: 'Got it \ud83d\udc4d', timestamp: 'Today, 10:25 AM', status: 'seen' },
+      { id: 21, senderId: 30, text: 'Here\'s a helpful reference image', timestamp: 'Today, 11:00 AM', status: 'seen' },
+      { id: 22, senderId: 30, imageUrl: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=400&h=300&fit=crop', timestamp: 'Today, 11:01 AM', status: 'seen' },
+      { id: 23, senderId: 30, text: 'Submit it by Friday if you can! \ud83d\udcdd', timestamp: 'Today, 11:05 AM', status: 'delivered' },
+    ],
   },
 ]
+
+// Legacy format kept for backward compatibility with demo-interceptor
+export const CONVERSATIONS = DEMO_CONVERSATIONS.map((c) => ({
+  user: { id: c.id * 10, name: c.tutorName, avatar: c.tutorAvatar, role: 'tutor' as const },
+  last_message: c.messages[c.messages.length - 1]?.text ?? c.messages[c.messages.length - 1]?.fileName ?? '',
+  last_message_at: new Date().toISOString(),
+  unread_count: c.unread,
+}))
 
 export const MESSAGES = [
   { id: 1, sender_id: 1, receiver_id: 10, body: 'Hi Dr Mitchell, I had a question about the homework', read_at: new Date().toISOString(), created_at: new Date(Date.now() - 7200000).toISOString() },
