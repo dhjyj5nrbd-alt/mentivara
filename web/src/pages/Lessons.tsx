@@ -593,14 +593,16 @@ export default function Lessons() {
               </div>
             )}
 
-            {/* Book New Lesson - always visible */}
-            <Link
-              to="/tutors"
-              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-semibold transition-colors shadow-sm shrink-0"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              Book New Lesson
-            </Link>
+            {/* Book New Lesson - students only */}
+            {!isParent && user?.role !== 'tutor' && (
+              <Link
+                to="/tutors"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-semibold transition-colors shadow-sm shrink-0"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Book New Lesson
+              </Link>
+            )}
           </div>
         </div>
       </div>
