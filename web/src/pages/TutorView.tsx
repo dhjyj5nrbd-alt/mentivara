@@ -65,6 +65,8 @@ export default function TutorView() {
     enabled: !!id,
   })
 
+  const [showReviews, setShowReviews] = useState(false)
+
   if (isLoading) {
     return (
       <Layout>
@@ -88,7 +90,6 @@ export default function TutorView() {
     )
   }
 
-  const [showReviews, setShowReviews] = useState(false)
   const photo = TUTOR_PHOTOS[Number(id)] || null
   const stats = TUTOR_STATS[Number(id)] || { rating: 4.5, reviews: 0, rate: 40, experience: '3 years', students: 10, lessons: 100 }
   const reviews = TUTOR_REVIEWS[Number(id)] || []
