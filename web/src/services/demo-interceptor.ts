@@ -12,8 +12,9 @@ import {
   QUESTION_BANK, DAILY_MISSIONS, STREAK_DATA,
   FORUM_CATEGORIES, FORUM_THREADS, FORUM_REPLIES,
   STUDY_GROUPS,
+  COMPETITIONS, COMPETITION_LEADERBOARD,
 } from './demo-data'
-import type { BankQuestion, ForumThread, ForumReply, StudyGroup, StudyGroupMessage } from './demo-data'
+import type { BankQuestion, ForumThread, ForumReply, StudyGroup, StudyGroupMessage, Competition } from './demo-data'
 
 // Re-export TUTOR_LIST for the interceptor since it's computed in demo-data
 // Actually we need to compute it here since demo-data doesn't export it
@@ -659,6 +660,39 @@ export async function handleDemoRequest(
       group.members.push({ name: DEMO_USER.name, role: 'member', online: true })
     }
     return { data: ok({ success: true }), status: 200 }
+  }
+
+  // ── Competitions ────────────────────────────────────────
+  if (url === '/competitions' && method === 'get') {
+    return { data: ok({ competitions: COMPETITIONS, leaderboard: COMPETITION_LEADERBOARD }), status: 200 }
+  }
+  const compSubmitMatch = url.match(/^\/competitions\/(\d+)\/submit$/)
+  if (compSubmitMatch && method === 'post') {
+    const compId = Number(compSubmitMatch[1])
+    const competition = COMPETITIONS.find((c) => c.id === compId)
+    if (!competition) {
+      return { data: { error: 'Competition not found' }, status: 404 }
+    }
+    const body = JSON.parse(config.data ?? '{}')
+    const answer = (body.answer ?? '').trim()
+    let correct = false
+    if (competition.type === 'mcq') {
+      correct = answer.toLowerCase() === competition.correctAnswer.toLowerCase()
+    } else {
+      // Simple keyword match for open-ended
+      const normAnswer = answer.toLowerCase().replace(/\s+/g, '')
+      const normCorrect = competition.correctAnswer.toLowerCase().replace(/\s+/g, '')
+      correct = normAnswer.includes(normCorrect) || normCorrect.includes(normAnswer)
+    }
+    return {
+      data: ok({
+        correct,
+        xpEarned: correct ? competition.xpReward : 0,
+        correctAnswer: competition.correctAnswer,
+        explanation: competition.explanation,
+      }),
+      status: 200,
+    }
   }
 
   // ── Catch-all: return empty success ─────────────────────

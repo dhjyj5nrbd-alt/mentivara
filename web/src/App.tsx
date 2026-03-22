@@ -30,6 +30,7 @@ import StudyMissions from './pages/StudyMissions'
 import Forum from './pages/Forum'
 import StudyGroups from './pages/StudyGroups'
 import AdminPayments from './pages/admin/AdminPayments'
+import Competitions from './pages/Competitions'
 
 const queryClient = new QueryClient()
 
@@ -72,6 +73,7 @@ function AppRoutes() {
       <Route path="/forum/thread/:threadId" element={<ProtectedRoute roles={['student']}><Forum /></ProtectedRoute>} />
       <Route path="/study-groups" element={<ProtectedRoute roles={['student']}><StudyGroups /></ProtectedRoute>} />
       <Route path="/study-groups/:groupId" element={<ProtectedRoute roles={['student']}><StudyGroups /></ProtectedRoute>} />
+      <Route path="/competitions" element={<ProtectedRoute roles={['student']}><Competitions /></ProtectedRoute>} />
       <Route path="/messages/conversations" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />

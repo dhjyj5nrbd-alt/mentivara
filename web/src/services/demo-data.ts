@@ -1883,3 +1883,147 @@ export const STUDY_GROUPS: StudyGroup[] = [
     messages: [],
   },
 ]
+
+// ── Competitions ──────────────────────────────────────────────
+
+export interface Competition {
+  id: number
+  tutorName: string
+  tutorAvatar: string
+  title: string
+  subject: string
+  question: string
+  type: 'open' | 'mcq'
+  options?: string[]
+  deadline: string
+  submissions: number
+  xpReward: number
+  difficulty: 'Easy' | 'Medium' | 'Hard'
+  active: boolean
+  correctAnswer: string
+  explanation: string
+  winner?: { name: string; xp: number }
+  topEntries?: { rank: number; name: string; correct: boolean; time: string }[]
+  mySubmission?: { answer: string; correct: boolean; rank: number }
+}
+
+export interface CompetitionLeaderboardEntry {
+  rank: number
+  name: string
+  avatar: string | null
+  won: number
+  xp: number
+}
+
+export const COMPETITIONS: Competition[] = [
+  {
+    id: 1,
+    tutorName: 'Dr. Sarah Chen',
+    tutorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop',
+    title: 'Microscopy Calculation Challenge',
+    subject: 'Biology',
+    question: 'A specimen viewed under a light microscope appears to be 4.5 mm long. The magnification used is \u00d7400. Calculate the actual size of the specimen in micrometres. Show your working.',
+    type: 'open',
+    deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    submissions: 34,
+    xpReward: 50,
+    difficulty: 'Medium',
+    active: true,
+    correctAnswer: '11.25 \u03bcm',
+    explanation: 'Actual size = Image size \u00f7 Magnification = 4.5 mm \u00f7 400 = 0.01125 mm = 11.25 \u03bcm',
+  },
+  {
+    id: 2,
+    tutorName: 'Prof. James Wilson',
+    tutorAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+    title: 'Quick Fire Algebra',
+    subject: 'Maths',
+    question: 'Solve the simultaneous equations:\n3x + 2y = 16\n5x - 2y = 8',
+    type: 'open',
+    deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    submissions: 56,
+    xpReward: 40,
+    difficulty: 'Easy',
+    active: true,
+    correctAnswer: 'x = 3, y = 3.5',
+    explanation: 'Adding both equations: 8x = 24, so x = 3. Substituting: 9 + 2y = 16, so y = 3.5',
+  },
+  {
+    id: 3,
+    tutorName: 'Dr. Emily Brooks',
+    tutorAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop',
+    title: 'Organic Chemistry Speed Round',
+    subject: 'Chemistry',
+    question: 'What is the product when ethene reacts with steam in the presence of phosphoric acid catalyst?',
+    type: 'mcq',
+    options: ['Ethanol', 'Ethanoic acid', 'Ethanal', 'Ethane'],
+    deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    submissions: 78,
+    xpReward: 30,
+    difficulty: 'Easy',
+    active: true,
+    correctAnswer: 'Ethanol',
+    explanation: 'Ethene + Steam \u2192 Ethanol. This is the hydration of ethene, an addition reaction catalysed by phosphoric acid.',
+  },
+  {
+    id: 4,
+    tutorName: 'Dr. Mark Thompson',
+    tutorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+    title: 'Physics Brain Teaser',
+    subject: 'Physics',
+    question: 'A ball is thrown vertically upwards with an initial velocity of 20 m/s. Taking g = 10 m/s\u00b2, what is the maximum height reached?',
+    type: 'mcq',
+    options: ['10 m', '20 m', '30 m', '40 m'],
+    deadline: '2025-03-18T23:59:59Z',
+    submissions: 92,
+    xpReward: 35,
+    difficulty: 'Medium',
+    active: false,
+    correctAnswer: '20 m',
+    explanation: 'Using v\u00b2 = u\u00b2 - 2gs: 0 = 400 - 20s, so s = 20 m',
+    winner: { name: 'Amara Patel', xp: 35 },
+    topEntries: [
+      { rank: 1, name: 'Amara Patel', correct: true, time: '45s' },
+      { rank: 2, name: 'Ryan Murphy', correct: true, time: '1m 12s' },
+      { rank: 3, name: 'Sophie Williams', correct: true, time: '1m 30s' },
+      { rank: 4, name: 'Alex Johnson', correct: true, time: '2m 5s' },
+      { rank: 5, name: 'James Okafor', correct: false, time: '3m' },
+    ],
+    mySubmission: { answer: '20 m', correct: true, rank: 4 },
+  },
+  {
+    id: 5,
+    tutorName: 'Dr. Sarah Chen',
+    tutorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop',
+    title: 'Cell Biology Diagram Challenge',
+    subject: 'Biology',
+    question: 'Name the organelle that is the site of protein synthesis.',
+    type: 'mcq',
+    options: ['Mitochondria', 'Ribosome', 'Golgi apparatus', 'Lysosome'],
+    deadline: '2025-03-15T23:59:59Z',
+    submissions: 145,
+    xpReward: 25,
+    difficulty: 'Easy',
+    active: false,
+    correctAnswer: 'Ribosome',
+    explanation: 'Ribosomes are the organelles responsible for protein synthesis (translation).',
+    winner: { name: 'Sophie Williams', xp: 25 },
+    topEntries: [
+      { rank: 1, name: 'Sophie Williams', correct: true, time: '12s' },
+      { rank: 2, name: 'Alex Johnson', correct: true, time: '18s' },
+      { rank: 3, name: 'Amara Patel', correct: true, time: '25s' },
+    ],
+    mySubmission: { answer: 'Ribosome', correct: true, rank: 2 },
+  },
+]
+
+export const COMPETITION_LEADERBOARD: CompetitionLeaderboardEntry[] = [
+  { rank: 1, name: 'Amara Patel', avatar: null, won: 8, xp: 380 },
+  { rank: 2, name: 'Sophie Williams', avatar: null, won: 6, xp: 310 },
+  { rank: 3, name: 'Ryan Murphy', avatar: null, won: 5, xp: 275 },
+  { rank: 4, name: 'Alex Johnson', avatar: null, won: 3, xp: 245 },
+  { rank: 5, name: 'James Okafor', avatar: null, won: 3, xp: 220 },
+  { rank: 6, name: 'Emma Davis', avatar: null, won: 2, xp: 180 },
+  { rank: 7, name: 'Tom Richards', avatar: null, won: 2, xp: 155 },
+  { rank: 8, name: 'Lily Chen', avatar: null, won: 1, xp: 120 },
+]

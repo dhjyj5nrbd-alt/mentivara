@@ -230,6 +230,13 @@ export default function Dashboard() {
               iconBg="bg-slate-100 text-slate-600"
             />
             <DashCard
+              to="/competitions" icon={Trophy} title="Competitions"
+              desc="Win XP in tutor challenges"
+              accent="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 hover:border-amber-300 dark:from-amber-900/20 dark:to-yellow-900/20 dark:border-amber-700"
+              iconBg="bg-amber-100 text-amber-600"
+              stat="3" statLabel="Active"
+            />
+            <DashCard
               to="/leaderboard" icon={Trophy} title="Leaderboard"
               desc="Compete with other students"
               accent="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700"

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import {
   Heart, Bookmark, Share2, MessageCircle, Play, Pause,
@@ -70,7 +71,17 @@ export default function TutorReels() {
     <Layout>
       <div className="max-w-2xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 3.5rem)' }}>
         {/* Category filter bar */}
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-3 py-2.5">
+        <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#0f1117]/95 backdrop-blur-sm border-b border-slate-100 dark:border-[#232536] px-3 py-2.5">
+          <div className="flex items-center justify-between mb-2">
+            <div />
+            <Link
+              to="/competitions"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              Competitions
+            </Link>
+          </div>
           <div
             className="flex gap-2 overflow-x-auto pb-0.5"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
