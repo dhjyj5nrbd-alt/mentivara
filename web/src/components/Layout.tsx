@@ -5,7 +5,7 @@ import { useThemeStore } from '../store/themeStore'
 import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
   LayoutDashboard, MessageSquare, Users, UsersRound, Dumbbell, Clapperboard, Target,
-  LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon, Sparkles,
+  LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon, Sparkles, Clock,
 } from 'lucide-react'
 
 interface Props {
@@ -34,6 +34,7 @@ export default function Layout({ children }: Props) {
     { to: '/knowledge-map', icon: Brain, label: 'Knowledge' },
     { to: '/doubts', icon: HelpCircle, label: 'AI Help' },
     { to: '/study-coach', icon: Sparkles, label: 'AI Coach' },
+    { to: '/study-optimizer', icon: Clock, label: 'Optimizer' },
     { to: '/reels', icon: Clapperboard, label: 'Reels' },
     { to: '/forum', icon: Users, label: 'Forum' },
     { to: '/study-groups', icon: UsersRound, label: 'Groups' },

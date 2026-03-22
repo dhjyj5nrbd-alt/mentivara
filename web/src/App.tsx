@@ -32,6 +32,7 @@ import StudyGroups from './pages/StudyGroups'
 import AdminPayments from './pages/admin/AdminPayments'
 import Competitions from './pages/Competitions'
 import StudyCoach from './pages/StudyCoach'
+import StudyOptimizer from './pages/StudyOptimizer'
 
 const queryClient = new QueryClient()
 
@@ -76,6 +77,7 @@ function AppRoutes() {
       <Route path="/study-groups/:groupId" element={<ProtectedRoute roles={['student']}><StudyGroups /></ProtectedRoute>} />
       <Route path="/competitions" element={<ProtectedRoute roles={['student']}><Competitions /></ProtectedRoute>} />
       <Route path="/study-coach" element={<ProtectedRoute roles={['student']}><StudyCoach /></ProtectedRoute>} />
+      <Route path="/study-optimizer" element={<ProtectedRoute roles={['student']}><StudyOptimizer /></ProtectedRoute>} />
       <Route path="/messages/conversations" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />

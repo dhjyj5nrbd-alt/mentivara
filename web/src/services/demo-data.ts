@@ -2155,3 +2155,115 @@ export const STUDY_COACH_DATA: StudyCoachData = {
     },
   ],
 }
+
+// ── Study Optimizer ─────────────────────────────────────────
+
+export interface StudyBlock {
+  time: string
+  duration: string
+  topic: string
+  type: 'practice' | 'review' | 'exam' | 'flashcards'
+  subject: string
+}
+
+export interface StudyDay {
+  day: string
+  date: string
+  blocks: StudyBlock[]
+}
+
+export interface StudyScheduleInsights {
+  practiceQuestions: number
+  reviewNotes: number
+  mockExams: number
+  flashcards: number
+  estimatedImprovement: string
+  approach: string
+}
+
+export interface StudyScheduleConfig {
+  hoursPerDay: number
+  daysUntilExam: number
+  subjects: string[]
+  preferredTime: string
+}
+
+export interface StudyScheduleData {
+  config: StudyScheduleConfig
+  insights: StudyScheduleInsights
+  days: StudyDay[]
+}
+
+export const STUDY_SCHEDULE: StudyScheduleData = {
+  config: {
+    hoursPerDay: 2,
+    daysUntilExam: 14,
+    subjects: ['Biology'],
+    preferredTime: 'Afternoon',
+  },
+  insights: {
+    practiceQuestions: 40,
+    reviewNotes: 25,
+    mockExams: 20,
+    flashcards: 15,
+    estimatedImprovement: '6-10%',
+    approach: 'Practice-heavy (matches your learning style)',
+  },
+  days: [
+    {
+      day: 'Monday',
+      date: 'Mar 24',
+      blocks: [
+        { time: '4:00 PM', duration: '1h', topic: 'Microscopy Calculations', type: 'practice', subject: 'Biology' },
+        { time: '5:00 PM', duration: '1h', topic: 'Membrane Transport', type: 'review', subject: 'Biology' },
+      ],
+    },
+    {
+      day: 'Tuesday',
+      date: 'Mar 25',
+      blocks: [
+        { time: '4:00 PM', duration: '1h', topic: 'Cell Structure', type: 'flashcards', subject: 'Biology' },
+        { time: '5:00 PM', duration: '1h', topic: 'Cells Topic', type: 'exam', subject: 'Biology' },
+      ],
+    },
+    {
+      day: 'Wednesday',
+      date: 'Mar 26',
+      blocks: [
+        { time: '4:00 PM', duration: '1h', topic: 'Enzyme Kinetics', type: 'practice', subject: 'Biology' },
+        { time: '5:00 PM', duration: '1h', topic: 'Microscopy', type: 'review', subject: 'Biology' },
+      ],
+    },
+    {
+      day: 'Thursday',
+      date: 'Mar 27',
+      blocks: [
+        { time: '4:00 PM', duration: '1h', topic: 'Membrane Transport', type: 'flashcards', subject: 'Biology' },
+        { time: '5:00 PM', duration: '1h', topic: 'Genetics Basics', type: 'practice', subject: 'Biology' },
+      ],
+    },
+    {
+      day: 'Friday',
+      date: 'Mar 28',
+      blocks: [
+        { time: '4:00 PM', duration: '1h', topic: 'Microscopy + Membranes', type: 'exam', subject: 'Biology' },
+        { time: '5:00 PM', duration: '1h', topic: 'Enzyme Kinetics', type: 'review', subject: 'Biology' },
+      ],
+    },
+    {
+      day: 'Saturday',
+      date: 'Mar 29',
+      blocks: [
+        { time: '10:00 AM', duration: '1h', topic: 'Weak Topics Revision', type: 'practice', subject: 'Biology' },
+        { time: '11:00 AM', duration: '1h', topic: 'Full Mock Exam', type: 'exam', subject: 'Biology' },
+      ],
+    },
+    {
+      day: 'Sunday',
+      date: 'Mar 30',
+      blocks: [
+        { time: '10:00 AM', duration: '1h', topic: 'Quick Review — All Flashcards', type: 'flashcards', subject: 'Biology' },
+      ],
+    },
+  ],
+}

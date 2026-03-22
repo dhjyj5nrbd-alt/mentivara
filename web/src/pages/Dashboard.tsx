@@ -6,7 +6,7 @@ import { TUTOR_REELS } from '../services/demo-data'
 import {
   BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
   Dumbbell, MessageSquare, Shield, Users, UsersRound, Trophy, Flame, Clapperboard, Target,
-  Play, ChevronRight, ChevronLeft, Sparkles,
+  Play, ChevronRight, ChevronLeft, Sparkles, Clock,
 } from 'lucide-react'
 
 interface CardProps {
@@ -201,6 +201,13 @@ export default function Dashboard() {
               accent="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:border-purple-300 dark:from-purple-900/20 dark:to-violet-900/20 dark:border-purple-700"
               iconBg="bg-purple-100 text-[#7C3AED]"
               stat="72%" statLabel="Score"
+            />
+            <DashCard
+              to="/study-optimizer" icon={Clock} title="Study Optimizer"
+              desc="AI-powered study schedule planner"
+              accent="bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200 hover:border-indigo-300 dark:from-indigo-900/20 dark:to-blue-900/20 dark:border-indigo-700"
+              iconBg="bg-indigo-100 text-indigo-600"
+              stat="14d" statLabel="Until exam"
             />
             <DashCard
               to="/forum" icon={Users} title="Student Forum"
