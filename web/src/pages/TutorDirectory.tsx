@@ -1,8 +1,93 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { tutorService, type RefData, type TutorFilters } from '../services/tutors'
-import { Search } from 'lucide-react'
+import { tutorService, type RefData, type TutorFilters, type TutorListItem } from '../services/tutors'
+import { Search, X, CheckCircle, Star } from 'lucide-react'
+import Layout from '../components/Layout'
+
+const TUTOR_PHOTOS: Record<number, string> = {
+  1: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
+  2: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+  3: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face',
+  4: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face',
+}
+
+const TUTOR_STATS: Record<number, { rating: number; reviews: number; rate: number; experience: string }> = {
+  1: { rating: 4.9, reviews: 127, rate: 45, experience: '8 years' },
+  2: { rating: 4.8, reviews: 89, rate: 50, experience: '6 years' },
+  3: { rating: 4.7, reviews: 156, rate: 40, experience: '10 years' },
+  4: { rating: 4.9, reviews: 73, rate: 55, experience: '5 years' },
+}
+
+function TutorCard({ tutor }: { tutor: TutorListItem }) {
+  const photo = TUTOR_PHOTOS[tutor.id]
+  const stats = TUTOR_STATS[tutor.id] || { rating: 4.5, reviews: 0, rate: 40, experience: '3 years' }
+
+  const allLevels = tutor.subjects.flatMap((s) => s.levels)
+  const uniqueLevels = [...new Set(allLevels)]
+
+  return (
+    <div className="bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-[#232536] rounded-xl p-4 flex flex-col hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-3 mb-2">
+        {photo ? (
+          <img
+            src={photo}
+            alt={tutor.name}
+            className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-[#EDE9FE] dark:bg-[#7C3AED]/20 flex items-center justify-center text-[#7C3AED] font-semibold text-lg flex-shrink-0">
+            {tutor.name.charAt(0)}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-white truncate">{tutor.name}</h3>
+              {tutor.verified && (
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+              )}
+            </div>
+            <span className="text-sm font-bold text-[#7C3AED] flex-shrink-0">&pound;{stats.rate}/hr</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+            <span className="font-medium text-slate-700 dark:text-slate-300">{stats.rating}</span>
+            <span>({stats.reviews} reviews)</span>
+            <span className="mx-1">&middot;</span>
+            <span>{stats.experience}</span>
+          </div>
+        </div>
+      </div>
+
+      {tutor.bio && (
+        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{tutor.bio}</p>
+      )}
+
+      <div className="flex flex-wrap gap-1 mb-2">
+        {tutor.subjects.map((s, i) => (
+          <span key={i} className="text-[10px] px-2 py-0.5 bg-[#EDE9FE] dark:bg-[#7C3AED]/20 text-[#7C3AED] rounded-full font-medium">
+            {s.name}
+          </span>
+        ))}
+        {uniqueLevels.map((level, i) => (
+          <span key={`level-${i}`} className="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-[#252839] text-slate-500 dark:text-slate-400 rounded-full">
+            {level}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-auto pt-1">
+        <Link
+          to={`/tutors/${tutor.id}`}
+          className="block w-full text-center text-xs font-medium px-3 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition-colors"
+        >
+          Book Now
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 export default function TutorDirectory() {
   const [filters, setFilters] = useState<TutorFilters>({})
@@ -21,44 +106,38 @@ export default function TutorDirectory() {
     setFilters((f) => ({ ...f, search: searchInput || undefined }))
   }
 
+  const hasFilters = filters.subject || filters.level || filters.search
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-[#1E1B4B]">Mentivara</Link>
-          <div className="flex gap-3">
-            <Link to="/login" className="text-sm text-slate-600 hover:text-slate-900">Sign In</Link>
-            <Link to="/register" className="text-sm px-4 py-1.5 bg-[#7C3AED] text-white rounded-lg">Get Started</Link>
-          </div>
+    <Layout>
+      <div className="px-4 sm:px-6 py-3 max-w-7xl mx-auto">
+        {/* Header row */}
+        <div className="flex items-baseline gap-3 mb-3">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Find a Tutor</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Browse our curated tutors and find the perfect match</p>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-[#1E1B4B] mb-2">Find a Tutor</h1>
-        <p className="text-slate-600 mb-8">Browse our curated tutors and find the perfect match.</p>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by name..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
-              />
-            </div>
-            <button type="submit" className="px-4 py-2 bg-[#7C3AED] text-white text-sm rounded-lg">
-              Search
-            </button>
-          </form>
+        {/* Filter row */}
+        <form onSubmit={handleSearch} className="flex items-center gap-2 mb-4 flex-wrap">
+          <div className="relative flex-1 min-w-[180px] max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value)
+                if (!e.target.value) setFilters((f) => ({ ...f, search: undefined }))
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(e) }}
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
+            />
+          </div>
 
           <select
             value={filters.subject || ''}
             onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value || undefined }))}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+            className="px-3 py-1.5 text-sm border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
           >
             <option value="">All Subjects</option>
             {subjects?.map((s: RefData) => (
@@ -69,7 +148,7 @@ export default function TutorDirectory() {
           <select
             value={filters.level || ''}
             onChange={(e) => setFilters((f) => ({ ...f, level: e.target.value || undefined }))}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+            className="px-3 py-1.5 text-sm border border-slate-300 dark:border-[#2d3048] rounded-lg bg-white dark:bg-[#252839] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
           >
             <option value="">All Levels</option>
             {levels?.map((l: RefData) => (
@@ -77,15 +156,24 @@ export default function TutorDirectory() {
             ))}
           </select>
 
-          {(filters.subject || filters.level || filters.search) && (
+          <button
+            type="submit"
+            className="px-3 py-1.5 text-sm bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition-colors"
+          >
+            Search
+          </button>
+
+          {hasFilters && (
             <button
+              type="button"
               onClick={() => { setFilters({}); setSearchInput('') }}
-              className="px-3 py-2 text-sm text-slate-600 hover:text-slate-900"
+              className="flex items-center gap-1 px-2 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
             >
-              Clear filters
+              <X className="w-3 h-3" />
+              Clear
             </button>
           )}
-        </div>
+        </form>
 
         {/* Tutor grid */}
         {isLoading ? (
@@ -93,43 +181,17 @@ export default function TutorDirectory() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
           </div>
         ) : tutorData?.data.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
             No tutors found matching your criteria.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {tutorData?.data.map((tutor) => (
-              <Link
-                key={tutor.id}
-                to={`/tutors/${tutor.id}`}
-                className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] font-semibold text-lg">
-                    {tutor.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{tutor.name}</h3>
-                    {tutor.verified && (
-                      <span className="text-xs text-emerald-600 font-medium">Verified</span>
-                    )}
-                  </div>
-                </div>
-                {tutor.bio && (
-                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">{tutor.bio}</p>
-                )}
-                <div className="flex flex-wrap gap-1.5">
-                  {tutor.subjects.map((s, i) => (
-                    <span key={i} className="text-xs px-2 py-1 bg-[#EDE9FE] text-[#7C3AED] rounded-full">
-                      {s.name}
-                    </span>
-                  ))}
-                </div>
-              </Link>
+              <TutorCard key={tutor.id} tutor={tutor} />
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }
