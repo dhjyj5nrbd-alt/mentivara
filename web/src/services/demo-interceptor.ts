@@ -28,11 +28,12 @@ const TUTOR_LIST_ITEMS = TUTORS.map((t) => ({
 }))
 
 export function isDemoMode(): boolean {
-  return localStorage.getItem('demo') === 'true'
+  return localStorage.getItem('demo') === 'true' || localStorage.getItem('demo-mode') === 'true'
 }
 
 export function enableDemoMode(): void {
   localStorage.setItem('demo', 'true')
+  localStorage.setItem('demo-mode', 'true')
   localStorage.setItem('token', 'demo-token-mentivara-student')
 }
 
@@ -96,9 +97,9 @@ function delay(ms = 200): Promise<void> {
 export async function handleDemoRequest(
   config: InternalAxiosRequestConfig
 ): Promise<{ data: unknown; status: number } | null> {
-  // Strip trailing ? and query params for cleaner matching
+  // Strip base URL prefix, trailing ? and query params for cleaner matching
   const rawUrl = config.url ?? ''
-  const url = rawUrl.split('?')[0]
+  const url = rawUrl.replace(/^\/api\/v\d+/, '').split('?')[0]
   const method = (config.method ?? 'get').toLowerCase()
 
   await delay(150 + Math.random() * 200)

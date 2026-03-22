@@ -233,7 +233,7 @@ export default function ExamSimulator() {
       })
       const exam = data.data ?? data
       setSessionId(exam.id)
-      setQuestions(exam.questions)
+      setQuestions(exam.questions ?? [])
       setAnswers({})
       setFeedback({})
       setFlagged(new Set())
