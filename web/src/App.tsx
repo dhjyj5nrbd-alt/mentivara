@@ -40,6 +40,7 @@ import TutorAvailability from './pages/TutorAvailability'
 import TutorStudents from './pages/TutorStudents'
 import TutorReelUpload from './pages/TutorReelUpload'
 import TutorEarnings from './pages/TutorEarnings'
+import TutorQuestionBank from './pages/TutorQuestionBank'
 
 const queryClient = new QueryClient()
 
@@ -93,6 +94,7 @@ function AppRoutes() {
       <Route path="/tutor/students" element={<ProtectedRoute roles={['tutor']}><TutorStudents /></ProtectedRoute>} />
       <Route path="/tutor/reels" element={<ProtectedRoute roles={['tutor']}><TutorReelUpload /></ProtectedRoute>} />
       <Route path="/tutor/earnings" element={<ProtectedRoute roles={['tutor']}><TutorEarnings /></ProtectedRoute>} />
+      <Route path="/tutor/questions" element={<ProtectedRoute roles={['tutor']}><TutorQuestionBank /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />

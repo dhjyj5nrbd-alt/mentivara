@@ -36,7 +36,7 @@ const QUICK_ACTIONS = [
   { label: 'Set Availability', icon: Calendar, to: '/tutor/availability', color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
   { label: 'Upload Reel', icon: Upload, to: '/tutor/reels', color: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400' },
   { label: 'View Earnings', icon: DollarSign, to: '/tutor/earnings', color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  { label: 'Question Bank', icon: HelpCircle, to: '/exam', color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
+  { label: 'Question Bank', icon: HelpCircle, to: '/tutor/questions', color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
   { label: 'My Students', icon: UserCheck, to: '/tutor/students', color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' },
   { label: 'AI Copilot', icon: Sparkles, to: '/lessons', color: 'bg-purple-100 text-[#7C3AED] dark:bg-purple-900/30 dark:text-purple-400' },
 ]

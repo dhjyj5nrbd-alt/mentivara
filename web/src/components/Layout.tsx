@@ -50,6 +50,7 @@ export default function Layout({ children }: Props) {
     { to: '/tutor/students', icon: UserCheck, label: 'My Students' },
     { to: '/tutor/availability', icon: Calendar, label: 'Availability' },
     { to: '/tutor/reels', icon: Upload, label: 'My Reels' },
+    { to: '/tutor/questions', icon: HelpCircle, label: 'Question Bank' },
     { to: '/tutor/earnings', icon: CreditCard, label: 'Earnings' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
   ]
