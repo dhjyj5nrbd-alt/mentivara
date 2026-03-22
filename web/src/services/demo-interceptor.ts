@@ -9,7 +9,9 @@ import {
   EXAM_QUESTIONS, EXAM_ANSWERS, DOUBTS, PAYMENTS,
   LESSON_PACKAGE, AVAILABILITY, CONVERSATIONS, MESSAGES,
   LEADERBOARD, MENTAL_DOJO_COURSES, TUTOR_REELS,
+  QUESTION_BANK,
 } from './demo-data'
+import type { BankQuestion } from './demo-data'
 
 // Re-export TUTOR_LIST for the interceptor since it's computed in demo-data
 // Actually we need to compute it here since demo-data doesn't export it
@@ -37,6 +39,44 @@ export function enableDemoMode(): void {
 export function disableDemoMode(): void {
   localStorage.removeItem('demo')
   localStorage.removeItem('token')
+}
+
+// ── Exam session state ──────────────────────────────────────
+interface ExamSession {
+  id: number
+  questions: BankQuestion[]
+  answers: Record<number, { marks_awarded: number; marks_available: number }>
+  started_at: string
+}
+const examSessions: Record<number, ExamSession> = {}
+let nextExamId = 1
+
+/** Shuffle array in place (Fisher-Yates) and return it */
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
+/** Simple keyword match: how many mark-scheme points does the answer hit? */
+function scoreStructured(answer: string, markScheme: string[]): number {
+  const normalised = answer.toLowerCase()
+  let hits = 0
+  for (const point of markScheme) {
+    // Extract key phrases (words between the semicolon-terminated point)
+    const keywords = point
+      .replace(/;$/, '')
+      .toLowerCase()
+      .split(/\s*[\/,]\s*/)
+      .map((k) => k.trim())
+      .filter((k) => k.length > 3)
+    if (keywords.some((kw) => normalised.includes(kw))) {
+      hits++
+    }
+  }
+  return hits
 }
 
 /** Tiny helper – wraps value in { data: value } like Laravel API Resources */
@@ -182,25 +222,160 @@ export async function handleDemoRequest(
 
   // ── Exam Simulator ──────────────────────────────────────
   if (url === '/exams/start' && method === 'post') {
+    const body = JSON.parse(config.data ?? '{}')
+    const {
+      syllabus_id,
+      topic_ids,
+      question_count = 10,
+      difficulty,
+      question_types,
+    } = body as {
+      syllabus_id?: string
+      topic_ids?: string[]
+      question_count?: number
+      difficulty?: number
+      question_types?: string[]
+    }
+
+    // Filter the question bank
+    let pool: BankQuestion[] = [...QUESTION_BANK]
+    if (syllabus_id) pool = pool.filter((q) => q.syllabus_id === syllabus_id)
+    if (topic_ids && topic_ids.length > 0) pool = pool.filter((q) => topic_ids.includes(q.topic_id))
+    if (difficulty) pool = pool.filter((q) => q.difficulty <= difficulty)
+    if (question_types && question_types.length > 0) pool = pool.filter((q) => question_types.includes(q.type))
+
+    // Randomly select the requested count
+    const selected = shuffle(pool).slice(0, question_count)
+
+    const examId = nextExamId++
+    examSessions[examId] = {
+      id: examId,
+      questions: selected,
+      answers: {},
+      started_at: new Date().toISOString(),
+    }
+
     return {
       data: ok({
-        id: 1,
-        questions: EXAM_QUESTIONS,
-        title: 'Demo Exam',
-        started_at: new Date().toISOString(),
+        id: examId,
+        questions: selected.map((q) => ({
+          id: q.id,
+          type: q.type,
+          content: q.content,
+          options: q.options ?? null,
+          marks: q.marks,
+          difficulty: q.difficulty,
+          topic_id: q.topic_id,
+          subtopic: q.subtopic,
+        })),
+        title: `CIE AS Biology — Topic ${topic_ids?.[0] ?? '1.1'}`,
+        started_at: examSessions[examId].started_at,
       }),
       status: 201,
     }
   }
   const answerMatch = url.match(/^\/exams\/(\d+)\/answer$/)
   if (answerMatch && method === 'post') {
+    const examId = Number(answerMatch[1])
+    const session = examSessions[examId]
     const body = JSON.parse(config.data ?? '{}')
-    const answer = EXAM_ANSWERS[body.question_id] ?? { is_correct: false, explanation: 'Incorrect.' }
-    return { data: answer, status: 200 }
+    const { question_id, answer } = body as { question_id: number; answer: string }
+
+    const question = (session?.questions ?? QUESTION_BANK).find((q) => q.id === question_id)
+    if (!question) {
+      return { data: { is_correct: false, marks_awarded: 0, marks_available: 1, mark_scheme: [], explanation: 'Question not found.' }, status: 200 }
+    }
+
+    let marksAwarded = 0
+    let isCorrect = false
+
+    if (question.type === 'mcq') {
+      isCorrect = answer.trim().toLowerCase() === question.correct_answer.trim().toLowerCase()
+      marksAwarded = isCorrect ? question.marks : 0
+    } else {
+      // structured / extended — keyword matching against mark scheme
+      marksAwarded = scoreStructured(answer, question.mark_scheme)
+      marksAwarded = Math.min(marksAwarded, question.marks)
+      isCorrect = marksAwarded === question.marks
+    }
+
+    // Track in session
+    if (session) {
+      session.answers[question_id] = { marks_awarded: marksAwarded, marks_available: question.marks }
+    }
+
+    return {
+      data: {
+        is_correct: isCorrect,
+        marks_awarded: marksAwarded,
+        marks_available: question.marks,
+        mark_scheme: question.mark_scheme,
+        explanation: question.explanation,
+      },
+      status: 200,
+    }
   }
   const completeMatch = url.match(/^\/exams\/(\d+)\/complete$/)
   if (completeMatch && method === 'post') {
-    return { data: { score: 72, correct: 4, total: 5, grade_prediction: 'Grade 7' }, status: 200 }
+    const examId = Number(completeMatch[1])
+    const session = examSessions[examId]
+
+    if (!session) {
+      return { data: { score: 0, total_marks: 0, percentage: 0, grade: 'U', time_taken: 0, topic_breakdown: [], weak_topics: [] }, status: 200 }
+    }
+
+    const timeTaken = Math.round((Date.now() - new Date(session.started_at).getTime()) / 1000)
+    let totalAwarded = 0
+    let totalAvailable = 0
+
+    // Per-subtopic aggregation
+    const subtopicMap: Record<string, { marks_got: number; marks_available: number }> = {}
+
+    for (const q of session.questions) {
+      const result = session.answers[q.id] ?? { marks_awarded: 0, marks_available: q.marks }
+      totalAwarded += result.marks_awarded
+      totalAvailable += result.marks_available
+
+      if (!subtopicMap[q.subtopic]) {
+        subtopicMap[q.subtopic] = { marks_got: 0, marks_available: 0 }
+      }
+      subtopicMap[q.subtopic].marks_got += result.marks_awarded
+      subtopicMap[q.subtopic].marks_available += result.marks_available
+    }
+
+    const percentage = totalAvailable > 0 ? Math.round((totalAwarded / totalAvailable) * 100) : 0
+    let grade: string
+    if (percentage >= 80) grade = 'A'
+    else if (percentage >= 70) grade = 'B'
+    else if (percentage >= 60) grade = 'C'
+    else if (percentage >= 50) grade = 'D'
+    else if (percentage >= 40) grade = 'E'
+    else grade = 'U'
+
+    const topicBreakdown = Object.entries(subtopicMap).map(([topic, data]) => ({
+      topic,
+      marks_got: data.marks_got,
+      marks_available: data.marks_available,
+      percentage: data.marks_available > 0 ? Math.round((data.marks_got / data.marks_available) * 100) : 0,
+    }))
+
+    const weakTopics = topicBreakdown.filter((t) => t.percentage < 50).map((t) => t.topic)
+
+    // Clean up the session
+    delete examSessions[examId]
+
+    return {
+      data: {
+        score: totalAwarded,
+        total_marks: totalAvailable,
+        percentage,
+        grade,
+        time_taken: timeTaken,
+        topic_breakdown: topicBreakdown,
+        weak_topics: weakTopics,
+      },
+      status: 200,
+    }
   }
 
   // ── Knowledge Map ───────────────────────────────────────
