@@ -15,6 +15,7 @@ import {
   COMPETITIONS, COMPETITION_LEADERBOARD,
   STUDY_COACH_DATA,
   STUDY_SCHEDULE,
+  PARENT_DASHBOARD_DATA,
 } from './demo-data'
 import type { BankQuestion, ForumThread, ForumReply, StudyGroup, StudyGroupMessage, Competition } from './demo-data'
 
@@ -36,14 +37,21 @@ export function isDemoMode(): boolean {
   return localStorage.getItem('demo') === 'true' || localStorage.getItem('demo-mode') === 'true'
 }
 
-export function enableDemoMode(): void {
+export function enableDemoMode(role: string = 'student'): void {
   localStorage.setItem('demo', 'true')
   localStorage.setItem('demo-mode', 'true')
-  localStorage.setItem('token', 'demo-token-mentivara-student')
+  localStorage.setItem('demo-role', role)
+  localStorage.setItem('token', `demo-token-mentivara-${role}`)
+}
+
+export function getDemoRole(): string {
+  return localStorage.getItem('demo-role') || 'student'
 }
 
 export function disableDemoMode(): void {
   localStorage.removeItem('demo')
+  localStorage.removeItem('demo-mode')
+  localStorage.removeItem('demo-role')
   localStorage.removeItem('token')
 }
 
@@ -705,6 +713,11 @@ export async function handleDemoRequest(
   // ── Study Optimizer ────────────────────────────────────────
   if (url === '/study-optimizer/generate' && method === 'post') {
     return { data: ok(STUDY_SCHEDULE), status: 200 }
+  }
+
+  // ── Parent Dashboard ───────────────────────────────────────
+  if (url === '/parent/dashboard' && method === 'get') {
+    return { data: ok(PARENT_DASHBOARD_DATA), status: 200 }
   }
 
   // ── Catch-all: return empty success ─────────────────────

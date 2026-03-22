@@ -6,7 +6,7 @@ import { TUTOR_REELS } from '../services/demo-data'
 import {
   BookOpen, Search, CreditCard, GraduationCap, Brain, HelpCircle,
   Dumbbell, MessageSquare, Shield, Users, UsersRound, Trophy, Flame, Clapperboard, Target,
-  Play, ChevronRight, ChevronLeft, Sparkles, Clock,
+  Play, ChevronRight, ChevronLeft, Sparkles, Clock, BarChart3,
 } from 'lucide-react'
 
 interface CardProps {
@@ -273,8 +273,15 @@ export default function Dashboard() {
 
         {user?.role === 'parent' && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 [&>*]:min-w-0">
+            <DashCard to="/parent-dashboard" icon={BarChart3} title="Child's Progress" desc="Lessons, homework, and performance"
+              accent="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:border-purple-300 dark:from-purple-900/20 dark:to-violet-900/20 dark:border-purple-700" iconBg="bg-purple-100 text-[#7C3AED]"
+              stat="72%" statLabel="Progress" />
             <DashCard to="/lessons" icon={BookOpen} title="Lessons" desc="View your child's lessons"
-              accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]" />
+              accent="bg-white border-slate-200 hover:border-[#7C3AED]/30" iconBg="bg-[#EDE9FE] text-[#7C3AED]"
+              stat="3/4" statLabel="This week" />
+            <DashCard to="/messages/conversations" icon={MessageSquare} title="Messages" desc="Chat with tutors"
+              accent="bg-white border-slate-200 hover:border-indigo-300" iconBg="bg-indigo-100 text-indigo-600"
+              stat="2" statLabel="Unread" />
             <DashCard to="/payments" icon={CreditCard} title="Payments" desc="View payment history"
               accent="bg-white border-slate-200 hover:border-slate-300" iconBg="bg-slate-100 text-slate-600" />
           </div>

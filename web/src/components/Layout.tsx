@@ -60,7 +60,9 @@ export default function Layout({ children }: Props) {
 
   const parentNav = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/parent-dashboard', icon: Brain, label: "Child's Progress" },
     { to: '/lessons', icon: BookOpen, label: 'Lessons' },
+    { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
     { to: '/payments', icon: CreditCard, label: 'Payments' },
   ]
 

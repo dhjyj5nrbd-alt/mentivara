@@ -33,6 +33,7 @@ import AdminPayments from './pages/admin/AdminPayments'
 import Competitions from './pages/Competitions'
 import StudyCoach from './pages/StudyCoach'
 import StudyOptimizer from './pages/StudyOptimizer'
+import ParentDashboard from './pages/ParentDashboard'
 
 const queryClient = new QueryClient()
 
@@ -79,6 +80,7 @@ function AppRoutes() {
       <Route path="/study-coach" element={<ProtectedRoute roles={['student']}><StudyCoach /></ProtectedRoute>} />
       <Route path="/study-optimizer" element={<ProtectedRoute roles={['student']}><StudyOptimizer /></ProtectedRoute>} />
       <Route path="/messages/conversations" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+      <Route path="/parent-dashboard" element={<ProtectedRoute roles={['parent']}><ParentDashboard /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
