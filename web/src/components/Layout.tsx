@@ -6,7 +6,7 @@ import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
   LayoutDashboard, MessageSquare, Users, UsersRound, Dumbbell, Clapperboard, Target,
   LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon, Sparkles, Clock, Calendar, Upload, UserCheck,
-  Flag, BarChart3,
+  Flag, BarChart3, Receipt,
 } from 'lucide-react'
 
 interface Props {
@@ -53,6 +53,7 @@ export default function Layout({ children }: Props) {
     { to: '/tutor/reels', icon: Upload, label: 'My Reels' },
     { to: '/tutor/questions', icon: HelpCircle, label: 'Question Bank' },
     { to: '/tutor/earnings', icon: CreditCard, label: 'Earnings' },
+    { to: '/tutor/tax', icon: Receipt, label: 'Tax & Invoicing' },
     { to: '/messages/conversations', icon: MessageSquare, label: 'Messages' },
   ]
 
