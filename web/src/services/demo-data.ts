@@ -2286,6 +2286,14 @@ export const DEMO_TUTOR_USER = {
   status: 'active',
 }
 
+export const DEMO_ADMIN_USER = {
+  id: 300,
+  name: 'Admin User',
+  email: 'admin@demo.mentivara.com',
+  role: 'admin' as const,
+  status: 'active',
+}
+
 export const PARENT_DASHBOARD_DATA = {
   child: {
     id: 1,

@@ -6,6 +6,7 @@ import {
   BookOpen, GraduationCap, CreditCard, Search, Brain, HelpCircle,
   LayoutDashboard, MessageSquare, Users, UsersRound, Dumbbell, Clapperboard, Target,
   LogOut, Shield, Menu, X, MoreHorizontal, Sun, Moon, Sparkles, Clock, Calendar, Upload, UserCheck,
+  Flag, BarChart3,
 } from 'lucide-react'
 
 interface Props {
@@ -56,11 +57,12 @@ export default function Layout({ children }: Props) {
   ]
 
   const adminNav = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/admin', icon: Shield, label: 'Admin Panel' },
+    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/tutors-pending', icon: GraduationCap, label: 'Pending' },
+    { to: '/admin/tutors-pending', icon: GraduationCap, label: 'Pending Tutors' },
     { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
+    { to: '/admin/moderation', icon: Flag, label: 'Moderation' },
+    { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   ]
 
   const parentNav = [

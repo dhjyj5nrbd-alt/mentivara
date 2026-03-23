@@ -30,6 +30,8 @@ import StudyMissions from './pages/StudyMissions'
 import Forum from './pages/Forum'
 import StudyGroups from './pages/StudyGroups'
 import AdminPayments from './pages/admin/AdminPayments'
+import AdminContentModeration from './pages/admin/AdminContentModeration'
+import AdminAnalytics from './pages/admin/AdminAnalytics'
 import Competitions from './pages/Competitions'
 import StudyCoach from './pages/StudyCoach'
 import StudyOptimizer from './pages/StudyOptimizer'
@@ -100,6 +102,8 @@ function AppRoutes() {
       <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
       <Route path="/admin/tutors-pending" element={<ProtectedRoute roles={['admin']}><PendingTutors /></ProtectedRoute>} />
       <Route path="/admin/payments" element={<ProtectedRoute roles={['admin']}><AdminPayments /></ProtectedRoute>} />
+      <Route path="/admin/moderation" element={<ProtectedRoute roles={['admin']}><AdminContentModeration /></ProtectedRoute>} />
+      <Route path="/admin/analytics" element={<ProtectedRoute roles={['admin']}><AdminAnalytics /></ProtectedRoute>} />
     </Routes>
   )
 }
